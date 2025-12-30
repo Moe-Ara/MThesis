@@ -1,0 +1,16 @@
+[project]
+name = "thesis"
+version = "0.1.0"
+description = "Agents and utilities for building datasets and generating Wazuh rules."
+readme = "explanation.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "torch>=2.1",
+    "transformers>=4.40.0",
+    "peft>=0.5.0",
+]
+dynamic = ["scripts"]
+
+[project.scripts]
+thesis = "thesis.app:main"

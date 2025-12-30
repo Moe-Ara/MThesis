@@ -1,0 +1,24 @@
+[
+  {
+    "id": "1764529142.573929",
+    "timestamp": "2025-11-30T18:59:02.489+0000",
+    "rule": {
+      "level": 3,
+      "description": "Application installed Product: Neovim -- Installation completed successfully..",
+      "id": "60612",
+      "firedtimes": 3,
+      "mail": false,
+      "groups": [
+        "windows",
+        "windows_application"
+      ]
+    },
+    "agent": {
+      "id": "002",
+      "name": "Windows",
+      "ip": "192.168.178.110"
+    },
+    "location": "EventChannel",
+    "full_log": ""
+  }
+]

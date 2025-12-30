@@ -1,0 +1,45 @@
+[
+  {
+    "dataset_id": "1764529116.550717",
+    "detection_goal": "Catch when PowerShell spawns a script/executable child (bat/cmd/ps1/exe/dll) instead of benign Explorer launches.",
+    "completion": "<group name=\"custom_sysmon_rules,process_injection,lab\"><rule id=\"100601\" level=\"12\"><if_group>sysmon</if_group><field name=\"win.eventdata.parentImage\">*\\\\powershell.exe</field><match>*.{bat,cmd,ps1,exe,dll}</match><description>Lab: PowerShell launched a suspicious script/executable child</description><group>sysmon,windows,lab_suspicious_child,</group></rule></group>"
+  },
+  {
+    "dataset_id": "1764529175.585451",
+    "detection_goal": "Alert when a Windows user logs in from multiple remote locations rapidly or when successful logons are preceded by frequent failures.",
+    "completion": "<group name=\"custom_windows_rules,authentication\"><rule id=\"100602\" level=\"12\"><if_group>windows_security</if_group><frequency>5</frequency><timeframe>3600</timeframe><description>Lab: Frequent/failing logons indicating possible credential abuse</description><group>authentication_success,lab_risky_logon,</group></rule></group>"
+  },
+  {
+    "dataset_id": "1764529376.615075",
+    "detection_goal": "Flag when sudo to root runs operations like service restarts that could indicate lateral movement or post-exploitation activity.",
+    "completion": "<group name=\"local,sudo,privilege_escalation\"><rule id=\"100603\" level=\"12\"><if_group>sudo</if_group><match>COMMAND=.*systemctl restart</match><description>Lab: root invoked via sudo to restart services after compromise</description><group>sudo,lab_root_use,</group></rule></group>"
+  },
+  {
+    "dataset_id": "1764529142.573929",
+    "detection_goal": "Detect installs of developer tools (e.g., Neovim) that occur without change control, especially when they follow suspicious activity.",
+    "completion": "<group name=\"local,software_install,windows\"><rule id=\"100604\" level=\"8\"><if_group>windows_application</if_group><match>Neovim</match><description>Lab: Unapproved Neovim install detected</description><group>software_install,lab_neovim,</group></rule></group>"
+  },
+  {
+    "dataset_id": "1764619838.1487638",
+    "detection_goal": "Alert when CIS check reports Remote Shell Access set to Enabled instead of Disabled.",
+    "completion": "<group name=\"custom_windows_rules,compliance\"><rule id=\"100605\" level=\"10\"><if_group>sca</if_group><match>AllowRemoteShellAccess</match><description>Lab: Remote Shell Access should remain disabled per CIS guidance</description><group>sca,compliance</group></rule></group>"
+  }
+,
+  {
+    "dataset_id": "1764536235.1042430",
+    "detection_goal": "Detect SSH successes from new or infrequent remote hosts that could signal persistent access beyond normal VPN endpoints.",
+    "completion": "<group name=\"local,ssh,authentication\"><rule id=\"100606\" level=\"11\"><if_group>sshd</if_group><match>Accepted publickey</match><description>Lab: SSH auth success from unfamiliar remote source</description><group>ssh,lab_unusual_auth,</group></rule></group>"
+  }
+,
+  {
+    "dataset_id": "1764529173.579879",
+    "detection_goal": "Catch files dropped into directories commonly abused by malware (malicious payloads in suspicious folders).",
+    "completion": "<group name=\"custom_windows_rules,syscheck\"><rule id=\"100607\" level=\"13\"><if_group>syscheck</if_group><match>folder commonly used by malware</match><description>Lab: Executable dropped in high-risk directory</description><group>syscheck,lab_bad_drop,</group></rule></group>"
+  }
+,
+  {
+    "dataset_id": "1764529397.618093",
+    "detection_goal": "Flag rootcheck alerts showing Trojaned system utilities to distinguish malicious from benign rootcheck noise.",
+    "completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100608\" level=\"11\"><if_group>rootcheck</if_group><match>Trojaned version of file '/bin/diff' detected</match><description>Lab: Rootcheck flagged trojaned /bin/diff</description><group>rootcheck,lab_trojan,</group></rule></group>"
+  }
+]

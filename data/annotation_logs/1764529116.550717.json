@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1764529116.550717",
+    "timestamp": "2025-11-30T18:58:36.730+0000",
+    "rule": {
+      "level": 12,
+      "description": "Sysmon - Suspicious Process - explorer.exe",
+      "id": "61640",
+      "mitre": {
+        "id": [
+          "T1055"
+        ],
+        "tactic": [
+          "Defense Evasion",
+          "Privilege Escalation"
+        ],
+        "technique": [
+          "Process Injection"
+        ]
+      },
+      "firedtimes": 1,
+      "mail": true,
+      "groups": [
+        "windows",
+        "sysmon",
+        "sysmon_process-anomalies"
+      ],
+      "pci_dss": [
+        "10.6.1",
+        "11.4"
+      ],
+      "gdpr": [
+        "IV_35.7.d"
+      ],
+      "hipaa": [
+        "164.312.b"
+      ],
+      "nist_800_53": [
+        "AU.6",
+        "SI.4"
+      ],
+      "tsc": [
+        "CC7.2",
+        "CC7.3",
+        "CC6.1",
+        "CC6.8"
+      ]
+    },
+    "agent": {
+      "id": "002",
+      "name": "Windows",
+      "ip": "192.168.178.110"
+    },
+    "location": "EventChannel",
+    "full_log": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x8000000000000000\",\"systemTime\":\"2025-11-30T18:58:33.1219819Z\",\"eventRecordID\":\"36448\",\"processID\":\"3516\",\"threadID\":\"4736\",\"channel\":\"Microsoft-Windows-Sysmon/Operational\",\"computer\":\"Windows\",\"severityValue\":\"INFORMATION\",\"message\":\"\\\"Process Create:\\r\\nRuleName: -\\r\\nUtcTime: 2025-11-30 18:58:33.113\\r\\nProcessGuid: {de4d1a0f-93d9-692c-6502-000000000d00}\\r\\nProcessId: 5920\\r\\nImage: C:\\\\Windows\\\\explorer.exe\\r\\nFileVersion: 10.0.26100.7019 (WinBuild.160101.0800)\\r\\nDescription: Windows Explorer\\r\\nProduct: Microsoft\u00ae Windows\u00ae Operating System\\r\\nCompany: Microsoft Corporation\\r\\nOriginalFileName: EXPLORER.EXE\\r\\nCommandLine: \\\"C:\\\\WINDOWS\\\\explorer.exe\\\" .\\r\\nCurrentDirectory: C:\\\\Users\\\\vboxuser\\\\\\r\\nUser: WINDOWS\\\\vboxuser\\r\\nLogonGuid: {de4d1a0f-8e7f-692c-71bf-020000000000}\\r\\nLogonId: 0x2BF71\\r\\nTerminalSessionId:"
+  }
+]

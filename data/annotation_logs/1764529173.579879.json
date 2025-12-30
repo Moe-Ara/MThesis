@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1764529173.579879",
+    "timestamp": "2025-11-30T18:59:33.133+0000",
+    "rule": {
+      "level": 15,
+      "description": "Executable file dropped in folder commonly used by malware",
+      "id": "92213",
+      "mitre": {
+        "id": [
+          "T1105"
+        ],
+        "tactic": [
+          "Command and Control"
+        ],
+        "technique": [
+          "Ingress Tool Transfer"
+        ]
+      },
+      "firedtimes": 5,
+      "mail": true,
+      "groups": [
+        "sysmon",
+        "sysmon_eid11_detections",
+        "windows"
+      ]
+    },
+    "agent": {
+      "id": "002",
+      "name": "Windows",
+      "ip": "192.168.178.110"
+    },
+    "location": "EventChannel",
+    "full_log": ""
+  }
+]

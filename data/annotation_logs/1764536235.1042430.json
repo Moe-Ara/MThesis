@@ -1,0 +1,63 @@
+[
+  {
+    "id": "1764536235.1042430",
+    "timestamp": "2025-11-30T20:57:15.512+0000",
+    "rule": {
+      "level": 3,
+      "description": "sshd: authentication success.",
+      "id": "5715",
+      "mitre": {
+        "id": [
+          "T1078",
+          "T1021"
+        ],
+        "tactic": [
+          "Defense Evasion",
+          "Persistence",
+          "Privilege Escalation",
+          "Initial Access",
+          "Lateral Movement"
+        ],
+        "technique": [
+          "Valid Accounts",
+          "Remote Services"
+        ]
+      },
+      "firedtimes": 1,
+      "mail": false,
+      "groups": [
+        "syslog",
+        "sshd",
+        "authentication_success"
+      ],
+      "gdpr": [
+        "IV_32.2"
+      ],
+      "gpg13": [
+        "7.1",
+        "7.2"
+      ],
+      "hipaa": [
+        "164.312.b"
+      ],
+      "nist_800_53": [
+        "AU.14",
+        "AC.7"
+      ],
+      "pci_dss": [
+        "10.2.5"
+      ],
+      "tsc": [
+        "CC6.8",
+        "CC7.2",
+        "CC7.3"
+      ]
+    },
+    "agent": {
+      "id": "000",
+      "name": "balanced-coonhound"
+    },
+    "location": "/var/log/auth.log",
+    "full_log": "Nov 30 20:57:15 balanced-coonhound sshd[594455]: Accepted publickey for ubuntu from 10.0.2.2 port 60551 ssh2: RSA SHA256:QG/aUKOAhUgzQeGN/NdikY8eLx8tFyAKlllDlz7U98Y"
+  }
+]

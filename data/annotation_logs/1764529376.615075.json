@@ -1,0 +1,60 @@
+[
+  {
+    "id": "1764529376.615075",
+    "timestamp": "2025-11-30T19:02:56.109+0000",
+    "rule": {
+      "level": 3,
+      "description": "Successful sudo to ROOT executed.",
+      "id": "5402",
+      "mitre": {
+        "id": [
+          "T1548.003"
+        ],
+        "tactic": [
+          "Privilege Escalation",
+          "Defense Evasion"
+        ],
+        "technique": [
+          "Sudo and Sudo Caching"
+        ]
+      },
+      "firedtimes": 2,
+      "mail": false,
+      "groups": [
+        "syslog",
+        "sudo"
+      ],
+      "pci_dss": [
+        "10.2.5",
+        "10.2.2"
+      ],
+      "gpg13": [
+        "7.6",
+        "7.8",
+        "7.13"
+      ],
+      "gdpr": [
+        "IV_32.2"
+      ],
+      "hipaa": [
+        "164.312.b"
+      ],
+      "nist_800_53": [
+        "AU.14",
+        "AC.7",
+        "AC.6"
+      ],
+      "tsc": [
+        "CC6.8",
+        "CC7.2",
+        "CC7.3"
+      ]
+    },
+    "agent": {
+      "id": "000",
+      "name": "balanced-coonhound"
+    },
+    "location": "/var/log/auth.log",
+    "full_log": "Nov 30 19:02:55 balanced-coonhound sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/systemctl restart xrdp"
+  }
+]

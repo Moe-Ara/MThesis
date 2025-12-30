@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1764529397.618093",
+    "timestamp": "2025-11-30T19:03:17.523+0000",
+    "rule": {
+      "level": 7,
+      "description": "Host-based anomaly detection event (rootcheck).",
+      "id": "510",
+      "firedtimes": 1,
+      "mail": false,
+      "groups": [
+        "ossec",
+        "rootcheck"
+      ],
+      "pci_dss": [
+        "10.6.1"
+      ],
+      "gdpr": [
+        "IV_35.7.d"
+      ]
+    },
+    "agent": {
+      "id": "000",
+      "name": "balanced-coonhound"
+    },
+    "location": "rootcheck",
+    "full_log": "Trojaned version of file '/bin/diff' detected. Signature used: 'bash|^/bin/sh|file\\.h|proc\\.h|/dev/[^n]|^/bin/.*sh' (Generic)."
+  }
+]

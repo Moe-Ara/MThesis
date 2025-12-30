@@ -1,0 +1,14 @@
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\bin\Debug\net9.0\Core.exe
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\bin\Debug\net9.0\Core.deps.json
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\bin\Debug\net9.0\Core.runtimeconfig.json
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\bin\Debug\net9.0\Core.dll
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\bin\Debug\net9.0\Core.pdb
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.AssemblyInfoInputs.cache
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.AssemblyInfo.cs
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.csproj.CoreCompileInputs.cache
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.dll
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\refint\Core.dll
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.pdb
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\Core.genruntimeconfig.cache
+C:\Users\Mohamad\PycharmProjects\Thesis\NetCore\Core\obj\Debug\net9.0\ref\Core.dll

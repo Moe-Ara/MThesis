@@ -1,0 +1,20 @@
+
+### Demo plan and defense talking points
+
+1. **Week 1 evidence:**  
+   - Show `training_annotations.json` entries, highlight the `dataset_id`, explain the detection goal, and point to the corresponding row in `data/dataset.csv`. Mention that this required me to decide what “good detection” looks like before asking the LLM.
+
+2. **Week 2 evidence:**  
+   - Run `python generate_annotation_logs.py` and open one file in `data/annotation_logs/` to show the trimmed log.  
+   - Run the optimizer command and show the JSON response with `rule_xml`, `explanation`, etc.  
+   - Highlight that every rule is tagged with tuning tips and a test plan, demonstrating the agent’s reasoning.
+
+3. **Repeatability:**  
+   - Re-running the scripts recreates the same artifacts, so the workflow is auditable. The Markdown you’re reading explains exactly where every file comes from, making the system reproducible.
+
+4. **Two-week narrative:**  
+   - Week 1 = data + manual annotations + documented prompts.  
+   - Week 2 = automation + prompt feeding + resilient client + showing the final rule outputs.  
+   - Mention that I spent time iterating the scripts (`generate_annotation_logs.py`, `llm_client.py`, `wazuh_rule_optimizer.py`) so each step is deterministic and easy to demo.
+
+This explanation is now in my own voice and lines up with the “two weeks of work” story I want to present. It lays out every file, why it exists, and how it fits into the Ollama-powered workflow. Use it to narrate the effort, show the artifacts, and prove the system produces deterministic detection rules with explainable behavior. 

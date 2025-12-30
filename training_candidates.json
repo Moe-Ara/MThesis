@@ -1,0 +1,772 @@
+[
+  {
+    "dataset_id": "1764509831.0",
+    "timestamp": "2025-11-30T13:37:11.699+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Starting rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764509832.273",
+    "timestamp": "2025-11-30T13:37:12.047+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Host-based anomaly detection event (rootcheck).",
+    "log_excerpt": "Trojaned version of file '/bin/diff' detected. Signature used: 'bash|^/bin/sh|file\\.h|proc\\.h|/dev/[^n]|^/bin/.*sh' (Generic).",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764509832.657",
+    "timestamp": "2025-11-30T13:37:12.059+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Host-based anomaly detection event (rootcheck).",
+    "log_excerpt": "Trojaned version of file '/usr/bin/diff' detected. Signature used: 'bash|^/bin/sh|file\\.h|proc\\.h|/dev/[^n]|^/bin/.*sh' (Generic).",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764509839.1049",
+    "timestamp": "2025-11-30T13:37:19.827+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session closed.",
+    "log_excerpt": "Nov 30 13:37:19 balanced-coonhound sudo: pam_unix(sudo:session): session closed for user root",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764509895.27707",
+    "timestamp": "2025-11-30T13:38:15.418+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Ending rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527752.28303",
+    "timestamp": "2025-11-30T18:35:52.197+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Starting rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.30068",
+    "timestamp": "2025-11-30T18:35:55.312+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.30068",
+    "timestamp": "2025-11-30T18:35:55.312+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.37394",
+    "timestamp": "2025-11-30T18:35:55.360+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.37394",
+    "timestamp": "2025-11-30T18:35:55.360+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.44720",
+    "timestamp": "2025-11-30T18:35:55.504+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.44720",
+    "timestamp": "2025-11-30T18:35:55.504+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.52046",
+    "timestamp": "2025-11-30T18:35:55.586+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527755.52046",
+    "timestamp": "2025-11-30T18:35:55.586+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527756.59372",
+    "timestamp": "2025-11-30T18:35:56.279+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\AarSvc_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k AarSvcGroup -p",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527756.62362",
+    "timestamp": "2025-11-30T18:35:56.438+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\BcastDVRUserService_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k BcastDVRUserService",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527756.65442",
+    "timestamp": "2025-11-30T18:35:56.609+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\BluetoothUserService_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k BthAppGroup -p",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527756.68502",
+    "timestamp": "2025-11-30T18:35:56.707+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\CaptureService_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k LocalService -p",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527756.71537",
+    "timestamp": "2025-11-30T18:35:56.843+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\cbdhsvc_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k ClipboardSvcGroup -p",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527757.74562",
+    "timestamp": "2025-11-30T18:35:57.041+0000",
+    "heuristic": "privilege_escalation",
+    "severity": "high",
+    "detection_goal": "Confirm whether this privilege escalation alert is real or just noise from scripted activity.",
+    "rule_description": "Evidence of new service creation found in registry under HKLM\\\\System\\\\CurrentControlSet\\\\Services\\\\CDPUserSvc_7aef0\\\\ImagePath binary is: C:\\\\WINDOWS\\\\system32\\\\svchost.exe -k UnistackSvcGroup",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,sudo\"><rule id=\"100658\" level=\"13\"><description>Privilege escalation activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527757.83682",
+    "timestamp": "2025-11-30T18:35:57.524+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Ending rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527760.117480",
+    "timestamp": "2025-11-30T18:36:00.148+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527763.140037",
+    "timestamp": "2025-11-30T18:36:03.407+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527773.148681",
+    "timestamp": "2025-11-30T18:36:13.650+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527776.156008",
+    "timestamp": "2025-11-30T18:36:16.780+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527779.163335",
+    "timestamp": "2025-11-30T18:36:19.958+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527786.175290",
+    "timestamp": "2025-11-30T18:36:26.398+0000",
+    "heuristic": "noise_auth_success",
+    "severity": "noise",
+    "detection_goal": "Treat this Windows authentication success as routine noise before raising the alert again.",
+    "rule_description": "Windows logon success.",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"noise\"><rule id=\"100000\" level=\"1\"><description>Routine authentication success</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527809.199829",
+    "timestamp": "2025-11-30T18:36:49.631+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Powershell process created an executable file in Windows root folder",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527816.202524",
+    "timestamp": "2025-11-30T18:36:56.784+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Powershell process created an executable file in Windows root folder",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764527835.232745",
+    "timestamp": "2025-11-30T18:37:15.578+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Powershell process created an executable file in Windows root folder",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764528714.511601",
+    "timestamp": "2025-11-30T18:51:54.708+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Powershell process created an executable file in Windows root folder",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764528719.514296",
+    "timestamp": "2025-11-30T18:51:59.223+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Powershell process created an executable file in Windows root folder",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529116.550717",
+    "timestamp": "2025-11-30T18:58:36.730+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Sysmon - Suspicious Process - explorer.exe",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529140.562289",
+    "timestamp": "2025-11-30T18:59:00.740+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "Sysmon - Suspicious Process - explorer.exe",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529142.573929",
+    "timestamp": "2025-11-30T18:59:02.489+0000",
+    "heuristic": "unsigned_install",
+    "severity": "high",
+    "detection_goal": "Treat installs without a signature or vendor stamp as high risk.",
+    "rule_description": "Application installed Product: Neovim -- Installation completed successfully..",
+    "log_excerpt": "",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100654\" level=\"12\"><description>Unsigned installer executed</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529247.612225",
+    "timestamp": "2025-11-30T19:00:47.803+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "Successful sudo to ROOT executed.",
+    "log_excerpt": "Nov 30 19:00:46 balanced-coonhound sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -f /var/ossec/logs/ossec.log",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529247.612798",
+    "timestamp": "2025-11-30T19:00:47.803+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 19:00:46 balanced-coonhound sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529358.613254",
+    "timestamp": "2025-11-30T19:02:38.092+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session closed.",
+    "log_excerpt": "Nov 30 19:02:36 balanced-coonhound sudo: pam_unix(sudo:session): session closed for user root",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529362.613643",
+    "timestamp": "2025-11-30T19:02:42.096+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "Successful sudo to ROOT executed.",
+    "log_excerpt": "Nov 30 19:02:40 balanced-coonhound sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/vim /var/ossec/etc/rules/local_rules.xml",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529362.614230",
+    "timestamp": "2025-11-30T19:02:42.096+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 19:02:40 balanced-coonhound sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529368.614686",
+    "timestamp": "2025-11-30T19:02:48.104+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session closed.",
+    "log_excerpt": "Nov 30 19:02:47 balanced-coonhound sudo: pam_unix(sudo:session): session closed for user root",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529376.615075",
+    "timestamp": "2025-11-30T19:02:56.109+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "Successful sudo to ROOT executed.",
+    "log_excerpt": "Nov 30 19:02:55 balanced-coonhound sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/systemctl restart xrdp",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529376.615626",
+    "timestamp": "2025-11-30T19:02:56.109+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 19:02:55 balanced-coonhound sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529378.616401",
+    "timestamp": "2025-11-30T19:02:58.111+0000",
+    "heuristic": "root_execution",
+    "severity": "critical",
+    "detection_goal": "High alert when root executes a program—track what commands are being issued as root.",
+    "rule_description": "PAM: Login session closed.",
+    "log_excerpt": "Nov 30 19:02:56 balanced-coonhound sudo: pam_unix(sudo:session): session closed for user root",
+    "example_completion": "<group name=\"custom_unix_rules,root\"><rule id=\"100652\" level=\"13\"><description>Program execution as root</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529397.617815",
+    "timestamp": "2025-11-30T19:03:17.155+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Starting rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529397.618093",
+    "timestamp": "2025-11-30T19:03:17.523+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Host-based anomaly detection event (rootcheck).",
+    "log_excerpt": "Trojaned version of file '/bin/diff' detected. Signature used: 'bash|^/bin/sh|file\\.h|proc\\.h|/dev/[^n]|^/bin/.*sh' (Generic).",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529397.618480",
+    "timestamp": "2025-11-30T19:03:17.544+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Host-based anomaly detection event (rootcheck).",
+    "log_excerpt": "Trojaned version of file '/usr/bin/diff' detected. Signature used: 'bash|^/bin/sh|file\\.h|proc\\.h|/dev/[^n]|^/bin/.*sh' (Generic).",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764529455.619523",
+    "timestamp": "2025-11-30T19:04:15.173+0000",
+    "heuristic": "rootcheck_trojan",
+    "severity": "high",
+    "detection_goal": "Treat Trojaned system utilities flagged by rootcheck as high-risk detections.",
+    "rule_description": "Lab: Potential ransomware – high rate of file modifications",
+    "log_excerpt": "Ending rootcheck scan.",
+    "example_completion": "<group name=\"custom_rules,rootcheck\"><rule id=\"100659\" level=\"12\"><description>Rootcheck reported trojaned binary</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536235.1042430",
+    "timestamp": "2025-11-30T20:57:15.512+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "sshd: authentication success.",
+    "log_excerpt": "Nov 30 20:57:15 balanced-coonhound sshd[594455]: Accepted publickey for ubuntu from 10.0.2.2 port 60551 ssh2: RSA SHA256:QG/aUKOAhUgzQeGN/NdikY8eLx8tFyAKlllDlz7U98Y",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536235.1042953",
+    "timestamp": "2025-11-30T20:57:15.512+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 20:57:15 balanced-coonhound sshd[594455]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536235.1043416",
+    "timestamp": "2025-11-30T20:57:15.990+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "PAM: Login session closed.",
+    "log_excerpt": "Nov 30 20:57:15 balanced-coonhound sshd[594455]: pam_unix(sshd:session): session closed for user ubuntu",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536296.1043818",
+    "timestamp": "2025-11-30T20:58:16.139+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "sshd: authentication success.",
+    "log_excerpt": "Nov 30 20:58:15 balanced-coonhound sshd[594918]: Accepted publickey for ubuntu from 10.0.2.2 port 60618 ssh2: RSA SHA256:QG/aUKOAhUgzQeGN/NdikY8eLx8tFyAKlllDlz7U98Y",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536296.1044341",
+    "timestamp": "2025-11-30T20:58:16.139+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 20:58:15 balanced-coonhound sshd[594918]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536296.1044804",
+    "timestamp": "2025-11-30T20:58:16.139+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "sshd: connection reset",
+    "log_excerpt": "Nov 30 20:58:15 balanced-coonhound sshd[594919]: Connection reset by 10.0.2.2 port 60610 [preauth]",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536299.1045098",
+    "timestamp": "2025-11-30T20:58:19.072+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "sshd: authentication success.",
+    "log_excerpt": "Nov 30 20:58:18 balanced-coonhound sshd[595107]: Accepted publickey for ubuntu from 10.0.2.2 port 60631 ssh2: RSA SHA256:QG/aUKOAhUgzQeGN/NdikY8eLx8tFyAKlllDlz7U98Y",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536299.1045621",
+    "timestamp": "2025-11-30T20:58:19.072+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 20:58:18 balanced-coonhound sshd[595107]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536305.1048452",
+    "timestamp": "2025-11-30T20:58:25.602+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "sshd: authentication success.",
+    "log_excerpt": "Nov 30 20:58:24 balanced-coonhound sshd[595386]: Accepted publickey for ubuntu from 10.0.2.2 port 60637 ssh2: RSA SHA256:QG/aUKOAhUgzQeGN/NdikY8eLx8tFyAKlllDlz7U98Y",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764536305.1056193",
+    "timestamp": "2025-11-30T20:58:25.604+0000",
+    "heuristic": "remote_access",
+    "severity": "high",
+    "detection_goal": "Treat remote access sessions as high risk until verified, especially when they appear without prior authorization.",
+    "rule_description": "PAM: Login session opened.",
+    "log_excerpt": "Nov 30 20:58:24 balanced-coonhound sshd[595386]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)",
+    "example_completion": "<group name=\"local,remote_access\"><rule id=\"100660\" level=\"13\"><description>Unusual remote access activity</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531197.855951",
+    "timestamp": "2025-11-30T19:33:17.107+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"type\":\"summary\",\"scan_id\":2038946265,\"name\":\"CIS Ubuntu Linux 22.04 LTS Benchmark v1.0.0\",\"policy_id\":\"cis_ubuntu22-04\",\"file\":\"cis_ubuntu22-04.yml\",\"description\":\"This document provides prescriptiv",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531468.871531",
+    "timestamp": "2025-11-30T19:37:48.645+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"3\",\"version\":\"5\",\"level\":\"4\",\"task\":\"3\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531520.893518",
+    "timestamp": "2025-11-30T19:38:40.626+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531735.906236",
+    "timestamp": "2025-11-30T19:42:15.738+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531777.916912",
+    "timestamp": "2025-11-30T19:42:57.078+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"1\",\"version\":\"5\",\"level\":\"4\",\"task\":\"1\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764531853.916912",
+    "timestamp": "2025-11-30T19:44:13.729+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"3\",\"version\":\"5\",\"level\":\"4\",\"task\":\"3\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764532165.927791",
+    "timestamp": "2025-11-30T19:49:25.837+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "The VSS service is shutting down due to idle timeout.",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"VSS\",\"eventID\":\"8224\",\"version\":\"0\",\"level\":\"4\",\"task\":\"0\",\"opcode\":\"0\",\"keywords\":\"0x80000000000000\",\"systemTime\":\"2025-11-30T19:49:21.7721307Z\",\"eventRecordID\":\"857",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764533268.938312",
+    "timestamp": "2025-11-30T20:07:48.584+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"Microsoft-Windows-Sysmon\",\"providerGuid\":\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\",\"eventID\":\"3\",\"version\":\"5\",\"level\":\"4\",\"task\":\"3\",\"opcode\":\"0\",\"keywords\":\"0x800000",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764534801.976443",
+    "timestamp": "2025-11-30T20:33:21.083+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"data\":{\"argvs\":null,\"checksum\":\"2f46b9a4d0d0cae3bf0972eaf0b18888aff04836\",\"cmd\":\"/snap/firefox/7423/usr/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:48103 -prefMapHandle 1:273426 -j",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764534802.976443",
+    "timestamp": "2025-11-30T20:33:22.051+0000",
+    "heuristic": "ssl_usage",
+    "severity": "medium",
+    "detection_goal": "Investigate SSL/TLS usage that might be hiding command-and-control or data exfiltration.",
+    "rule_description": "",
+    "log_excerpt": "{\"data\":{\"argvs\":null,\"checksum\":\"044338d1bf35cd7ca2dd78874d2b632f56167dea\",\"cmd\":\"/var/ossec/bin/wazuh-db\",\"egroup\":\"wazuh\",\"euser\":\"wazuh\",\"fgroup\":\"wazuh\",\"name\":\"wazuh-db\",\"nice\":0,\"nlwp\":12,\"pgrp",
+    "example_completion": "<group name=\"custom_windows_rules,network\"><rule id=\"100651\" level=\"10\"><description>Unusual SSL/TLS traffic</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619834.21851",
+    "timestamp": "2025-12-01T20:10:34.968+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Password must meet complexity requirements' is set to 'Enabled'.",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26004,\"title\":\"Ensure 'Password must meet complexi",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619835.100158",
+    "timestamp": "2025-12-01T20:10:35.144+0000",
+    "heuristic": "signed_install",
+    "severity": "medium",
+    "detection_goal": "Signed installs are mid/low priority but worth auditing for unexpected binaries.",
+    "rule_description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Domain member: Digitally sign secure channel data (when possible)' is set to 'Enabled'.",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26021,\"title\":\"Ensure 'Domain member: Digitally si",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100655\" level=\"8\"><description>Signed installer seen</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619835.193940",
+    "timestamp": "2025-12-01T20:10:35.360+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Network access: Allow anonymous SID/Name translation' is set to 'Disabled'.",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26042,\"title\":\"Ensure 'Network access: Allow anony",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619835.268627",
+    "timestamp": "2025-12-01T20:10:35.568+0000",
+    "heuristic": "signed_install",
+    "severity": "medium",
+    "detection_goal": "Signed installs are mid/low priority but worth auditing for unexpected binaries.",
+    "rule_description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Network security: LDAP client signing requirements' is set to 'Negotiate signing' or higher.",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26061,\"title\":\"Ensure 'Network security: LDAP clie",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100655\" level=\"8\"><description>Signed installer seen</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619838.1453671",
+    "timestamp": "2025-12-01T20:10:38.842+0000",
+    "heuristic": "powershell_usage",
+    "severity": "high",
+    "detection_goal": "Flag PowerShell activity, since PowerShell usage often indicates script-based abuse in your environment.",
+    "rule_description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Turn on PowerShell Script Block Logging' is set to 'Enabled'.",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26375,\"title\":\"Ensure 'Turn on PowerShell Script B",
+    "example_completion": "<group name=\"custom_sysmon_rules,process_injection\"><rule id=\"100650\" level=\"12\"><description>Suspicious PowerShell invocation</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619848.1540855",
+    "timestamp": "2025-12-01T20:10:48.292+0000",
+    "heuristic": "signed_install",
+    "severity": "medium",
+    "detection_goal": "Signed installs are mid/low priority but worth auditing for unexpected binaries.",
+    "rule_description": "",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26021,\"title\":\"Ensure 'Domain member: Digitally si",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100655\" level=\"8\"><description>Signed installer seen</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764619848.1540855",
+    "timestamp": "2025-12-01T20:10:48.709+0000",
+    "heuristic": "signed_install",
+    "severity": "medium",
+    "detection_goal": "Signed installs are mid/low priority but worth auditing for unexpected binaries.",
+    "rule_description": "",
+    "log_excerpt": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26061,\"title\":\"Ensure 'Network security: LDAP clie",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100655\" level=\"8\"><description>Signed installer seen</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764620451.1650251",
+    "timestamp": "2025-12-01T20:20:51.001+0000",
+    "heuristic": "unsigned_install",
+    "severity": "high",
+    "detection_goal": "Treat installs without a signature or vendor stamp as high risk.",
+    "rule_description": "Application installed Product: Suricata IDS/IPS 8.0.2-1-64bit -- Installation completed successfully..",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"MsiInstaller\",\"eventID\":\"11707\",\"version\":\"0\",\"level\":\"4\",\"task\":\"0\",\"opcode\":\"0\",\"keywords\":\"0x80000000000000\",\"systemTime\":\"2025-12-01T20:20:50.3407884Z\",\"eventReco",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100654\" level=\"12\"><description>Unsigned installer executed</description></rule></group>"
+  },
+  {
+    "dataset_id": "1764798749.639335",
+    "timestamp": "2025-12-03T21:52:29.540+0000",
+    "heuristic": "unsigned_install",
+    "severity": "high",
+    "detection_goal": "Treat installs without a signature or vendor stamp as high risk.",
+    "rule_description": "Application installed Product: vs_CoreEditorFonts -- Installation completed successfully..",
+    "log_excerpt": "{\"win\":{\"system\":{\"providerName\":\"MsiInstaller\",\"eventID\":\"11707\",\"version\":\"0\",\"level\":\"4\",\"task\":\"0\",\"opcode\":\"0\",\"keywords\":\"0x80000000000000\",\"systemTime\":\"2025-12-03T21:52:29.4943166Z\",\"eventReco",
+    "example_completion": "<group name=\"local,software_install\"><rule id=\"100654\" level=\"12\"><description>Unsigned installer executed</description></rule></group>"
+  }
+]

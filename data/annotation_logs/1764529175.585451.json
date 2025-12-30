@@ -1,0 +1,61 @@
+[
+  {
+    "id": "1764529175.585451",
+    "timestamp": "2025-11-30T18:59:35.779+0000",
+    "rule": {
+      "level": 3,
+      "description": "Windows logon success.",
+      "id": "60106",
+      "mitre": {
+        "id": [
+          "T1078"
+        ],
+        "tactic": [
+          "Defense Evasion",
+          "Persistence",
+          "Privilege Escalation",
+          "Initial Access"
+        ],
+        "technique": [
+          "Valid Accounts"
+        ]
+      },
+      "firedtimes": 50,
+      "mail": false,
+      "groups": [
+        "windows",
+        "windows_security",
+        "authentication_success"
+      ],
+      "gdpr": [
+        "IV_32.2"
+      ],
+      "gpg13": [
+        "7.1",
+        "7.2"
+      ],
+      "hipaa": [
+        "164.312.b"
+      ],
+      "nist_800_53": [
+        "AC.7",
+        "AU.14"
+      ],
+      "pci_dss": [
+        "10.2.5"
+      ],
+      "tsc": [
+        "CC6.8",
+        "CC7.2",
+        "CC7.3"
+      ]
+    },
+    "agent": {
+      "id": "002",
+      "name": "Windows",
+      "ip": "192.168.178.110"
+    },
+    "location": "EventChannel",
+    "full_log": ""
+  }
+]

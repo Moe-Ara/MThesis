@@ -1,0 +1,101 @@
+<!-- Local custom rules -->
+
+<group name="local,syslog,sshd,">
+  <!-- Example SSH brute force rule -->
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+</group>
+
+
+<!-- ====================== -->
+<!--   CUSTOM SYSMon Rules  -->
+<!-- ====================== -->
+
+<group name="custom_rules,sysmon,windows,">
+>
+
+  <!-- 100501: PowerShell dropped script in Temp (Sysmon EID 11) -->
+  <rule id="100501" level="10">
+    <if_group>sysmon_eid11_detections</if_group>
+    <field name="win.eventdata.image">C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe</field>
+    <!-- simple substring match instead of regex -->
+    <match>__PSScriptPolicyTest_</match>
+    <description>Lab: PowerShell dropped temporary script in user Temp folder</description>
+    <group>sysmon,windows,lab_powershell_temp,</group>
+  </rule>
+
+  <!-- 100502: Suspicious PowerShell usage (TEMP: no regex to keep manager happy) -->
+  <rule id="100502" level="10">
+    <if_sid>61602</if_sid>
+    <!-- just check that powershell.exe is in the log -->
+    <match>powershell.exe</match>
+    <description>Lab: Suspicious PowerShell command (simple match version)</description>
+    <group>sysmon,windows,lab_powershell,</group>
+  </rule>
+
+  <!-- 100503: Windows Defender events -->
+  <rule id="100503" level="12">
+    <if_group>windows</if_group>
+    <field name="win.system.providerName">Microsoft-Windows-Windows Defender</field>
+    <description>Lab: Windows Defender event detected on endpoint</description>
+    <group>windows,defender,lab_defender,</group>
+  </rule>
+
+  <!-- 100504: Ransomware - too many FIM events -->
+  <rule id="100504" level="10">
+    <if_group>syscheck</if_group>
+    <description>Lab: Potential ransomware – high rate of file modifications</description>
+    <group>ransomware,lab_fim,</group>
+  </rule>
+
+</group>
+<group name="sysmon,">
+
+ <rule id="255000" level="12">
+
+ <if_group>sysmon_event1</if_group>
+
+ <field name="sysmon.image">\\powershell.exe||\\.ps1||\\.ps2</field>
+
+ <description>Sysmon - Event 1: Bad exe: $(sysmon.image)</description>
+
+ <group>sysmon_event1,powershell_execution,</group>
+
+ </rule>
+
+</group>
+<group name="custom_sysmon_rules,">
+
+  <!-- Lab: Notepad process created (Sysmon Event ID 1) -->
+
+  <rule id="100500" level="5">
+
+    <!-- Match all Sysmon events -->
+
+    <if_group>sysmon</if_group>
+
+
+
+    <!-- Restrict to process creation events -->
+
+    <field name="win.system.eventID">13</field>
+    <match>Notepad.exe</match>
+
+
+    <!-- Only when the original file name is NOTEPAD.EXE -->
+
+    <field name="win.eventdata.originalFileName">NOTEPAD.EXE</field>
+
+
+
+    <description>Lab: Notepad process created (Sysmon EID 1)</description>
+
+    <group>sysmon,windows,lab_notepad,</group>
+
+  </rule>
+
+</group>

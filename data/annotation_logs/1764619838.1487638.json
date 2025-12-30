@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1764619838.1487638",
+    "timestamp": "2025-12-01T20:10:38.935+0000",
+    "rule": {
+      "level": 7,
+      "description": "CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0: Ensure 'Allow Remote Shell Access' is set to 'Disabled'.",
+      "id": "19007",
+      "firedtimes": 262,
+      "mail": false,
+      "groups": [
+        "sca"
+      ],
+      "gdpr": [
+        "IV_35.7.d"
+      ],
+      "pci_dss": [
+        "2.2",
+        "4.1"
+      ],
+      "nist_800_53": [
+        "CM.1",
+        "SC.8"
+      ],
+      "tsc": [
+        "CC7.1",
+        "CC7.2",
+        "CC6.1",
+        "CC6.7",
+        "CC7.2"
+      ],
+      "cis": [
+        "18.9.103.1"
+      ],
+      "hipaa": [
+        "164.312.a.2.IV",
+        "164.312.e.1",
+        "164.312.e.2.I",
+        "164.312.e.2.II"
+      ]
+    },
+    "agent": {
+      "id": "003",
+      "name": "WindowsDaily",
+      "ip": "192.168.178.94"
+    },
+    "location": "sca",
+    "full_log": "{\"type\":\"check\",\"id\":1698794050,\"policy\":\"CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0\",\"policy_id\":\"cis_win11_enterprise_21H2\",\"check\":{\"id\":26384,\"title\":\"Ensure 'Allow Remote Shell Access' is set to 'Disabled'.\",\"description\":\"This policy setting allows you to manage configuration of remote access to all supported shells to execute scripts and commands. The recommended state for this setting is: Disabled. Note: The GPME help text for this setting is incorrectly worded, implying that configuring it to Enabled will reject new Remote Shell connections, and setting it to Disabled will allow Remote Shell connections. The opposite is true (and is consistent with the title of the setting). This is a wording mistake by Microsoft in the Administrative Template.\",\"rationale\":\"Any feature is a potential avenue of attack, those that enable inbound network connections are particularly risky. Only enable the use of the Windows Remote Shell on trusted networks and when feasible employ additional controls such as "
+  }
+]
