@@ -1,0 +1,23 @@
+[
+  {
+    "userId": "u-1001",
+    "username": "admin",
+    "privileged": true,
+    "department": "IT",
+    "isServiceAccount": false
+  },
+  {
+    "userId": "u-2002",
+    "username": "svc-backup",
+    "privileged": true,
+    "department": "Ops",
+    "isServiceAccount": true
+  },
+  {
+    "userId": "u-3003",
+    "username": "alice",
+    "privileged": false,
+    "department": "Sales",
+    "isServiceAccount": false
+  }
+]

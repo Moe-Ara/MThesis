@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Interfaces;
 
-namespace Core.Pipeline
+namespace Core.NormalizationPipeline
 {
     public sealed class BasicAlertValidator : IAlertValidator
     {

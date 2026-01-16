@@ -20,6 +20,8 @@ public static class ActionCatalogDefaults
             [ActionType.UnisolateHost] = new(ActionType.UnisolateHost, false, false, 15, 10, new[] { "hostname", "host_id" }),
             [ActionType.DisableUser] = new(ActionType.DisableUser, true, true, 65, 50, new[] { "username", "user_id" }),
             [ActionType.EnableUser] = new(ActionType.EnableUser, false, false, 15, 10, new[] { "username", "user_id" }),
+            [ActionType.KillProcess] = new(ActionType.KillProcess, false, true, 85, 85, new[] { "hostId", "hostname", "processName", "pid" }),
+            [ActionType.QuarantineFile] = new(ActionType.QuarantineFile, false, true, 85, 85, new[] { "hostId", "fileHash", "filePath" }),
             [ActionType.OpenTicket] = new(ActionType.OpenTicket, false, false, 5, 5),
             [ActionType.Notify] = new(ActionType.Notify, false, false, 5, 5),
             [ActionType.CollectForensics] = new(ActionType.CollectForensics, false, true, 35, 20),

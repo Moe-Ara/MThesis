@@ -1,6 +1,13 @@
-﻿namespace Core;
+using System;
 
-public class EnrichedEvent
+namespace Core;
+
+public sealed class EnrichedEvent
 {
-    
+    public EnrichedAlert Alert { get; }
+
+    public EnrichedEvent(EnrichedAlert alert)
+    {
+        Alert = alert ?? throw new ArgumentNullException(nameof(alert));
+    }
 }

@@ -68,6 +68,15 @@ namespace Core.NormalizationPipeline
             return normalized;
         }
 
+        public async Task<EnrichedAlert> ProcessAsync(RawAlert raw, CancellationToken ct = default)
+        {
+            if (raw is null) throw new ArgumentNullException(nameof(raw));
+            ct.ThrowIfCancellationRequested();
+
+            var normalized = Normalize(raw);
+            return await EnrichAsync(normalized, ct).ConfigureAwait(false);
+        }
+
         public async Task<EnrichedAlert> EnrichAsync(NormalizedAlert normalized, CancellationToken ct)
         {
             if (normalized is null) throw new ArgumentNullException(nameof(normalized));

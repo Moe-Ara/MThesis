@@ -35,20 +35,21 @@ public sealed class PolicyEngine
         if (assessment is null) throw new ArgumentNullException(nameof(assessment));
         if (ctx is null) throw new ArgumentNullException(nameof(ctx));
 
-        var def = _catalog.Get(action.Type);
+        if (!_catalog.TryGet(action.Type, out var def))
+        {
+            return new PolicyActionDecision(
+                action,
+                PolicyActionStatus.Denied,
+                new[] { "Unknown or unsupported action type." }
+            );
+        }
 
         // --- Hard denials (no approval path) ---
         var denialReasons = new List<string>();
 
         // Required parameters check (defensive; planner should already sanitize)
-        if (def.RequiredParameters is { Count: > 0 })
-        {
-            foreach (var key in def.RequiredParameters)
-            {
-                if (!action.Parameters.TryGetValue(key, out var v) || string.IsNullOrWhiteSpace(v))
-                    denialReasons.Add($"Missing required parameter '{key}'.");
-            }
-        }
+        if (!HasRequiredParameters(action, def))
+            denialReasons.Add("Missing required parameters.");
 
         // Environment hard blocks
         if (_config.ForbiddenActionsByEnvironment.TryGetValue(ctx.Environment, out var forbidden) &&
@@ -95,10 +96,10 @@ public sealed class PolicyEngine
 
         // Risk/impact thresholds
         if (action.Risk >= _config.RiskApprovalThreshold)
-            approvalReasons.Add($"Risk {action.Risk} ≥ approval threshold {_config.RiskApprovalThreshold}.");
+            approvalReasons.Add($"Risk {action.Risk} exceeds approval threshold {_config.RiskApprovalThreshold}.");
 
         if (action.ExpectedImpact >= _config.ImpactApprovalThreshold)
-            approvalReasons.Add($"Impact {action.ExpectedImpact} ≥ approval threshold {_config.ImpactApprovalThreshold}.");
+            approvalReasons.Add($"Impact {action.ExpectedImpact} exceeds approval threshold {_config.ImpactApprovalThreshold}.");
 
         // Extra caution in production
         if (string.Equals(ctx.Environment, "prod", StringComparison.OrdinalIgnoreCase) &&
@@ -132,6 +133,33 @@ public sealed class PolicyEngine
             new[] { "Within policy limits." }
         );
     }
+
+    private static bool HasRequiredParameters(PlannedAction action, ActionDefinition def)
+    {
+        var required = def.RequiredParameters;
+        if (required is null || required.Count == 0)
+            return true;
+
+        return action.Type switch
+        {
+            ActionType.KillProcess => HasAny(action, "host_id", "hostId", "hostname") &&
+                                      HasAny(action, "process_name", "processName", "pid"),
+            ActionType.QuarantineFile => HasAny(action, "host_id", "hostId") &&
+                                         HasAny(action, "file_hash", "fileHash", "file_path", "filePath"),
+            _ => required switch
+            {
+                [ "username", "user_id" ] => HasAny(action, "username", "user_id"),
+                [ "hostname", "host_id" ] => HasAny(action, "hostname", "host_id"),
+                _ => HasAll(action, required)
+            }
+        };
+    }
+
+    private static bool HasAny(PlannedAction action, params string[] keys)
+        => keys.Any(key => action.Parameters.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value));
+
+    private static bool HasAll(PlannedAction action, IEnumerable<string> keys)
+        => keys.All(key => action.Parameters.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value));
 
     /// <summary>
     /// Evaluate a plan and create approval requests for pending actions.
@@ -186,3 +214,5 @@ public sealed class PolicyEngine
     public PolicyDecision Evaluate(DecisionPlan plan, PlanningContext ctx)
         => Evaluate(plan, new ThreatAssessment(0, 0, string.Empty, new List<string>()), alert: null, ctx);
 }
+
+

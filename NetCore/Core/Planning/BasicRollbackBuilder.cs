@@ -27,7 +27,8 @@ public sealed class BasicRollbackBuilder : IRollbackBuilder
             if (!RollbackMap.TryGetValue(action.Type, out var rollbackType))
                 continue;
 
-            var def = catalog.Get(rollbackType);
+            if (!catalog.TryGet(rollbackType, out var def))
+                continue;
             rollbacks.Add(new PlannedAction(
                 ActionId: ActionIdFactory.Create(rollbackType, action.Parameters),
                 Type: rollbackType,

@@ -1,0 +1,20 @@
+[
+  {
+    "hostId": "host-101",
+    "hostname": "srv-101",
+    "ip": "10.0.1.10",
+    "criticality": 4,
+    "environment": "prod",
+    "owner": "infra",
+    "team": "blue"
+  },
+  {
+    "hostId": "host-202",
+    "hostname": "srv-202",
+    "ip": "10.0.2.20",
+    "criticality": 2,
+    "environment": "dev",
+    "owner": "apps",
+    "team": "dev"
+  }
+]

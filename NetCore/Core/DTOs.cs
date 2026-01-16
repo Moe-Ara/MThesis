@@ -88,4 +88,5 @@ public sealed record ActionDefinition(
 public sealed record ActionCatalog(IReadOnlyDictionary<ActionType, ActionDefinition> Items)
 {
     public ActionDefinition Get(ActionType t) => Items[t];
+    public bool TryGet(ActionType t, out ActionDefinition def) => Items.TryGetValue(t, out def);
 }

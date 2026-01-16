@@ -12,22 +12,35 @@ public sealed class BasicActionSanitizer : IActionSanitizer
     {
         foreach (var a in actions)
         {
-            var required = catalog.Get(a.Type).RequiredParameters;
-            if (required is null || required.Count == 0)
+            if (!catalog.TryGet(a.Type, out var def))
+                continue;
+
+            if (HasRequiredParameters(a, def))
             {
                 yield return a;
-                continue;
             }
-
-            var ok = required switch
-            {
-                [ "username", "user_id" ] => HasAny(a, "username", "user_id"),
-                [ "hostname", "host_id" ] => HasAny(a, "hostname", "host_id"),
-                _ => HasAll(a, required)
-            };
-
-            if (ok) yield return a;
         }
+    }
+
+    private static bool HasRequiredParameters(PlannedAction action, ActionDefinition def)
+    {
+        var required = def.RequiredParameters;
+        if (required is null || required.Count == 0)
+            return true;
+
+        return action.Type switch
+        {
+            ActionType.KillProcess => HasAny(action, "host_id", "hostId", "hostname") &&
+                                      HasAny(action, "process_name", "processName", "pid"),
+            ActionType.QuarantineFile => HasAny(action, "host_id", "hostId") &&
+                                         HasAny(action, "file_hash", "fileHash", "file_path", "filePath"),
+            _ => required switch
+            {
+                [ "username", "user_id" ] => HasAny(action, "username", "user_id"),
+                [ "hostname", "host_id" ] => HasAny(action, "hostname", "host_id"),
+                _ => HasAll(action, required)
+            }
+        };
     }
 
     private static bool HasAny(PlannedAction action, params string[] keys)

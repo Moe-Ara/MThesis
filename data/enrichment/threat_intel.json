@@ -1,0 +1,16 @@
+[
+  {
+    "srcIp": "10.0.10.10",
+    "fileHash": null,
+    "reputationScore": 85,
+    "source": "local-ti",
+    "tags": [ "scanner", "botnet" ]
+  },
+  {
+    "srcIp": null,
+    "fileHash": "deadbeef",
+    "reputationScore": 95,
+    "source": "local-ti",
+    "tags": [ "malware" ]
+  }
+]

@@ -43,30 +43,54 @@ public sealed class Planner : IPlanner
         if (assessment is null) throw new ArgumentNullException(nameof(assessment));
         if (ctx is null) throw new ArgumentNullException(nameof(ctx));
 
+        var catalog = ctx.Catalog ?? _catalog;
+
         // 1) Choose strategy
         var strategy = _strategySelector.Select(alert, assessment);
 
         // 2) Select candidate actions
         var rawActions = _actionSelector
-            .SelectActions(alert, assessment, strategy, _catalog)
+            .SelectActions(alert, assessment, strategy, catalog)
             .ToList();
 
+        var knownActions = new List<PlannedAction>();
+        var unknownActions = new List<PlannedAction>();
+
+        foreach (var action in rawActions)
+        {
+            if (catalog.TryGet(action.Type, out _))
+                knownActions.Add(action);
+            else
+                unknownActions.Add(action);
+        }
+
         // 3) Estimate risk/impact and apply catalog defaults
-        var estimated = rawActions
-            .Select(a => _riskEstimator.Estimate(a, alert, assessment, _catalog))
-            .Select(a => ApplyCatalogDefaults(a))
+        var estimated = knownActions
+            .Select(a => _riskEstimator.Estimate(a, alert, assessment, catalog))
+            .Select(a => ApplyCatalogDefaults(a, catalog))
             .ToList();
 
         // 4) Sanitize (drop invalid / missing-required-params actions)
-        var sanitized = _sanitizer.Sanitize(estimated, _catalog).ToList();
+        var sanitized = _sanitizer.Sanitize(estimated, catalog).ToList();
+
+        // Preserve unknown actions for policy denial with conservative defaults.
+        var unknownWithDefaults = unknownActions
+            .Select(a => a with
+            {
+                Risk = Math.Clamp(a.Risk <= 0 ? 100 : a.Risk, 0, 100),
+                ExpectedImpact = Math.Clamp(a.ExpectedImpact <= 0 ? 100 : a.ExpectedImpact, 0, 100),
+                Reversible = false
+            })
+            .ToList();
 
         // 5) Normalize/dedupe/ordering
-        var normalized = _normalizer.Normalize(sanitized).ToList();
+        var normalized = _normalizer.Normalize(sanitized.Concat(unknownWithDefaults).ToList()).ToList();
         normalized = StableOrder(normalized);
 
         // 6) Rollback
-        var rollback = _rollbackBuilder.BuildRollback(normalized, _catalog)
-            .Where(a => _catalog.Get(a.Type).SupportsRollback) // final guard
+        var rollbackCandidates = normalized.Where(a => catalog.TryGet(a.Type, out _)).ToList();
+        var rollback = _rollbackBuilder.BuildRollback(rollbackCandidates, catalog)
+            .Where(a => catalog.TryGet(a.Type, out _)) // final guard
             .ToList();
 
         // 7) Plan metadata
@@ -85,9 +109,9 @@ public sealed class Planner : IPlanner
         );
     }
 
-    private PlannedAction ApplyCatalogDefaults(PlannedAction action)
+    private static PlannedAction ApplyCatalogDefaults(PlannedAction action, ActionCatalog catalog)
     {
-        var def = _catalog.Get(action.Type);
+        var def = catalog.Get(action.Type);
 
         // Fill missing values in a policy-friendly way
         var risk = action.Risk <= 0 ? def.DefaultRisk : action.Risk;
