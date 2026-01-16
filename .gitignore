@@ -141,4 +141,5 @@ NetCore/Core.Tests/obj/Debug/net9.0/Core.Tests.pdb
 NetCore/Core.Tests/obj/Debug/net9.0/Core.Tests.sourcelink.json
 NetCore/Core.Tests/obj/Debug/net9.0/ref/Core.Tests.dll
 NetCore/Core.Tests/obj/Debug/net9.0/refint/Core.Tests.dll
-.gitignore
+
+NetCore/Core/bin/Debug/
