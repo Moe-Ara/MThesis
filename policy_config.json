@@ -1,0 +1,34 @@
+{
+  "minConfidenceForAutonomy": 0.6,
+  "riskApprovalThreshold": 70,
+  "impactApprovalThreshold": 70,
+  "maxActionsPerPlan": 6,
+  "criticalAssetThreshold": 4,
+  "safeLowConfidenceActions": [
+    "OpenTicket",
+    "Notify"
+  ],
+  "requireApprovalInProd": [
+    "DisableUser",
+    "IsolateHost",
+    "QuarantineFile",
+    "KillProcess"
+  ],
+  "requireApprovalOnPrivilegedIdentities": [
+    "DisableUser"
+  ],
+  "requireApprovalOnCriticalAssets": [
+    "IsolateHost",
+    "DisableUser"
+  ],
+  "forbidActionsOnPrivilegedIdentities": [
+    "DisableUser"
+  ],
+  "forbidActionsOnCriticalAssets": [
+    "KillProcess",
+    "QuarantineFile"
+  ],
+  "forbiddenActionsByEnvironment": {
+    "prod": []
+  }
+}
