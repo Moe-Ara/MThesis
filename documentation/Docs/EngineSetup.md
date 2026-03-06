@@ -124,6 +124,21 @@ THREAT_SCORER_BASEURL=http://localhost:8080
 PLANNER_API_BASEURL=http://localhost:8080
 ```
 
+### BaronLLM GGUF (Ollama)
+
+Download and register the GGUF model:
+
+```
+powershell -ExecutionPolicy Bypass -File intelligence/models/download_baronllm.ps1
+powershell -ExecutionPolicy Bypass -File intelligence/ollama/create_baronllm.ps1
+```
+
+Then set:
+```
+INTEL_OLLAMA_MODEL=baronllm-q6k
+INTEL_PLANNER_OLLAMA_MODEL=baronllm-q6k
+```
+
 ### Hybrid scorer (local + Ollama fallback)
 
 The local scorer supports hybrid mode:
@@ -144,7 +159,7 @@ Behavior:
 
 ### Planner modes
 
-The planner service supports local/remote/hybrid:
+The planner service supports local/remote/ollama/hybrid:
 
 ```
 INTEL_PLANNER_MODE=local
@@ -278,4 +293,35 @@ dotnet run --project NetCore/Core/Core.csproj
 - Confirm Wazuh alert JSON fields and adjust the mapper if needed
 - Implement real integrations for ticketing/notification/firewall
 - Add enrichment data sources for assets/identities/threat intel
+
+---
+
+## 11) Training data generator
+
+A .NET tool generates scorer + planner training data from the scenario templates.
+
+Run:
+```
+dotnet run --project NetCore/Tools/TrainingDataGenerator/TrainingDataGenerator.csproj
+```
+
+Options:
+```
+--count 50000
+--seed 123
+--output-dir data/training
+--environment dev
+--include-edge
+--split 0.9,0.05,0.05
+--format both
+--augment-rate 0.15
+--augment-noise 2
+--export-hf
+--export-alpaca
+--real-alerts data/alerts.json
+```
+
+Outputs:
+- `scoring_train.jsonl`, `scoring_val.jsonl`, `scoring_test.jsonl`
+- `planning_train.jsonl`, `planning_val.jsonl`, `planning_test.jsonl`
 *** End Patch"} } as any) to=functions.apply_patch? Wait tool is apply_patch freeform. I should format as patch. Let's do proper patch. 
