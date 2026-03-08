@@ -1,0 +1,117 @@
+\chapter{System Design and Architecture}
+\label{chap:system-architecture}
+\lhead{\emph{System Design and Architecture}}
+
+% -----------------------------------------------------------------------------
+\section{Design Goals}
+
+The architecture was built around a small set of goals that reflect how SOC systems are used in practice.
+
+\textbf{Explainability first.} Every score, strategy, and action must have a reason that an analyst can read. This rules out black-box outputs and forces the system to carry evidence and rationale at every stage.
+
+\textbf{Safety before speed.} A wrong containment action can be worse than a missed alert. The design therefore enforces policy checks and approval gates before execution, even if that adds latency.
+
+\textbf{Modularity and replaceability.} Models and connectors change quickly. Each component must be swappable without rewriting the rest of the pipeline.
+
+\textbf{Runs on one machine.} The system must be runnable end-to-end on a single developer machine for demos and testing. External services are optional, not required.
+
+\textbf{Reproducibility.} Given the same input and configuration, the system should produce the same output. This requires deterministic post-processing and a clear audit trail.
+
+% -----------------------------------------------------------------------------
+\section{Key Architectural Decisions}
+
+\subsection{Modular Monolith over Multi-Agent Architecture}
+
+A multi-agent design was considered. It would split ingestion, scoring, planning, and execution into separate autonomous agents. While this can scale, it introduces distributed failure modes and makes reasoning harder to audit. In security response, accountability matters more than autonomy. For that reason, the core engine is a modular monolith with a single, synchronous pipeline. Every decision flows through one call chain that can be logged end-to-end.
+
+\subsection{Two-Process Boundary: C\# Orchestration and Python Intelligence}
+
+The system is intentionally split into two processes. The orchestrator runs in C\# (.NET) because it handles state, policy enforcement, and long-running reliability. The intelligence service runs in Python because the ML ecosystem lives there. The two communicate over HTTP with a strict JSON contract. This boundary keeps each side simple: the orchestrator stays stable, and the intelligence layer can evolve quickly.
+
+\subsection{Interface-Driven Design}
+
+Each stage is defined by an interface: connector, normalization pipeline, scorer, planner, policy engine, execution pipeline, audit logger, and case manager. This makes the
+system testable with stubs and components replaceable without modifying the orchestrator.
+
+\subsection{Policy as a Local, Synchronous Gate}
+
+Policy evaluation is inside the core engine, not a remote call. This guarantees that no action can bypass safety checks due to network failures or model errors. Hard denials are applied before any approval workflow, which prevents unsafe actions from entering the approval queue.
+
+\subsection{Structured Prediction over Free-Form Planning}
+
+Early experiments with free-form JSON planning showed two problems: invalid output and hallucinated entities. The system therefore treats planning as structured prediction. The model selects a strategy and action types, while entity parameters are filled deterministically from the normalized alert. This removes hallucination by design.
+
+% -----------------------------------------------------------------------------
+\section{System Overview}
+
+The system processes alerts in a linear pipeline:
+
+\begin{verbatim}
+Ingest -> Normalize -> Enrich -> Score -> Plan -> Policy -> Execute -> Audit
+\end{verbatim}
+
+Each stage emits structured data and is logged. The pipeline is synchronous and deterministic, which makes it easier to explain and to debug.
+
+% -----------------------------------------------------------------------------
+\section{Event Ingestion Layer}
+
+The ingestion layer pulls alerts from external SIEMs or accepts them via webhook. Two connectors are implemented: a Wazuh connector for real SIEM input and a simulator for controlled demos. Each connector outputs a \texttt{RawAlert} object with the original payload and metadata such as source, alert ID, and timestamp.
+
+% -----------------------------------------------------------------------------
+\section{Normalization and Enrichment}
+
+Normalization transforms non-uniform alert data formats to a standardized format.
+Consider the Wazuh alert format that stores the IP address of the source in data.srcip,
+and the Sentinel alert format that stores the IP address of the source as a list of
+entities. The mapping registry normalizes these differences.
+Enrichment provides contextual information like criticality of assets, threat intel hits,
+and identity privileges. These fields are optional; if an enrichment source is missing, the system continues with null values rather than failing the entire pipeline.
+
+% -----------------------------------------------------------------------------
+\section{Threat Scoring Component}
+
+The scoring stage produces a \texttt{ThreatAssessment} with severity, confidence, hypothesis, and evidence. The default scorer is a TF-IDF based classifier with calibrated confidence thresholds. A hybrid mode can add an LLM explanation when confidence is borderline. A rule-based fallback ensures that the pipeline always returns a score.
+
+The scorer is informational, not authoritative. Its output drives planning and policy, but policy rules can still block actions even for high scores.
+
+% -----------------------------------------------------------------------------
+\section{Decision Planning Component}
+
+Planning converts an assessment into a structured \texttt{DecisionPlan}. Each plan includes a strategy, priority, a list of actions, and rationale text. The system uses five strategy labels:
+
+\begin{itemize}
+  \item \textbf{Ignore}: The alert is assessed as benign noise; no action is taken.
+  \item \textbf{NotifyOnly}: Low severity or confidence; notify the SOC and open a ticket.
+  \item \textbf{Investigate}: Warrants investigation but no automated containment.
+  \item \textbf{ContainAndCollect}: Active threat confirmed; containment plus forensics.
+  \item \textbf{Contain}: Immediate high-confidence threat; containment is the priority.
+\end{itemize}
+
+The planner is model-driven, but its output is sanitized to enforce schema validity, safe actions at low confidence, and parameter completeness. This keeps the plan consistent even when models fail or return partial output.
+
+% -----------------------------------------------------------------------------
+\section{Policy and Safety Layer}
+
+The policy engine analyzes each proposed action and returns a decision of Approved, Pending,
+or Denied. Hard constraints are checked first (missing entities, forbidden actions, low confidence).
+Approval gates are applied next, using risk, environment, and asset criticality factors. All policy
+decisions are logged with explanations so that analysts can trace exactly why a particular action
+was allowed or denied.
+% -----------------------------------------------------------------------------
+\section{Action Execution and Response}
+
+Approved actions are routed to executors (ticketing, notification, firewall, host isolation). Each executor validates parameters and returns a structured result. In demo mode, executors simulate the action and only write audit entries. This keeps the system safe while still showing a complete execution pipeline.
+
+% -----------------------------------------------------------------------------
+\section{Audit and Explainability Components}
+
+Every stage writes structured audit events to JSONL. These logs include the raw alert, normalized alert, assessment, plan, policy decision, and execution results. The same data powers the reasoning console UI, which allows the full decision trail to be viewed and replayed.
+
+% -----------------------------------------------------------------------------
+\section{Cross-Cutting Concerns}
+
+\textbf{Configuration.} All services are configured via environment variables and a single \texttt{.env} file, making model switching and demo setup fast.
+
+\textbf{Resilience.} Each stage is isolated; a failure in one alert does not crash the pipeline for the entire batch.
+
+\textbf{Extensibility.} New connectors, actions, or models can be added by implementing a single interface and registering it with the container or model registry.

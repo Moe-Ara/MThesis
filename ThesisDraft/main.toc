@@ -1,0 +1,139 @@
+\contentsline {chapter}{Abstract}{iii}{dummy.3}%
+\contentsline {chapter}{Summary}{iv}{dummy.5}%
+\contentsline {chapter}{Acknowledgment}{v}{dummy.7}%
+\contentsline {chapter}{Table of Contents}{vi}{dummy.10}%
+\contentsline {chapter}{List of Figures}{x}{dummy.11}%
+\contentsline {chapter}{List of Algorithms}{xi}{dummy.14}%
+\contentsline {chapter}{List of Abbreviations}{xii}{dummy.18}%
+\contentsline {chapter}{List of Symbols}{xiii}{dummy.21}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.24}%
+\contentsline {section}{\numberline {1.1}Motivation}{1}{section.25}%
+\contentsline {section}{\numberline {1.2}Problem Statement}{1}{section.26}%
+\contentsline {section}{\numberline {1.3}Research Objectives}{2}{section.27}%
+\contentsline {section}{\numberline {1.4}Thesis Structure}{2}{section.28}%
+\contentsline {chapter}{\numberline {2}Background and Related Work}{4}{chapter.29}%
+\contentsline {section}{\numberline {2.1}Cybersecurity Monitoring and Security Operations Centers}{4}{section.30}%
+\contentsline {section}{\numberline {2.2}Security Information and Event Management (SIEM)}{4}{section.31}%
+\contentsline {subsection}{\numberline {2.2.1}Log Collection and Normalization}{4}{subsection.32}%
+\contentsline {subsection}{\numberline {2.2.2}Event Correlation}{5}{subsection.33}%
+\contentsline {subsection}{\numberline {2.2.3}Alerting and Incident Response}{5}{subsection.34}%
+\contentsline {section}{\numberline {2.3}Limitations of Current SIEM Systems}{5}{section.35}%
+\contentsline {subsection}{\numberline {2.3.1}Rule-Based Detection}{5}{subsection.36}%
+\contentsline {subsection}{\numberline {2.3.2}Alert Overload and False Positives}{6}{subsection.37}%
+\contentsline {subsection}{\numberline {2.3.3}Scalability and Data Volume}{6}{subsection.38}%
+\contentsline {subsection}{\numberline {2.3.4}Dependence on Human Analysts}{6}{subsection.39}%
+\contentsline {section}{\numberline {2.4}Machine Learning Approaches to Intrusion Detection}{6}{section.40}%
+\contentsline {chapter}{\numberline {3}System Requirements}{8}{chapter.41}%
+\contentsline {section}{\numberline {3.1}Functional Requirements}{8}{section.42}%
+\contentsline {section}{\numberline {3.2}Non-Functional Requirements}{8}{section.43}%
+\contentsline {section}{\numberline {3.3}Security and Safety Requirements}{9}{section.44}%
+\contentsline {chapter}{\numberline {4}System Design and Architecture}{10}{chapter.45}%
+\contentsline {section}{\numberline {4.1}Design Goals}{10}{section.46}%
+\contentsline {section}{\numberline {4.2}Key Architectural Decisions}{10}{section.47}%
+\contentsline {subsection}{\numberline {4.2.1}Modular Monolith over Multi-Agent Architecture}{10}{subsection.48}%
+\contentsline {subsection}{\numberline {4.2.2}Two-Process Boundary: C\# Orchestration and Python Intelligence}{11}{subsection.49}%
+\contentsline {subsection}{\numberline {4.2.3}Interface-Driven Design}{11}{subsection.50}%
+\contentsline {subsection}{\numberline {4.2.4}Policy as a Local, Synchronous Gate}{11}{subsection.51}%
+\contentsline {subsection}{\numberline {4.2.5}Structured Prediction over Free-Form Planning}{11}{subsection.52}%
+\contentsline {section}{\numberline {4.3}System Overview}{11}{section.53}%
+\contentsline {section}{\numberline {4.4}Event Ingestion Layer}{12}{section.54}%
+\contentsline {section}{\numberline {4.5}Normalization and Enrichment}{12}{section.55}%
+\contentsline {section}{\numberline {4.6}Threat Scoring Component}{12}{section.56}%
+\contentsline {section}{\numberline {4.7}Decision Planning Component}{13}{section.57}%
+\contentsline {section}{\numberline {4.8}Policy and Safety Layer}{13}{section.58}%
+\contentsline {section}{\numberline {4.9}Action Execution and Response}{13}{section.59}%
+\contentsline {section}{\numberline {4.10}Audit and Explainability Components}{14}{section.60}%
+\contentsline {section}{\numberline {4.11}Cross-Cutting Concerns}{14}{section.61}%
+\contentsline {chapter}{\numberline {5}Implementation}{15}{chapter.62}%
+\contentsline {section}{\numberline {5.1}Technology Stack}{15}{section.63}%
+\contentsline {subsection}{\numberline {5.1.1}Orchestration Layer: .NET 9 / C\#}{15}{subsection.64}%
+\contentsline {subsection}{\numberline {5.1.2}Intelligence Layer: Python / FastAPI}{15}{subsection.65}%
+\contentsline {subsection}{\numberline {5.1.3}Model Training}{15}{subsection.66}%
+\contentsline {subsection}{\numberline {5.1.4}Persistence and Configuration}{16}{subsection.67}%
+\contentsline {section}{\numberline {5.2}Core Engine Implementation}{16}{section.68}%
+\contentsline {subsection}{\numberline {5.2.1}Key Interfaces}{16}{subsection.69}%
+\contentsline {subsection}{\numberline {5.2.2}Normalization and Enrichment}{17}{subsection.70}%
+\contentsline {subsection}{\numberline {5.2.3}Webhook and Polling Modes}{17}{subsection.71}%
+\contentsline {section}{\numberline {5.3}Intelligence Service}{17}{section.72}%
+\contentsline {section}{\numberline {5.4}Model Registry and Profile-Based Backend Selection}{18}{section.73}%
+\contentsline {section}{\numberline {5.5}Threat Scoring Component}{18}{section.74}%
+\contentsline {section}{\numberline {5.6}Decision Planning Component}{18}{section.75}%
+\contentsline {section}{\numberline {5.7}Policy and Safety Layer}{19}{section.76}%
+\contentsline {section}{\numberline {5.8}Execution Pipeline}{19}{section.77}%
+\contentsline {section}{\numberline {5.9}Auditing and Case Management}{19}{section.78}%
+\contentsline {section}{\numberline {5.10}Deployment and System Setup}{19}{section.79}%
+\contentsline {chapter}{\numberline {6}Dataset Pipeline and Training}{20}{chapter.80}%
+\contentsline {section}{\numberline {6.1}Security Datasets and Their Roles}{20}{section.81}%
+\contentsline {subsection}{\numberline {6.1.1}MITRE ATT\&CK (STIX)}{20}{subsection.82}%
+\contentsline {subsection}{\numberline {6.1.2}Mordor / Security Datasets}{20}{subsection.83}%
+\contentsline {subsection}{\numberline {6.1.3}CIC-IDS2018}{21}{subsection.84}%
+\contentsline {subsection}{\numberline {6.1.4}DARPA Transparent Computing (TC)}{21}{subsection.85}%
+\contentsline {subsection}{\numberline {6.1.5}Synthetic Scenario Generation}{21}{subsection.86}%
+\contentsline {section}{\numberline {6.2}Dataset Processing and Normalisation}{21}{section.87}%
+\contentsline {subsection}{\numberline {6.2.1}Schema Mapping}{21}{subsection.88}%
+\contentsline {subsection}{\numberline {6.2.2}Label Assignment and Severity Calibration}{21}{subsection.89}%
+\contentsline {subsection}{\numberline {6.2.3}Action Balancing}{22}{subsection.90}%
+\contentsline {section}{\numberline {6.3}Training Data Format Evolution}{22}{section.91}%
+\contentsline {subsection}{\numberline {6.3.1}Version 1: Full JSON Prompt}{22}{subsection.92}%
+\contentsline {subsection}{\numberline {6.3.2}Version 2: Canonical Flat Format}{22}{subsection.93}%
+\contentsline {subsection}{\numberline {6.3.3}Version 3: Compact Pipe-Delimited Format (Final)}{22}{subsection.94}%
+\contentsline {section}{\numberline {6.4}The Scorer: From Non-Functional Baseline to Calibrated Classifier}{22}{section.95}%
+\contentsline {subsection}{\numberline {6.4.1}Attempt 1: Zero-Shot LLM (baron-security)}{22}{subsection.96}%
+\contentsline {subsection}{\numberline {6.4.2}Attempt 2: QLoRA Fine-Tuning on Foundation-Sec-8B}{23}{subsection.97}%
+\contentsline {subsection}{\numberline {6.4.3}Attempt 3: TF-IDF Classifier Pipeline (Final)}{23}{subsection.98}%
+\contentsline {section}{\numberline {6.5}The Planner: Four Approaches to Structured Prediction}{23}{section.99}%
+\contentsline {subsection}{\numberline {6.5.1}Attempt 1: Zero-Shot LLM}{23}{subsection.100}%
+\contentsline {subsection}{\numberline {6.5.2}Attempt 2: Foundation-Sec-8B QLoRA Fine-Tuning}{23}{subsection.101}%
+\contentsline {subsection}{\numberline {6.5.3}Attempt 3: Seq2Seq Fine-Tuning (flan-t5)}{23}{subsection.102}%
+\contentsline {subsection}{\numberline {6.5.4}Attempt 4: Custom Multi-Head MLP (Final)}{23}{subsection.103}%
+\contentsline {section}{\numberline {6.6}Evaluation and Results Comparison}{24}{section.104}%
+\contentsline {section}{\numberline {6.7}Integration with the Intelligence Service}{24}{section.105}%
+\contentsline {chapter}{\numberline {7}Evaluation}{25}{chapter.106}%
+\contentsline {section}{\numberline {7.1}Evaluation Setup}{25}{section.107}%
+\contentsline {subsection}{\numberline {7.1.1}Dataset and Split}{25}{subsection.108}%
+\contentsline {subsection}{\numberline {7.1.2}Evaluation Metrics}{25}{subsection.109}%
+\contentsline {subsection}{\numberline {7.1.3}Evaluation Environment}{26}{subsection.110}%
+\contentsline {section}{\numberline {7.2}Detection Performance}{26}{section.111}%
+\contentsline {subsection}{\numberline {7.2.1}Scorer Results}{26}{subsection.112}%
+\contentsline {subsection}{\numberline {7.2.2}Calibrated Confidence Behavior}{26}{subsection.113}%
+\contentsline {subsection}{\numberline {7.2.3}Comparison with LLM Baselines}{26}{subsection.114}%
+\contentsline {section}{\numberline {7.3}Response Planning Evaluation}{27}{section.115}%
+\contentsline {subsection}{\numberline {7.3.1}Summary of Model Progression}{27}{subsection.116}%
+\contentsline {subsection}{\numberline {7.3.2}Interpretation of Remaining Errors}{27}{subsection.117}%
+\contentsline {subsection}{\numberline {7.3.3}Policy Engine Correctness}{27}{subsection.118}%
+\contentsline {section}{\numberline {7.4}Example Incident Scenarios}{27}{section.119}%
+\contentsline {subsection}{\numberline {7.4.1}Scenario 1: Malware Hash Detection --- Autonomous Containment}{27}{subsection.120}%
+\contentsline {subsection}{\numberline {7.4.2}Scenario 2: Brute Force Attempt --- Conditional Containment}{28}{subsection.121}%
+\contentsline {subsection}{\numberline {7.4.3}Scenario 3: Suspicious Process --- Investigative Hold}{28}{subsection.122}%
+\contentsline {subsection}{\numberline {7.4.4}Scenario 4: Benign Noise --- Autonomous Dismissal}{28}{subsection.123}%
+\contentsline {section}{\numberline {7.5}Discussion of Results}{29}{section.124}%
+\contentsline {chapter}{\numberline {8}Discussion}{30}{chapter.125}%
+\contentsline {section}{\numberline {8.1}Advantages of the Proposed System}{30}{section.126}%
+\contentsline {subsection}{\numberline {8.1.1}Explainability as a First-Class Output}{30}{subsection.127}%
+\contentsline {subsection}{\numberline {8.1.2}Safety Independent of Model Quality}{30}{subsection.128}%
+\contentsline {subsection}{\numberline {8.1.3}Operational Feasibility}{30}{subsection.129}%
+\contentsline {subsection}{\numberline {8.1.4}Model-Agnostic Architecture}{31}{subsection.130}%
+\contentsline {section}{\numberline {8.2}Comparison with Traditional SIEM and SOAR Approaches}{31}{section.131}%
+\contentsline {subsection}{\numberline {8.2.1}Against SIEM Platforms}{31}{subsection.132}%
+\contentsline {subsection}{\numberline {8.2.2}Against Playbook-Based SOAR}{31}{subsection.133}%
+\contentsline {subsection}{\numberline {8.2.3}Against Generative LLM-Based Planning}{31}{subsection.134}%
+\contentsline {section}{\numberline {8.3}Limitations}{31}{section.135}%
+\contentsline {subsection}{\numberline {8.3.1}Evaluation on Synthetic Data Only}{31}{subsection.136}%
+\contentsline {subsection}{\numberline {8.3.2}Limited Alert Type Coverage}{32}{subsection.137}%
+\contentsline {subsection}{\numberline {8.3.3}Simulated SIEM Connector}{32}{subsection.138}%
+\contentsline {subsection}{\numberline {8.3.4}Manually Authored Policy Rules}{32}{subsection.139}%
+\contentsline {subsection}{\numberline {8.3.5}Feedback Loop Not Fully Closed}{32}{subsection.140}%
+\contentsline {section}{\numberline {8.4}Threats to Validity}{32}{section.141}%
+\contentsline {subsection}{\numberline {8.4.1}Internal Validity}{32}{subsection.142}%
+\contentsline {subsection}{\numberline {8.4.2}External Validity}{32}{subsection.143}%
+\contentsline {subsection}{\numberline {8.4.3}Construct Validity}{33}{subsection.144}%
+\contentsline {subsection}{\numberline {8.4.4}Statistical Validity}{33}{subsection.145}%
+\contentsline {chapter}{\numberline {9}Conclusion and Future Work}{34}{chapter.146}%
+\contentsline {section}{\numberline {9.1}Summary of Contributions}{34}{section.147}%
+\contentsline {section}{\numberline {9.2}Future Research Directions}{34}{section.148}%
+\vspace {2em}
+\contentsline {chapter}{References}{36}{dummy.150}%
+\vspace {2em}
+\contentsline {chapter}{\numberline {A}Appendix}{39}{appendix.152}%
+\contentsline {section}{\numberline {A.1}Additional Figures}{39}{section.153}%
+\contentsline {section}{\numberline {A.2}Configuration Details}{39}{section.154}%

@@ -1,0 +1,138 @@
+\chapter{Implementation}
+\label{chap:implementation}
+\lhead{\emph{Implementation}}
+
+This chapter explains how the system is built and how the main components interact. The focus is on practical engineering choices and the reasons behind them.
+
+% -----------------------------------------------------------------------------
+\section{Technology Stack}
+\label{sec:impl-stack}
+
+\subsection{Orchestration Layer: .NET 9 / C\#}
+The orchestration engine is written in C\# and targets \texttt{net9.0}. This layer runs the end-to-end pipeline, applies policy rules, and records audit logs. .NET is a good fit because it provides strong typing, stable async I/O, and a built-in dependency injection container. These features make the pipeline easy to test and safe to extend.
+
+The engine is a console application, not a web server. It can poll a SIEM API or listen to a webhook, but its main job is alert processing, not serving HTTP traffic.
+
+\subsection{Intelligence Layer: Python / FastAPI}
+The intelligence service is a Python FastAPI app. Python is used because all ML tooling (PyTorch, scikit-learn, Hugging Face) is built around it. FastAPI provides clear request validation and OpenAPI docs, which helps keep the interface between the two services stable and visible.
+
+\subsection{Model Training}
+The planner is trained with PyTorch. The scorer uses scikit-learn with TF-IDF features. Both produce small model artifacts (\texttt{.pt} for PyTorch and \texttt{.joblib} for scikit-learn) that can be loaded directly at runtime without a separate model server.
+
+\subsection{Persistence and Configuration}
+Audit logs are stored as JSONL for simplicity and easy inspection. Cases are stored in SQLite to keep the system self-contained. Configuration is environment-based via a \texttt{.env} file, so switching models or connectors does not require recompiling the engine.
+
+% -----------------------------------------------------------------------------
+\section{Core Engine Implementation}
+\label{sec:impl-core}
+
+The orchestrator runs a strict, linear pipeline. Each stage is isolated behind an interface so it can be swapped or mocked in tests. The central loop is simple and explicit:
+
+\begin{verbatim}
+RawAlert[] alerts = await connector.PullAlertsAsync(request, ct);
+
+foreach (RawAlert raw in alerts)
+{
+    EnrichedAlert enriched = await normalization.ProcessAsync(raw, ct);
+    ThreatAssessment assessment = scorer.Score(enriched);
+    DecisionPlan plan = planner.Plan(enriched, assessment, context);
+    PolicyDecision decision = policy.Evaluate(plan, assessment, enriched, context);
+    ExecutionReport report = await execution.ExecuteAsync(
+        enriched, assessment, plan, decision, execContext, ct);
+
+    audit.Log(raw, enriched, assessment, plan, decision, report);
+    caseManager.OpenOrUpdate(assessment, plan, decision);
+}
+\end{verbatim}
+
+Failures are contained at the stage boundary. For example, if normalization fails, the system logs the error and moves to the next alert. Scoring failures fall back to a low-confidence rule-based score rather than stopping the pipeline. This is critical in real SOC workflows where partial failures are normal.
+
+\subsection{Key Interfaces}
+The pipeline is built around a small set of interfaces:
+\begin{itemize}
+    \item \textbf{ISiemConnector}: pulls alerts or accepts webhook input.
+    \item \textbf{INormalizationPipeline}: maps raw alerts to a canonical schema and enriches them.
+    \item \textbf{IThreatScorer}: returns \texttt{ThreatAssessment} objects.
+    \item \textbf{IPlanner}: returns \texttt{DecisionPlan} objects.
+    \item \textbf{IPolicyEngine}: evaluates plans and returns per-action decisions.
+    \item \textbf{IExecutionPipeline}: executes approved actions and returns an \texttt{ExecutionReport}.
+    \item \textbf{IAuditLogger} and \textbf{ICaseManager}: persist the decision trail.
+\end{itemize}
+
+This design makes the system easy to test and easier to extend. A new connector or planner can be introduced without changing the orchestrator.
+
+\subsection{Normalization and Enrichment}
+Normalization translates alert fields from different SIEMs into a common schema. For example, a Wazuh alert stores the source IP under \texttt{data.srcip}, while a Sentinel alert uses a nested \texttt{entities} list. A mapping registry handles these differences so downstream components always see \texttt{srcIp}, \texttt{hostId}, \texttt{username}, and similar fields in the same place.
+
+Enrichment adds context from JSON-based inventories (assets, identities, threat intel). These providers are optional. If a lookup fails, the pipeline keeps going with null values rather than aborting.
+
+\subsection{Webhook and Polling Modes}
+The engine can run in polling mode (periodic pulls from the SIEM API) or webhook mode (alerts pushed to a local listener). For demos, webhook mode is used with a replay script that posts recorded alerts at a controlled pace.
+
+% -----------------------------------------------------------------------------
+\section{Intelligence Service}
+\label{sec:impl-intelligence}
+
+The intelligence service exposes two endpoints:
+\texttt{POST /v1/score} and \texttt{POST /v1/plan}. It loads models at startup to avoid first-request delays. If a model fails to load, the service falls back to a rule-based scorer or planner instead of crashing.
+
+A small LRU cache is used for scoring responses to reduce redundant inference during demos.
+
+% -----------------------------------------------------------------------------
+\section{Model Registry and Profile-Based Backend Selection}
+\label{sec:impl-registry}
+
+Models are selected through a JSON registry file (\texttt{intelligence/models/registry.json}). Each profile defines a scorer and planner backend. Profiles can be switched by changing one config value or by passing a header per request. This makes A/B evaluation simple and avoids code changes when models are swapped.
+
+% -----------------------------------------------------------------------------
+\section{Threat Scoring Component}
+\label{sec:impl-scoring}
+
+The scorer outputs a \texttt{ThreatAssessment} with severity, confidence, hypothesis, and evidence. The default scorer is a TF-IDF based classifier. It predicts one of five severity labels and maps that label to a numeric score.
+
+A calibrated confidence floor is applied when the top class is clearly dominant. For example, if the classifier is decisive on a ``critical'' label, the reported confidence is raised to a minimum floor rather than exposing a low raw probability. This helps policy thresholds behave sensibly.
+
+Enrichment can also raise the score. A known-bad TI reputation or a critical asset will bump confidence and severity using simple max-based rules. This makes the system behave more like an analyst: strong external evidence should override a cautious model.
+
+Hypothesis and evidence strings are generated deterministically from alert fields and enrichment. This avoids LLM hallucination and keeps explanations reproducible.
+
+% -----------------------------------------------------------------------------
+\section{Decision Planning Component}
+\label{sec:impl-planning}
+
+Planning is treated as structured prediction. The model selects a strategy, action types, and a priority. Action parameters are filled from the normalized alert, not generated by the model. This prevents hallucinated IPs or hostnames.
+
+The primary planner is a custom multi-head MLP trained on 8,644 structured examples. It predicts:
+\begin{itemize}
+    \item Strategy (5-class softmax)
+    \item Action set (multi-label sigmoid over 8 actions)
+    \item Priority (regression scaled to 0--100)
+\end{itemize}
+
+The feature vector combines structured fields (alert type, severity, confidence, entity presence) with keyword flags and TF-IDF features from the hypothesis and evidence text. This combination proved more reliable than a large seq2seq model and runs in a few milliseconds on CPU.
+
+A sanitization pass enforces schema validity, adds safe actions if needed, and strips actions that are infeasible due to missing entities. This ensures stable output even when model predictions are imperfect.
+
+% -----------------------------------------------------------------------------
+\section{Policy and Safety Layer}
+\label{sec:impl-policy}
+
+Policy evaluation is local and synchronous. Each planned action is checked against hard constraints (missing entities, forbidden actions, low confidence) and then evaluated for approval thresholds. The result is \texttt{Approved}, \texttt{Pending}, or \texttt{Denied}. This guarantees that model output never bypasses safety rules.
+
+% -----------------------------------------------------------------------------
+\section{Execution Pipeline}
+\label{sec:impl-execution}
+
+The execution pipeline routes approved actions to executors (ticketing, notification, firewall, host isolation). Each executor validates parameters and returns a structured result. In demo mode, executors simulate actions and only write audit entries.
+
+% -----------------------------------------------------------------------------
+\section{Auditing and Case Management}
+\label{sec:impl-audit}
+
+Every stage writes an audit record to JSONL. The case manager stores the current state of each incident in SQLite. This data powers the reasoning console and allows full replay of the decision chain.
+
+% -----------------------------------------------------------------------------
+\section{Deployment and System Setup}
+\label{sec:impl-deploy}
+
+The system starts from a single command once \texttt{.env} is configured. The C\# engine can launch the Python intelligence service as a child process, wait for its health check, and then start processing alerts. This keeps the demo setup simple and repeatable.

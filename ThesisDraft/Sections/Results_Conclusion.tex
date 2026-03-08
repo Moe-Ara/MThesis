@@ -1,0 +1,15 @@
+\chapter{Conclusion and Future Work}
+
+\label{chap:conclusion}
+
+\lhead{\emph{Conclusion and Future Work}}
+
+\section{Summary of Contributions}
+This thesis presents a generic SIEM reaction plugin that adds a reasoning layer to standard SIEM output. The system normalizes alerts, enriches context, scores risk with explanation, generates structured response plans, applies policy constraints, and records a full audit trail. A local intelligence service exposes multiple model backends through a single API, and a model registry enables rapid switching and comparison. The final planner is a lightweight custom neural network that achieves high accuracy while remaining fast enough for real-time use. The result is a practical, end-to-end pipeline that is explainable, auditable, and safe.
+
+\section{Future Research Directions}
+Several directions can strengthen the system and move it closer to production use. First, evaluation should be expanded to larger and more diverse real-world datasets, including mixed cloud and on-prem environments, to test generalization. Second, the intelligence layer should support drift detection and bounded continual learning so that model quality does not degrade silently over time.
+
+Third, response planning can be improved by incorporating richer operational constraints such as change windows, business dependencies, and explicit approval workflows. Formal policy verification and stronger rollback semantics would further improve safety. Fourth, explainability should be aligned with standard security taxonomies so that explanations are consistent across systems and easier for analysts to trust.
+
+Finally, the system should be validated through real SOC deployments. Longitudinal studies with analysts are needed to measure trust, workload reduction, and the real operational impact of reasoning-driven response. These steps provide a clear path toward a production-grade reasoning layer for modern SIEM workflows.

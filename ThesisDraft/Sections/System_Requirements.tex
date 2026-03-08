@@ -1,0 +1,22 @@
+\chapter{System Requirements}
+\label{chap:system-requirements}
+\lhead{\emph{System Requirements}}
+
+\section{Functional Requirements}
+The system must ingest alerts from external SIEM sources, normalize them to a common schema, enrich them with context, and produce ranked incident candidates. A scoring component must generate an explainable risk score and confidence for each incident, together with reason codes and context multipliers. A planning component must produce a structured response plan with a strategy, priority, actions, and rollback steps. Each plan must be validated against explicit policy rules before execution, and the execution stage must record action outcomes and errors.
+
+The system must support analyst feedback. An analyst can mark an incident as true positive, false positive, or needs more information, and optionally override severity. Feedback events must be recorded in an append-only log and used to update model weights in a bounded, auditable way. The system must also track investigation traces and use them to recommend next steps. A user interface must expose raw alerts, normalized alerts, scoring explanations, plans, policy checks, execution status, and audit logs.
+
+\section{Non-Functional Requirements}
+The architecture must be modular to allow the intelligence models to be swapped without modifying the orchestration code. The interface between layers must be explicit. The system must be able to be executed as a single project to facilitate demonstrations or repeated experiments. The explanations must be human-readable. The explanations must be consistent to compare inputs.
+The implementation must be maintainable. There must be a clear separation between the domain logic, the application services, the infrastructure, and the UI. There must be structured logging to facilitate audits.
+\section{Security and Safety Requirements}
+Automation must be bounded. The actions proposed by the planner should be subject to policy rules such as allow/deny lists, confidence thresholds, and asset criticality limits. High-impact actions should be subject to approval gates/dual control, and each automated action should have a rollback action.
+
+The execution layer must validate parameters, enforce entity presence checks, and refuse execution when required context is missing or policy checks fail. Rate limits and idempotency safeguards must prevent repeated execution under noisy alerts. If confidence is too low, or policy approval is not met, the system must fall back to recommendation-only behavior.
+
+Model risk must be controlled. Feedback-driven weight updates must be bounded and logged in an append-only audit trail.Model output should be traceable after updates.
+Support should be provided for drift detection and periodic offline recalibration.
+Data handling should conform to the principle of least privilege for connectors and executors,
+and sensitive field minimization or redaction should be employed where possible.
+All policy evaluations and execution outcomes should be logged with timestamps and actor identity.

@@ -1,0 +1,41 @@
+
+\cleardoublepage
+\newpage
+\thispagestyle{empty}
+\phantomsection
+\addtotoc{Summary}
+
+\begin{center}\huge \textbf{Summary}\end{center}
+
+\vfill
+
+\begin{flushleft}
+\large
+
+Security operations centres face a structural gap between detection and response. SIEM
+platforms collect, correlate, and surface alerts---but what happens next remains a manual
+decision. Commercial SOAR tools execute pre-scripted playbooks, which break down on
+novel attack patterns and cannot reason about threat severity or asset criticality.
+
+This thesis fills that gap with an intelligent reaction layer that sits downstream of a
+SIEM and upstream of any action. The system takes a normalised alert, enriches it with
+asset, identity, and threat-intelligence context, produces an explainable threat
+assessment, generates a structured response plan, and passes every proposed action
+through a deterministic policy engine before execution. All decisions are recorded in a
+structured audit log linking each action to its evidence.
+
+The architecture is a modular monolith: a C\# core engine enforces the orchestration
+pipeline and safety constraints, while a Python intelligence service provides scoring
+and planning via HTTP. The threat scorer combines TF-IDF logistic regression with
+contextual enrichment boosts. The planner is a custom 270K-parameter multi-head neural
+network that classifies strategy, predicts action sets, and regresses priority---
+resolving entity parameters deterministically rather than generating them, eliminating
+the hallucination risk that made LLM-based planning unsafe for live execution.
+
+The planner achieves 96.4\% strategy accuracy and 97.2\% action F1 in end-to-end
+pipeline evaluation---matching a 250-million-parameter fine-tuned seq2seq model at
+under 5 milliseconds inference time. The policy engine guarantees that no model error
+can cause a hard-denied action to execute. The full system runs on a single development
+machine and exposes every stage of the decision pipeline for analyst review.
+
+\end{flushleft}

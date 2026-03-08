@@ -1,0 +1,125 @@
+\chapter{Evaluation}
+
+\label{chap:evaluation}
+
+\lhead{\emph{Evaluation}}
+
+This chapter evaluates the threat scorer and the response planner. It also walks through example incidents to show how the full pipeline behaves.
+
+% -----------------------------------------------------------------------------
+\section{Evaluation Setup}
+\label{sec:eval-setup}
+
+\subsection{Dataset and Split}
+
+Evaluation uses the synthetic dataset described in Chapter~\ref{chap:dataset-pipeline}. The dataset contains 8,644 labeled examples across five alert types: MalwareHashOnHost, BruteForceUser, SuspiciousProcessOnHost, PortScanFromIp, and BenignNoise. A fixed random seed (42) is used to split the data into 90\% training (7,779 examples) and 10\% test (865 examples), with stratification by alert type.
+
+\subsection{Evaluation Metrics}
+
+Scorer evaluation uses two metrics. \textbf{Severity class accuracy} measures how often the predicted severity label (benign, low, medium, high, critical) matches the ground truth. \textbf{Severity MAE} measures the average absolute error on the 0--100 severity scale.
+
+Planner evaluation uses two metrics. \textbf{Strategy accuracy} is the exact-match rate for the strategy label (ContainAndCollect, Contain, Investigate, NotifyOnly, or Dismiss). \textbf{Action F1} is the macro-averaged F1 score over the predicted action set. Rollback actions are stripped from both predictions and targets. Plans are passed through \texttt{sanitize\_plan} before scoring to reflect real deployment behavior. A \textbf{relaxed strategy accuracy} is also reported, where Contain and ContainAndCollect are treated as near-matches.
+
+\subsection{Evaluation Environment}
+
+Training and evaluation were run on a workstation with an Intel Core i9 CPU, 64 GB RAM, and an NVIDIA RTX 5070 Ti (16 GB VRAM). The intelligence service runs locally. Inference latency is measured at the C\# engine, including serialization and HTTP round-trip time.
+
+% -----------------------------------------------------------------------------
+\section{Detection Performance}
+\label{sec:eval-detection}
+
+\subsection{Scorer Results}
+
+The TF-IDF classifier achieves \textbf{75.0\% severity class accuracy} with a \textbf{severity MAE of 8.30} on the test set. With five classes, random guessing yields 20\% accuracy, so the classifier is far above baseline. The MAE corresponds to less than one severity tier on average.
+
+Inference is sub-millisecond on CPU. The model artifact is 2.3 MB, which makes it easy to load and update.
+
+\subsection{Calibrated Confidence Behavior}
+
+Raw classifier probabilities underestimate decisiveness in multi-class settings. A simple calibration floor is applied: if the top class is clearly dominant, confidence is raised to a minimum floor. This prevents high-severity alerts from being treated as low-confidence by policy rules.
+
+\subsection{Comparison with LLM Baselines}
+
+A zero-shot LLM baseline produced near-zero discrimination and often returned empty outputs. A QLoRA fine-tuned Foundation-Sec model produced plausible severity ordering but was too slow (2--4 seconds per alert) and inconsistent in output format. The TF-IDF classifier provides reliable output at sub-millisecond latency and is therefore used as the default.
+
+% -----------------------------------------------------------------------------
+\section{Response Planning Evaluation}
+\label{sec:eval-planning}
+
+\subsection{Summary of Model Progression}
+
+The custom MLP achieves \textbf{96.4\% strategy accuracy} and \textbf{97.2\% action F1} on the pipeline evaluation set. The flan-t5-base seq2seq model reaches similar accuracy on a smaller evaluation subset, but at much higher latency. The custom MLP was chosen as the default because it is both fast and reliable.
+
+\subsection{Interpretation of Remaining Errors}
+
+Most errors are minor strategy shifts (Contain versus ContainAndCollect). These are near-misses rather than catastrophic mistakes. The relaxed accuracy (96.8\%) captures this effect. Truly severe errors, such as predicting Dismiss for a ContainAndCollect case, are rare.
+
+\subsection{Policy Engine Correctness}
+
+The policy engine is deterministic. It enforces hard constraints regardless of model output, which means unsafe actions are blocked even when a model makes a mistake. This separation is a key safety property of the system.
+
+% -----------------------------------------------------------------------------
+\section{Example Incident Scenarios}
+\label{sec:eval-scenarios}
+
+\subsection{Scenario 1: Malware Hash Detection --- Autonomous Containment}
+
+A simulated EDR alert reports a known-bad file hash on a production domain controller.
+
+\begin{verbatim}
+Type:            MalwareHashOnHost
+Severity:        88    Confidence: 0.91
+HostId:          dc01.corp.local
+FileHash:        4a8b9f...e29f
+ProcessName:     svchost_spoofed.exe
+AssetCriticality: 5 (maximum)
+\end{verbatim}
+
+Threat intel confirms the hash and raises the final score to 94. The planner selects \texttt{ContainAndCollect} with \texttt{IsolateHost}, \texttt{KillProcess}, \texttt{QuarantineFile}, and \texttt{CollectForensics}. Policy approves the actions because entity parameters are present and thresholds are met. The audit log records the full reasoning trail.
+
+\subsection{Scenario 2: Brute Force Attempt --- Conditional Containment}
+
+A brute force alert arrives with a source IP but no username.
+
+\begin{verbatim}
+Type:            BruteForceUser
+Severity:        72    Confidence: 0.79
+SrcIp:           203.0.113.47
+Username:        null
+AssetCriticality: 3
+\end{verbatim}
+
+The planner selects \texttt{Contain} with \texttt{BlockIp} and \texttt{OpenTicket}. \texttt{DisableUser} is omitted because no username is present. Policy approves \texttt{BlockIp} and \texttt{OpenTicket}.
+
+\subsection{Scenario 3: Suspicious Process --- Investigative Hold}
+
+A suspicious process is detected on an internal workstation.
+
+\begin{verbatim}
+Type:            SuspiciousProcessOnHost
+Severity:        61    Confidence: 0.72
+HostId:          ws42.corp.local
+ProcessName:     certutil.exe
+AssetCriticality: 2
+\end{verbatim}
+
+The planner selects strategy \texttt{Investigate} with \texttt{CollectForensics} and \texttt{OpenTicket}. No containment is executed. The ticket includes the process name and host identity for analyst review.
+
+\subsection{Scenario 4: Benign Noise --- Autonomous Dismissal}
+
+A low-confidence internal DNS event is detected.
+
+\begin{verbatim}
+Type:            BenignNoise
+Severity:        6     Confidence: 0.94
+SrcIp:           10.0.1.10
+AssetCriticality: 1
+\end{verbatim}
+
+The planner selects \texttt{Dismiss} and no actions are executed. The event is logged for audit purposes. This suppresses low-value alerts and reduces analyst load. \cite{ban2023alertfatigue}
+
+% -----------------------------------------------------------------------------
+\section{Discussion of Results}
+\label{sec:eval-results-discussion}
+
+The results support four conclusions. First, planning accuracy is driven more by data quality than by model size. Second, structured prediction avoids hallucinated parameters by design. Third, the policy engine provides a hard safety floor regardless of model errors. Fourth, synthetic evaluation is useful for controlled benchmarking, but real-world validation remains a necessary next step. \cite{sommer2010outside}

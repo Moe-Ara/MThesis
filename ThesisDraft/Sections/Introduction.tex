@@ -1,0 +1,43 @@
+\chapter{Introduction}
+\label{chap:introduction}
+
+\lhead{\emph{Introduction}}
+
+\section{Motivation}
+
+Security Operations Centers (SOCs) rely on SIEM platforms to collect and centralize security logs from many different systems. \cite{nist80092} Theoretically, this should allow analysts to have a complete view of what is going on with the infrastructure. In practice, the SOC analysts deal with a constant flow of alerts. Many of them are noisy, duplicated, and of poor quality. Moreover, they still need to be examined and the decision made which ones actually signal a threat.\cite{ban2023alertfatigue}
+
+This situation creates several problems. Alert queues accumulate quickly, response time increases, and the analyst works under the pressure of the possibility that an important alert will be missed.  This leads to a phenomenon referred to as alert fatigue, where the information overload is more challenging to deal with than the actual issues themselves.\cite{tilbury2024humans}
+
+To understand this, let's consider an example. For instance, if there are several unsuccessful login attempts, it may be indicative of a brute-force attack. However, it may also be indicative of a misconfigured script. A human analyst will be able to understand the difference between the two, but only if the necessary context is provided and it is presented in an understandable manner. So, it's not just the matter of detecting, but it's also about reasoning, prioritization, and determining the course of action.
+\section{Problem Statement}
+
+Most SIEM environments rely on rule-based detection. As rule sets gets bigger over time, they tend to overlap and produce redundant alerts. This increases the workload and makes it harder to identify the alerts that actually require attention. \cite{rulegenie2025} Even in environments that introduce automation, studies show that SOC workflows still depend a lot on human judgment when deciding how to respond to incidents. \cite{tilbury2024humans}
+
+This creates a gap in current SIEM workflows. While SIEM platforms are effective at collecting and detecting events, they provide limited support for reasoning about response actions.While alerts are generated, the system generally does not create a plan for what should be done next. Additionally, there is no capturing of analyst feedback to improve future decisions.
+
+This thesis attempts to fill this gap by proposing a generic reaction layer. This layer will be used after the alert normalization process. It will evaluate the alerts, create explainable risk scores, and create a plan for the response. The policy will be used before the actions are taken, and an audit trail will be used for the decisions.
+\section{Research Objectives}
+
+The work presented in this thesis is guided by the following objectives:
+
+\begin{itemize}
+    \item Design a layered architecture that separates orchestration from intelligence and allows detection models to be replaced without disrupting the surrounding SIEM pipeline.
+    
+    \item Implement an explainable risk scoring engine that uses evidence-based features
+along with contextual information and offers an explanation for each score.
+    \item  Create a structured planning module that offers response plans, policy
+conformance for those plans, and rollbacks.
+    \item Integrate analyst feedback and investigation traces so that the system can learn from past investigations and suggest useful next steps.
+    
+    \item Demonstrate the approach through an end-to-end prototype that includes a runnable system and an interface focused on reasoning and investigation support.
+\end{itemize}
+
+\section{Thesis Structure}
+
+The remainder of this thesis is organized as follows. Chapter 2 reviews background concepts and related work in SIEM systems, alert correlation, and response automation. Chapter 3 defines the system requirements. Chapter 4 explains the system design and architecture. Chapter 5 explains the implementation
+details of the system. Chapter 6 explains the dataset pipeline and the training
+approach used for the models. Chapter 7 explains the evaluation of the system. It
+includes the results of the system. Chapter 8 explains the implications of the system.
+Finally, Chapter 9 concludes the thesis. It explains the possible directions for
+future work.

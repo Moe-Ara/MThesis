@@ -1,0 +1,178 @@
+\begin{thebibliography}{19}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Kent and Souppaya(2006)]{nist80092}
+Karen Kent and Murugiah Souppaya.
+\newblock Guide to computer security log management.
+\newblock Technical Report NIST SP 800-92, National Institute of Standards and
+  Technology, 09 2006.
+\newblock URL \url{https://csrc.nist.gov/pubs/sp/800/92/final}.
+
+\bibitem[Ban et~al.(2023)Ban, Takahashi, Ndichu, and
+  Inoue]{ban2023alertfatigue}
+Tao Ban, Takeshi Takahashi, Samuel Ndichu, and Daisuke Inoue.
+\newblock Breaking alert fatigue: Ai-assisted siem framework for effective
+  incident response.
+\newblock \emph{Applied Sciences}, 13\penalty0 (11):\penalty0 6610, 2023.
+\newblock \doi{10.3390/app13116610}.
+\newblock URL \url{https://www.mdpi.com/2076-3417/13/11/6610}.
+
+\bibitem[Tilbury and Flowerday(2024)]{tilbury2024humans}
+J.~Tilbury and S.~Flowerday.
+\newblock Humans and automation: Augmenting security operation centers.
+\newblock \emph{Journal of Cybersecurity and Privacy}, 4\penalty0 (3):\penalty0
+  388--409, 2024.
+\newblock \doi{10.3390/jcp4030020}.
+\newblock URL \url{https://www.mdpi.com/2624-800X/4/3/20}.
+
+\bibitem[Sarhan et~al.(2025)Sarhan, Haque, Asad, Kabo, Apon, and
+  Elfadel]{rulegenie2025}
+S.~Sarhan, M.~Haque, M.~Asad, P.~Kabo, A.~Apon, and I.~M. Elfadel.
+\newblock Rulegenie: Siem detection rule set optimization.
+\newblock \emph{arXiv preprint arXiv:2505.06701}, 2025.
+\newblock \doi{10.48550/arXiv.2505.06701}.
+\newblock URL \url{https://arxiv.org/abs/2505.06701}.
+
+\bibitem[Cichonski et~al.(2012)Cichonski, Millar, Grance, and
+  Scarfone]{nist80061}
+Paul Cichonski, Tom Millar, Tim Grance, and Karen Scarfone.
+\newblock Computer security incident handling guide.
+\newblock Technical Report NIST SP 800-61 Rev. 2, National Institute of
+  Standards and Technology, 2012.
+\newblock URL
+  \url{https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf}.
+
+\bibitem[Valeur et~al.(2004)Valeur, Vigna, Kruegel, and
+  Kemmerer]{valeur2004alert}
+Fredrik Valeur, Giovanni Vigna, Christopher Kruegel, and Richard~A. Kemmerer.
+\newblock A comprehensive approach to intrusion detection alert correlation.
+\newblock \emph{IEEE Transactions on Dependable and Secure Computing},
+  1\penalty0 (3):\penalty0 146--169, 2004.
+\newblock \doi{10.1109/TDSC.2004.21}.
+
+\bibitem[Strom et~al.(2018)Strom, Applebaum, Miller, Nickels, Pennington, and
+  Thomas]{strom2018attack}
+Blake~E. Strom, Andy Applebaum, Doug~P. Miller, Kathryn~C. Nickels, Adam~G.
+  Pennington, and Cody~B. Thomas.
+\newblock {MITRE ATT\&CK}: Design and philosophy.
+\newblock Technical Report MTR180002, The MITRE Corporation, 2018.
+\newblock URL
+  \url{https://attack.mitre.org/docs/ATTACK_Design_and_Philosophy_March_2020.pdf}.
+
+\bibitem[Axelsson(2000)]{axelsson2000baseratev}
+Stefan Axelsson.
+\newblock The base-rate fallacy and the difficulty of intrusion detection.
+\newblock \emph{ACM Transactions on Information and System Security},
+  3\penalty0 (3):\penalty0 186--205, 2000.
+\newblock \doi{10.1145/357830.357849}.
+
+\bibitem[Garcia-Teodoro et~al.(2009)Garcia-Teodoro, Diaz-Verdejo,
+  Macia-Fernandez, and V\'{a}zquez]{garcia2009anomaly}
+Pedro Garcia-Teodoro, Jesus Diaz-Verdejo, Gabriel Macia-Fernandez, and Enrique
+  V\'{a}zquez.
+\newblock Anomaly-based network intrusion detection: Techniques, systems and
+  challenges.
+\newblock \emph{Computers \& Security}, 28\penalty0 (1--2):\penalty0 18--28,
+  2009.
+\newblock \doi{10.1016/j.cose.2008.08.003}.
+
+\bibitem[Sommer and Paxson(2010)]{sommer2010outside}
+Robin Sommer and Vern Paxson.
+\newblock Outside the closed world: On using machine learning for network
+  intrusion detection.
+\newblock In \emph{Proceedings of the 2010 IEEE Symposium on Security and
+  Privacy}, pages 305--316. IEEE, 2010.
+\newblock \doi{10.1109/SP.2010.25}.
+
+\bibitem[Rodriguez and Rodriguez(2020)]{rodriguez2020mordor}
+Roberto Rodriguez and Jose~Luis Rodriguez.
+\newblock {OTRF} security datasets: Structured attack telemetry for security
+  research.
+\newblock GitHub repository, 2020.
+\newblock URL \url{https://github.com/OTRF/Security-Datasets}.
+
+\bibitem[Sharafaldin et~al.(2018)Sharafaldin, Habibi~Lashkari, and
+  Ghorbani]{sharafaldin2018cic}
+Iman Sharafaldin, Arash Habibi~Lashkari, and Ali~A. Ghorbani.
+\newblock Toward generating a new intrusion detection dataset and intrusion
+  traffic characterization.
+\newblock In \emph{Proceedings of the 4th International Conference on
+  Information Systems Security and Privacy (ICISSP)}, pages 108--116, 2018.
+\newblock \doi{10.5220/0006639801080116}.
+
+\bibitem[{Defense Advanced Research Projects Agency}(2019)]{darpatc}
+{Defense Advanced Research Projects Agency}.
+\newblock Transparent computing ({TC}) program.
+\newblock DARPA Information Innovation Office, 2019.
+\newblock URL
+  \url{https://www.darpa.mil/research/programs/transparent-computing}.
+
+\bibitem[Dettmers et~al.(2023)Dettmers, Pagnoni, Holtzman, and
+  Zettlemoyer]{dettmers2023qlora}
+Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer.
+\newblock {QLoRA}: Efficient finetuning of quantized {LLMs}.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~36, 2023.
+\newblock URL \url{https://arxiv.org/abs/2305.14314}.
+
+\bibitem[Hu et~al.(2022)Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and
+  Chen]{hu2022lora}
+Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen.
+\newblock {LoRA}: Low-rank adaptation of large language models.
+\newblock In \emph{International Conference on Learning Representations}, 2022.
+\newblock URL \url{https://openreview.net/forum?id=nZeVKeeFYf9}.
+
+\bibitem[Kassianik et~al.(2025)Kassianik, Saglam, Chen, et~al.]{fdtnsec}
+Paul Kassianik, Baturay Saglam, Alexander Chen, et~al.
+\newblock Llama-3.1-{FoundationAI}-{SecurityLLM}-base-8b technical report.
+\newblock arXiv preprint arXiv:2504.21039, 2025.
+\newblock URL \url{https://arxiv.org/abs/2504.21039}.
+
+\bibitem[Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort, Michel, Thirion,
+  Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos,
+  Cournapeau, Brucher, Perrot, and Duchesnay]{pedregosa2011sklearn}
+Fabian Pedregosa, Ga\"{e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
+  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
+  Weiss, Vincent Dubourg, Jake Vanderplas, Alexandre Passos, David Cournapeau,
+  Matthieu Brucher, Matthieu Perrot, and \'{E}douard Duchesnay.
+\newblock Scikit-learn: Machine learning in {Python}.
+\newblock \emph{Journal of Machine Learning Research}, 12:\penalty0 2825--2830,
+  2011.
+\newblock URL \url{https://jmlr.org/papers/v12/pedregosa11a.html}.
+
+\bibitem[Chung et~al.(2024)Chung, Hou, Longpre, Zoph, Tay, Fedus, Li, Wang,
+  Dehghani, Brahma, Webson, Gu, Dai, Suzgun, Chen, Chowdhery, Castro-Ros,
+  Pellat, Robinson, Valter, Narang, Mishra, Yu, Zhao, Huang, Dai, Yu, Petrov,
+  Chi, Dean, Devlin, Roberts, Zhou, Le, and Wei]{chung2022flan}
+Hyung~Won Chung, Le~Hou, Shayne Longpre, Barret Zoph, Yi~Tay, William Fedus,
+  Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, Albert Webson,
+  Shixiang~Shane Gu, Zhuyun Dai, Mirac Suzgun, Xinyun Chen, Aakanksha
+  Chowdhery, Alex Castro-Ros, Marie Pellat, Kevin Robinson, Dasha Valter,
+  Sharan Narang, Gaurav Mishra, Adams Yu, Vincent Zhao, Yanping Huang, Andrew
+  Dai, Hongkun Yu, Slav Petrov, Ed~H. Chi, Jeff Dean, Jacob Devlin, Adam
+  Roberts, Denny Zhou, Quoc~V. Le, and Jason Wei.
+\newblock Scaling instruction-finetuned language models.
+\newblock \emph{Journal of Machine Learning Research}, 25\penalty0
+  (70):\penalty0 1--53, 2024.
+\newblock URL \url{https://arxiv.org/abs/2210.11416}.
+
+\bibitem[Paszke et~al.(2019)Paszke, Gross, Massa, Lerer, Bradbury, Chanan,
+  Killeen, Lin, Gimelshein, Antiga, Desmaison, Kopf, Yang, DeVito, Raison,
+  Tejani, Chilamkurthy, Steiner, Fang, Bai, and Chintala]{paszke2019pytorch}
+Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory
+  Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban
+  Desmaison, Andreas Kopf, Edward Yang, Zachary DeVito, Martin Raison, Alykhan
+  Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu~Fang, Junjie Bai, and Soumith
+  Chintala.
+\newblock {PyTorch}: An imperative style, high-performance deep learning
+  library.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~32, 2019.
+\newblock URL \url{https://arxiv.org/abs/1912.01703}.
+
+\end{thebibliography}

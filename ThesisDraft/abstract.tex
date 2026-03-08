@@ -1,0 +1,10 @@
+\cleardoublepage
+\newpage
+\thispagestyle{empty}
+
+\phantomsection
+\addtotoc{Abstract}
+
+\begin{center}\huge \textbf{Abstract}\end{center}
+\noindent Security operations teams are flooded with alerts, and most SIEM platforms still leave triage and response to human analysts. This thesis presents a generic SIEM reaction plugin that adds a reasoning layer on top of normal SIEM output. Alerts are normalized, enriched, scored with an explainable risk model, and passed to a planner that produces structured response plans. Each plan is checked by policy rules before any action is executed, and every step is recorded in an audit log.
+\par\noindent The system is implemented as a single runnable project with a reasoning-focused interface that shows the full chain: raw alert, normalized alert, score and evidence, plan, policy decision, and execution result. The evaluation uses synthetic and public security datasets and shows strong planning accuracy with consistent, explainable outputs. The result is a practical foundation for moving from rule-heavy SIEM workflows to reasoning-driven response that is auditable, safe, and easy to extend.

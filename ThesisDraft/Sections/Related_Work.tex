@@ -1,0 +1,67 @@
+\chapter{Background and Related Work}
+
+\label{chap:background-related-work}
+
+\lhead{\emph{Background and Related Work}}
+
+% -----------------------------------------------------------------------------
+\section{Cybersecurity Monitoring and Security Operations Centers}
+
+Modern organisations generate massive volumes of digital events. These include network flows, logins, process executions, and file system changes. A Security Operations Center (SOC) is responsible for monitoring this activity, triaging suspicious events, and coordinating response.
+
+The classic incident response lifecycle is documented by NIST in SP 800-61. \cite{nist80061} It separates work into preparation, detection and analysis, containment and recovery, and post-incident review. The detection and analysis phase is usually the most expensive because it depends on human interpretation and on the quality of monitoring infrastructure.
+
+SOC teams operate under high pressure. Tilbury and Flowerday report sustained alert overload and a tension between automation and human oversight. \cite{tilbury2024humans} Their conclusion is practical: automation should reduce mechanical workload, not remove human judgment from high-impact decisions. This thesis follows that principle.
+
+% -----------------------------------------------------------------------------
+\section{Security Information and Event Management (SIEM)}
+
+\subsection{Log Collection and Normalization}
+
+A SIEM platform collects logs from heterogeneous sources and makes them queryable for analysts and correlation engines. NIST SP 800-92 describes SIEM log management as a pipeline: collect, parse, normalize, and store. \cite{nist80092}
+
+Normalization is a core requirement. Windows Event Logs, syslog, CEF, and LEEF all use different field layouts. A field called \texttt{severity} in one source can mean an alert priority, while in another it reflects a risk assessment. Normalization mistakes propagate into every downstream stage. For that reason, the system in this thesis treats normalization as a separate, explicit pipeline stage that can be updated without touching the intelligence layer. This aligns with the modularity principle in \cite{nist80092}.
+
+\subsection{Event Correlation}
+
+Single events are rarely enough. A single failed login is usually noise, but many failed logins in a short time can indicate brute force. Correlation connects events across time and sources to create a higher-level alert.
+
+Valeur et al. \cite{valeur2004alert} describe correlation as a structured process: preprocessing, duplicate removal, alert fusion, correlation, false-positive reduction, and session reconstruction. Their work highlights a practical issue: what practitioners call ``correlation'' is often several different operations mixed together. Separating these stages makes the system easier to reason about and improves control over false positives.
+
+\subsection{Alerting and Incident Response}
+
+The output of correlation is an alert. An analyst must decide whether it is real, how severe it is, and what response is appropriate. The process is formalized in \cite{nist80061}, but in practice prioritization varies by analyst and by workload. \cite{tilbury2024humans} This inconsistency motivates machine-assisted scoring and structured response planning.
+
+% -----------------------------------------------------------------------------
+\section{Limitations of Current SIEM Systems}
+
+\subsection{Rule-Based Detection}
+
+Rule-based correlation does not generalize. Rules encode what an expert anticipated, but they fail on novel or subtle patterns. Attackers exploit this with ``living-off-the-land'' techniques that use legitimate tools (PowerShell, WMI, certutil) to avoid signatures. \cite{strom2018attack}
+
+Rule sets also accumulate and overlap. Sarhan et al. show that redundant rules generate unnecessary alerts and that rule hygiene has a measurable effect on alert quality. \cite{rulegenie2025} This is not only a volume problem; it is a correctness problem.
+
+\subsection{Alert Overload and False Positives}
+
+High false-positive rates lead directly to alert fatigue. Ban et al. report deployments where false positives dominate the alert stream, forcing analysts to ignore alerts just to keep up. \cite{ban2023alertfatigue}
+
+Axelsson's base-rate analysis explains why this is structural. \cite{axelsson2000baseratev} Even a detector with 99\% sensitivity and 99\% specificity can produce more false alerts than true alerts when the base rate of attacks is low. This makes precision a central requirement for any operational system.
+
+\subsection{Scalability and Data Volume}
+
+Enterprise log volume can reach terabytes per day. \cite{nist80092} Scaling ingestion is possible, but it does not reduce analyst workload. Alert volume depends on rule behavior and correlation quality. \cite{rulegenie2025} Without better reasoning, more data simply means more alerts.
+
+\subsection{Dependence on Human Analysts}
+
+SOC effectiveness is still bounded by human availability. Tilbury and Flowerday describe analyst shortage, turnover, and burnout as persistent constraints. \cite{tilbury2024humans} This reinforces the need for systems that handle mechanical triage while preserving human control of high-impact decisions.
+
+% -----------------------------------------------------------------------------
+\section{Machine Learning Approaches to Intrusion Detection}
+
+Rule limitations have driven research into machine learning for intrusion detection and alert analysis. Two main paradigms dominate the literature.
+
+\textbf{Anomaly-based detection} learns a model of normal behavior and flags deviations. Garcia-Teodoro et al. survey anomaly detection methods and show that while these systems can detect novel attacks, they often generate high false-positive rates because ``abnormal'' includes many benign but unusual behaviors. \cite{garcia2009anomaly}
+
+\textbf{Signature-based ML} treats detection as a classification problem trained on labeled attacks. This can produce high precision for known patterns but struggles on new attack variants, similar to rules.
+
+Sommer and Paxson provide a critical analysis of ML for network intrusion detection. \cite{sommer2010outside} They argue that distribution shift, attacker adaptation, and data quality issues limit the operational reliability of ML systems. Their critique motivates the design of systems that emphasize explainability, policy constraints, and bounded automation rather than blind reliance on model accuracy.

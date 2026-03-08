@@ -1,0 +1,92 @@
+\chapter{Dataset Pipeline and Training}
+\label{chap:dataset-pipeline}
+\lhead{\emph{Dataset Pipeline and Training}}
+
+This chapter explains how the training data was built and how the scorer and planner models evolved. The process was not linear. Several approaches failed before the final pipeline stabilized.
+
+% -----------------------------------------------------------------------------
+\section{Security Datasets and Their Roles}
+\label{sec:datasets}
+
+No single dataset covers all alert types, entity patterns, and response scenarios. The pipeline therefore combines multiple sources plus a synthetic generator.
+
+\subsection{MITRE ATT\&CK (STIX)}
+The MITRE ATT\&CK framework provides a structured taxonomy of tactics and techniques. \cite{strom2018attack} It is used to ground labels and to generate realistic hypothesis text. The STIX data is downloaded and parsed so that technique IDs and descriptions can be attached to alerts.
+
+\subsection{Mordor / Security Datasets}
+Mordor provides real telemetry from attack emulations. \cite{rodriguez2020mordor} It contributes realistic entity values (process names, registry paths, hostnames) and realistic co-occurrence patterns. For example, a Mimikatz run often appears with both process creation and network events.
+
+\subsection{CIC-IDS2018}
+CIC-IDS2018 is a large labeled network-flow dataset. \cite{sharafaldin2018cic} It provides port scan and brute force patterns at scale. It is especially useful for calibrating severity ranges for network-based alerts.
+
+\subsection{DARPA Transparent Computing (TC)}
+DARPA TC provides provenance-rich traces across multiple attack stages. \cite{darpatc} These traces help generate alerts that include host, process, and file hash entities together, which are important for containment actions such as \texttt{QuarantineFile}.
+
+\subsection{Synthetic Scenario Generation}
+Real datasets are imbalanced. Some alert types appear rarely, but the system must still handle them. A synthetic generator fills the gaps. It produces alerts with entity-conditional actions so the planner learns when actions are feasible. For example, \texttt{BlockIp} is only labeled when a source IP exists. This avoids teaching the model impossible actions.
+
+% -----------------------------------------------------------------------------
+\section{Dataset Processing and Normalisation}
+\label{sec:dataset-processing}
+
+All sources are mapped into the same canonical schema used by the production pipeline. This keeps training inputs aligned with inference inputs.
+
+\subsection{Schema Mapping}
+Each data source is mapped into a compact JSON structure with \texttt{type}, \texttt{severity}, \texttt{sourceSiem}, \texttt{entities}, and \texttt{rawPayload}. Missing fields are explicitly set to \texttt{null} rather than omitted. This helps the planner learn the difference between ``missing'' and ``not applicable.''
+
+\subsection{Label Assignment and Severity Calibration}
+Severity ranges are defined per alert type and then sampled within those ranges. For example, malware hash alerts receive higher severity than port scans. These ranges were calibrated using distributions from CIC-IDS2018 and Mordor.
+
+\subsection{Action Balancing}
+Early datasets were action-imbalanced: \texttt{OpenTicket} and \texttt{Notify} dominated, while containment actions were rare. The dataset builder therefore upsamples under-represented actions until each action type appears at a minimum frequency. This greatly improved planner recall for containment actions.
+
+% -----------------------------------------------------------------------------
+\section{Training Data Format Evolution}
+
+Three formats were tested before settling on a compact prompt.
+
+\subsection{Version 1: Full JSON Prompt}
+The first format used full JSON blobs in the prompt and completion. This was too long for seq2seq models and produced unstable outputs.
+
+\subsection{Version 2: Canonical Flat Format}
+The second format flattened the alert into key-value lines. This was more stable but still verbose and sensitive to minor formatting changes.
+
+\subsection{Version 3: Compact Pipe-Delimited Format (Final)}
+The final format uses a compact, pipe-delimited prompt with a strict output schema. It is short, consistent, and easy to parse. This format is used for both seq2seq and custom NN training.
+
+% -----------------------------------------------------------------------------
+\section{The Scorer: From Non-Functional Baseline to Calibrated Classifier}
+
+\subsection{Attempt 1: Zero-Shot LLM (baron-security)}
+A zero-shot LLM baseline was tested first. It failed to produce stable severity outputs and often returned empty or overly safe responses.
+
+\subsection{Attempt 2: QLoRA Fine-Tuning on Foundation-Sec-8B}
+QLoRA fine-tuning was attempted to improve LLM scoring. \cite{dettmers2023qlora,hu2022lora,fdtnsec} While it produced plausible text, inference was slow and output formats were inconsistent for automated evaluation.
+
+\subsection{Attempt 3: TF-IDF Classifier Pipeline (Final)}
+The final scorer is a TF-IDF classifier trained on the canonical prompt text. It is fast, stable, and easy to calibrate. The implementation uses scikit-learn. \cite{pedregosa2011sklearn} Confidence floors are applied when predictions are decisive, which aligns the output with policy thresholds.
+
+% -----------------------------------------------------------------------------
+\section{The Planner: Four Approaches to Structured Prediction}
+
+\subsection{Attempt 1: Zero-Shot LLM}
+A zero-shot LLM planner produced invalid JSON and hallucinated entity values. This was unsafe and unreliable.
+
+\subsection{Attempt 2: Foundation-Sec-8B QLoRA Fine-Tuning}
+QLoRA fine-tuning produced better plans but still suffered from format instability and slow inference. It was unsuitable for near-real-time use. \cite{dettmers2023qlora,hu2022lora,fdtnsec}
+
+\subsection{Attempt 3: Seq2Seq Fine-Tuning (flan-t5)}
+Seq2seq planning with Flan-T5 produced valid output in many cases. \cite{chung2022flan} However, inference was slow (hundreds of milliseconds) and still required sanitization.
+
+\subsection{Attempt 4: Custom Multi-Head MLP (Final)}
+The final planner is a small multi-head MLP trained with PyTorch. \cite{paszke2019pytorch} It predicts strategy, action set, and priority from a structured feature vector. Feature engineering (keyword flags and TF-IDF) was the key factor in reaching high accuracy. The model is fast and stable and aligns well with the sanitization rules used in production.
+
+% -----------------------------------------------------------------------------
+\section{Evaluation and Results Comparison}
+
+The custom MLP achieves the best balance of accuracy and speed. On the 865-example test set, it reaches 96.4\% strategy accuracy and 97.2\% action F1 in the pipeline evaluation. Seq2seq models reach comparable accuracy but at far higher latency and with larger resource requirements. The final choice favored stability and speed because the system is designed for operational use, not just benchmark performance.
+
+% -----------------------------------------------------------------------------
+\section{Integration with the Intelligence Service}
+
+All models are exposed through the same FastAPI service. The model registry selects the active profile at runtime, and models are loaded once at startup. This allows rapid switching between the custom MLP, the seq2seq planner, and rule-based baselines without code changes.
