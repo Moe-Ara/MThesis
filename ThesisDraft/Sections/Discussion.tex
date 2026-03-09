@@ -2,43 +2,39 @@
 \label{chap:discussion}
 \lhead{\emph{Discussion}}
 
-This chapter places the results in context, highlights practical advantages, and outlines limitations and threats to validity.
+This chapter puts the evaluation results in broader context, explains why certain design decisions were made, and is honest about the limitations and threats to validity that constrain what the results actually show.
 
 % -----------------------------------------------------------------------------
 \section{Advantages of the Proposed System}
 \label{sec:discussion-advantages}
 
-\subsection{Explainability as a First-Class Output}
+\subsection{Explainability as a Structural Property}
 
-Most systems add explanations after the fact. This system builds explanations into the data model. A \texttt{ThreatAssessment} cannot exist without a hypothesis and evidence list. A \texttt{DecisionPlan} includes per-action rationale. A \texttt{PolicyDecision} records the rule that approved, held, or denied each action. This makes the audit trail a direct record of what the system actually used at decision time, not a reconstruction. \cite{nist80061}
+Most threat scoring systems treat explainability as something added after the fact---a model is trained for accuracy, and then an explanation mechanism like SHAP values or attention weights gets layered on top \cite{sommer2010outside}. The problem is that the explanation is a reconstruction of the decision, not the decision itself.
 
-\subsection{Safety Independent of Model Quality}
+This system is different. A \texttt{ThreatAssessment} cannot be created without a hypothesis string and an evidence list. A \texttt{DecisionPlan} requires per-action rationale fields. A \texttt{PolicyDecision} records the specific rule that approved, held, or denied each action. These fields are populated at decision time and written verbatim to the audit log---no post-hoc reconstruction. In environments where incident response documentation requires contemporaneous records of automated decisions \cite{nist80061}, this design satisfies that requirement structurally.
 
-The policy engine enforces hard constraints even when the model is wrong. Actions that lack required entities or violate thresholds are denied before they can reach execution. This is stronger than typical playbook systems where safety depends on the correctness of the playbook. \cite{tilbury2024humans}
+\subsection{Safety Guarantees Independent of Model Correctness}
 
-\subsection{Operational Feasibility}
+The policy engine sits between the learned planner and the execution layer as a deterministic gate, not a recommendation filter. Hard denials are evaluated before any approval gate. There is no code path by which a model error, adversarial input, or distribution-shifted alert can cause a hard-denied action to execute. This is a stronger guarantee than playbook-based SOAR platforms provide, where safety depends on whoever authored the playbook---or than LLM-based planners, where safety depends on the model not hallucinating unsafe parameter values \cite{tilbury2024humans}.
 
-The custom MLP planner runs in under 5 ms. The TF-IDF scorer is sub-millisecond. This keeps the total intelligence overhead under 10 ms per alert, which is practical for real-time triage. The seq2seq alternative is far slower, which makes it difficult to deploy at scale. \cite{ban2023alertfatigue}
+The entity-presence check ensures actions requiring a host identifier cannot execute when none is available. These are architectural constraints, not model properties.
 
-\subsection{Model-Agnostic Architecture}
+\subsection{Inference Speed and Operational Feasibility}
 
-The model registry separates model choice from orchestration code. Profiles can be switched without redeploying the engine. This makes experimentation and rollback safe and fast.
+The custom MLP planner infers in under 5 milliseconds end-to-end, including the HTTP round-trip to the Python intelligence service. The TF-IDF scorer runs in sub-millisecond time on CPU. Together, the intelligence layer adds less than 10 milliseconds to the alert processing pipeline.
+
+For comparison, the seq2seq model required 800--1,200 milliseconds per inference. That places it outside the practical range for real-time triage in a high-volume environment. The custom MLP achieves the same planning accuracy at 160 times lower latency. This is not a compromise---structured prediction turns out to be the better design for this task, not just the faster one.
 
 % -----------------------------------------------------------------------------
 \section{Comparison with Traditional SIEM and SOAR Approaches}
 \label{sec:discussion-comparison}
 
-\subsection{Against SIEM Platforms}
+SIEM platforms collect and correlate logs but do not reason about the resulting alerts, assess severity relative to asset context, or take any action \cite{nist80092, tilbury2024humans}. This system starts where the SIEM ends---accepting a normalised alert and adding learned threat assessment, strategy-level planning, policy-gated execution, and an audit trail linking each action to its evidence.
 
-SIEM platforms collect and correlate logs, but they do not reason about response. \cite{nist80092} They surface alerts and rely on analysts to decide what to do next. This system starts where SIEM stops. It takes normalized alerts and adds scoring, planning, policy checks, and audited execution.
+Commercial SOAR platforms execute workflows defined in advance \cite{nist80061}. For well-understood incident types this works. It breaks down on novel patterns, because there is no mechanism to reason about an alert the platform has never seen. This system replaces the static playbook with a trained model that infers the appropriate response strategy from observed alert context. The model is not perfect (3.6\% of plans have the wrong strategy), but it generalises from training examples rather than failing silently when nothing matches.
 
-\subsection{Against Playbook-Based SOAR}
-
-SOAR platforms execute predefined workflows. That works well for known cases, but it struggles with new or mixed patterns. \cite{tilbury2024humans} The planner in this system learns from data and generalizes across scenarios. It still makes mistakes, but it does not fail silently when no playbook matches.
-
-\subsection{Against Generative LLM-Based Planning}
-
-LLM planning can generate plausible output but often hallucinates entity values. In a response system, a wrong IP or host is a serious safety problem. The structured prediction approach avoids this by design: the model selects action types, and parameters are pulled from the alert context. This keeps actions grounded in real entities.
+The Foundation-Sec-8B fine-tuning experiment confirmed the core reliability problem with generative LLM planners: the model hallucinates entity values, producing plans that reference IP addresses and hostnames that were never in the alert. For a system that executes actions against real infrastructure, a plan targeting the wrong resource is a safety failure. The structured prediction approach avoids this by separating \textit{what to do} (learned by the model) from \textit{what to target} (resolved deterministically from the alert after inference).
 
 % -----------------------------------------------------------------------------
 \section{Limitations}
@@ -46,40 +42,32 @@ LLM planning can generate plausible output but often hallucinates entity values.
 
 \subsection{Evaluation on Synthetic Data Only}
 
-All quantitative results are based on synthetic data generated from the same pipeline used for training. This makes the evaluation controlled but optimistic. Real SOC data will be messier and more diverse. \cite{sommer2010outside}
+All quantitative results are computed on synthetic data generated by the same pipeline that produced the training data. Real SOC environments produce alert distributions that differ in ways a static generator cannot model---rare simulated types may be common in practice, entity patterns the generator treats as independent may be correlated in real deployments, and attacker behaviour evolves over time \cite{sommer2010outside}. The 96.4\% strategy accuracy reflects performance under synthetic conditions. Real-world accuracy is unknown and likely lower.
 
 \subsection{Limited Alert Type Coverage}
 
-Only five alert types were used in training. Commercial SIEMs cover hundreds. Expanding coverage is possible but requires additional data and retraining.
+The system is trained and evaluated on five alert types. Commercial SIEM platforms handle hundreds across network, endpoint, identity, cloud, and application layers. The architecture supports expansion without changes to the orchestration or policy layers, but the training and validation work for production-grade coverage is substantial.
 
-\subsection{Simulated SIEM Connector}
+\subsection{Simulated SIEM Connector and Manual Policy Rules}
 
-The system has a real Wazuh connector, but most evaluation runs use the simulator. A production integration would require careful mapping and testing against real SIEM payloads.
+The input layer uses a simulated SIEM connector rather than a live integration. The pluggable connector interface supports real integrations, but this has not been tested against an actual deployment. Similarly, the policy engine's rules---severity thresholds, entity-presence requirements, irreversibility constraints---are manually configured and require domain expertise to set correctly. There is no mechanism to learn or refine thresholds from operational outcomes, and appropriate values will differ substantially across environments. Operators must review and calibrate policy configuration before enabling autonomous execution.
 
-\subsection{Manually Authored Policy Rules}
+\subsection{Partially Implemented Feedback Loop}
 
-Policy rules are configured manually. This requires domain expertise and tuning. There is no automated policy learning in the current implementation.
-
-\subsection{Feedback Loop Not Fully Closed}
-
-Feedback is captured in audit logs, but online weight updates are not integrated into the live inference loop. Retraining is still an offline step.
+The system stores analyst feedback in the audit log and provides infrastructure for online learning, but the weight update mechanism is not fully integrated into the production inference path. Retraining currently requires an offline cycle using the accumulated feedback data.
 
 % -----------------------------------------------------------------------------
 \section{Threats to Validity}
 \label{sec:discussion-threats}
 
-\subsection{Internal Validity}
+\subsection{Internal and External Validity}
 
-Training and test data are generated by the same pipeline. This can inflate accuracy because the model learns generator patterns rather than real-world structure.
+The main threat to internal validity is circularity between training and test data. Both sets are generated by the same synthetic pipeline, parameterised by the same domain-knowledge priors. A model that has learned the generator's internal structure will score well on the test set without necessarily having learned a generalisable response policy. Holding out 10\% of examples with a fixed seed ensures the test examples were not seen during training, but it does not eliminate the underlying structural similarity between the partitions.
 
-\subsection{External Validity}
+Generalisation to real SOC distributions or adversarial inputs is not established. Sommer and Paxson \cite{sommer2010outside} identify distribution shift as a fundamental challenge for machine-learning-based security systems: attackers adapt in response to deployed defences, producing novel patterns outside the training distribution.
 
-Generalization to real SOC data is not proven. Distribution shift is a known challenge for security ML systems. \cite{sommer2010outside}
+\subsection{Construct and Statistical Validity}
 
-\subsection{Construct Validity}
+Strategy accuracy and action F1 measure label agreement with synthetic ground-truth labels. They do not measure operational effectiveness---whether the system actually reduces analyst workload or improves response times in a live SOC is not evaluated. This gap between model accuracy and operational impact is a recurring methodological problem in security automation research \cite{tilbury2024humans, ban2023alertfatigue}.
 
-Strategy accuracy and action F1 measure label agreement, not operational impact. Whether the system reduces analyst workload or improves response time is not measured.
-
-\subsection{Statistical Validity}
-
-Results are reported from single training runs with fixed seeds. Multiple seeds and confidence intervals would strengthen the claims, but were not included in this work.
+All reported results are from single training runs with a fixed random seed. No variance estimates or confidence intervals are reported. Reproducibility is maintained: all training scripts, dataset generation pipelines, and model artefacts are committed to the repository with fixed seeds, enabling independent replication from first principles.

@@ -5,79 +5,373 @@
 % -----------------------------------------------------------------------------
 \section{Design Goals}
 
-The architecture was built around a small set of goals that reflect how SOC systems are used in practice.
+Before any implementation decision was made, a set of concrete design goals was
+established to guide the architecture. These goals come from the functional
+and non-functional requirements described in Chapter~\ref{chap:system-requirements}
+and reflect the realities of deploying automated response in a security operations
+context.
 
-\textbf{Explainability first.} Every score, strategy, and action must have a reason that an analyst can read. This rules out black-box outputs and forces the system to carry evidence and rationale at every stage.
+\textbf{Explainability over opacity.} Every decision the system makes---a severity
+score, a chosen strategy, an approved or denied action---must be traceable to a
+specific reason that a human analyst can read and verify. Treating the system as a
+black box is simply not acceptable here: even the machine-learning components must
+surface evidence strings, hypothesis text, and per-action rationale rather than
+returning bare predictions. Explainability is not a feature; it is a hard constraint
+on the choice of models and output formats.
 
-\textbf{Safety before speed.} A wrong containment action can be worse than a missed alert. The design therefore enforces policy checks and approval gates before execution, even if that adds latency.
+\textbf{Safety before speed.} The cost of a false positive in autonomous threat
+response---blocking a legitimate IP, isolating a production server, disabling an
+active user account---can be severe and immediate. The architecture must guarantee
+that no high-impact action is ever taken without a multi-stage validation chain
+(intelligence assessment, structured planning, policy evaluation) and, where the
+risk is above a threshold, explicit human approval. Throughput and latency are
+secondary to correctness.
 
-\textbf{Modularity and replaceability.} Models and connectors change quickly. Each component must be swappable without rewriting the rest of the pipeline.
+\textbf{Modularity and replaceability.} Security tooling evolves quickly. The threat
+scoring model that works well today may be superseded within months. Any component---scorer,
+planner, SIEM connector, action handler---must be replaceable without cascading changes
+to the rest of the system. This is achieved through explicit interfaces at every layer
+boundary.
 
-\textbf{Runs on one machine.} The system must be runnable end-to-end on a single developer machine for demos and testing. External services are optional, not required.
+\textbf{Operability as a single project.} The system must be runnable end-to-end on
+a single development machine for experimentation and demonstration. In practice, this
+means avoiding hard dependencies on cloud services, managed databases, or always-on
+external infrastructure. Everything that is needed must either be embedded or
+configurable through environment variables.
 
-\textbf{Reproducibility.} Given the same input and configuration, the system should produce the same output. This requires deterministic post-processing and a clear audit trail.
+\textbf{Reproducibility.} Given the same input alert and the same configuration,
+the system must produce the same output. This is non-trivial when machine-learning
+models, LLM-based components, and external enrichment lookups are all in play.
+The architecture addresses this through response caching, deterministic post-processing
+pipelines, and the ability to replay any alert from a stored demo trace.
 
 % -----------------------------------------------------------------------------
 \section{Key Architectural Decisions}
 
+Several structural decisions shape the entire system. They are worth explaining before
+describing the components they produce.
+
 \subsection{Modular Monolith over Multi-Agent Architecture}
 
-A multi-agent design was considered. It would split ingestion, scoring, planning, and execution into separate autonomous agents. While this can scale, it introduces distributed failure modes and makes reasoning harder to audit. In security response, accountability matters more than autonomy. For that reason, the core engine is a modular monolith with a single, synchronous pipeline. Every decision flows through one call chain that can be logged end-to-end.
+The first and most fundamental choice was the overall \textit{architectural style}.
+An alternative that was seriously considered---and ultimately rejected---was a
+\textit{multi-agent architecture}, where autonomous software agents collaborate to
+detect and respond to threats. In a multi-agent SOAR, distinct agents might handle
+ingestion, enrichment, scoring, planning, and execution, communicating asynchronously
+through a shared message bus or blackboard. Each agent would have its own perception
+loop, internal state, and decision logic.
+
+Multi-agent architectures are appealing in theory because they mirror the way human
+SOC teams actually work---different analysts specialize in different tasks---and because
+they seem well-suited to parallel workloads. They are also the dominant framing in
+much of the AI-oriented security automation literature, where the vocabulary of
+``agents,'' ``goals,'' and ``environments'' maps naturally onto reinforcement learning
+formulations. In practice, though, closer examination showed that multi-agent design
+would have introduced significant costs with limited benefit for this system's goals.
+
+\textbf{Accountability and auditability.} When a response action is taken by a loosely
+coupled multi-agent system, attributing that decision to a specific chain of reasoning
+is difficult. Messages between agents are transient, the causal chain crosses multiple
+independent processes, and reconstructing exactly why the system acted as it did
+requires correlation across distributed logs. In a monolith where every decision
+traverses a single, linear, in-process call chain, this is straightforward---the whole
+chain can be recorded in full.
+
+\textbf{Safety guarantees.} A policy layer that must co-ordinate with autonomous agents
+over a message bus cannot make the synchronous, hard guarantees the safety requirements
+demand. An agent that acts before policy evaluation completes, or that bypasses
+a policy message due to a queue timeout, creates a window in which unsafe actions can
+execute. The synchronous, in-process policy engine chosen here makes that window
+structurally impossible: no action can proceed past the policy evaluation call.
+
+\textbf{Operational complexity.} Multi-agent systems bring distributed-systems
+failure modes---network partitions, agent crashes, message ordering, duplicate delivery,
+split-brain state---that must be handled on top of the domain logic itself. For
+a research prototype that must run on a single machine and be demonstrable to
+non-infrastructure audiences, this complexity adds nothing.
+
+\textbf{Emergent behavior.} Perhaps the most serious concern is that autonomous agents
+interacting over a shared environment can exhibit emergent behaviors that are difficult
+to predict, reproduce, or explain. In a security context, emergent behavior in a
+response system is an unacceptable risk.
+
+The architecture chosen instead is a \textbf{modular monolith}: a single cohesive
+process (the core engine) where all orchestration stages execute synchronously in
+a well-defined sequence, with clear interfaces between components. The word ``monolith''
+here does not imply a tangled codebase---each component is encapsulated behind an
+interface and can be swapped independently---but it does mean that control flow is
+explicit, predictable, and fully traceable.
+
+The only intentional process boundary in the system is the HTTP boundary between the
+core engine and the intelligence service. This boundary exists not for autonomy or
+parallelism but for language-ecosystem isolation: the C\# runtime and the Python
+runtime are genuinely different environments with different strengths, and keeping
+them separate avoids compromising either. The intelligence service is not an
+autonomous agent---it is a stateless function-as-a-service that the orchestrator
+calls synchronously and whose output the orchestrator validates before acting on it.
+Authority always rests with the core engine; the intelligence service provides
+recommendations, not decisions.
+
+The reason for this choice comes down to a practical principle: in a system that takes
+real-world actions in a production security environment, human-interpretable control
+flow and hard safety guarantees matter more than the theoretical scalability benefits
+of autonomous agent autonomy.
 
 \subsection{Two-Process Boundary: C\# Orchestration and Python Intelligence}
 
-The system is intentionally split into two processes. The orchestrator runs in C\# (.NET) because it handles state, policy enforcement, and long-running reliability. The intelligence service runs in Python because the ML ecosystem lives there. The two communicate over HTTP with a strict JSON contract. This boundary keeps each side simple: the orchestrator stays stable, and the intelligence layer can evolve quickly.
+The most consequential architectural decision is to implement the orchestration layer
+in C\# (.NET~9) and the intelligence layer in Python~3.11, with the two communicating
+over a local HTTP boundary.
 
-\subsection{Interface-Driven Design}
+This separation was not driven by language preference but by genuine domain fit.
+The orchestration layer handles control-plane work: managing state across
+alert cycles, dispatching concurrent actions, enforcing policy constraints, writing
+audit records, and maintaining SIEM connectivity. These tasks benefit from .NET's
+strong typing, high-performance async I/O, structured concurrency, and its mature
+ecosystem for building long-running services. The intelligence layer, by contrast,
+handles model inference and training: running PyTorch models, calling
+scikit-learn pipelines, wrapping Hugging Face transformers, and querying local LLMs
+via Ollama. Python is the unambiguous standard for this work.
 
-Each stage is defined by an interface: connector, normalization pipeline, scorer, planner, policy engine, execution pipeline, audit logger, and case manager. This makes the
-system testable with stubs and components replaceable without modifying the orchestrator.
+Hosting both in a single process---via Python.NET, a C Python binding, or
+a gRPC bridge inside the same runtime---would mean either compromising the orchestrator's
+performance characteristics for the sake of the ML code, or fighting against whichever
+runtime was forced to be the guest. The HTTP boundary is a clean contract: the C\# side
+makes a POST request and receives a JSON response; the Python side is free to load
+gigabyte-scale models, use the GIL, and import whatever it needs without affecting the
+orchestrator's latency.
 
-\subsection{Policy as a Local, Synchronous Gate}
+The boundary also provides an important operational benefit: either process can be
+restarted, upgraded, or replaced independently. A new model checkpoint can be hot-swapped
+in the intelligence service without restarting the core engine, and the core engine can
+be recompiled and updated without disturbing a running model server.
 
-Policy evaluation is inside the core engine, not a remote call. This guarantees that no action can bypass safety checks due to network failures or model errors. Hard denials are applied before any approval workflow, which prevents unsafe actions from entering the approval queue.
+\subsection{Interface-Driven Design in the Core Engine}
 
-\subsection{Structured Prediction over Free-Form Planning}
+Every major component in the C\# orchestrator is expressed as an interface:
+\texttt{ISiemConnector}, \texttt{INormalizationPipeline}, \texttt{IThreatScorer},
+\texttt{IPlanner}, \texttt{IExecutionPipeline}, \texttt{IAuditLogger}, and
+\texttt{ICaseManager}. The \texttt{AgentOrchestrator} class depends only on these
+interfaces; it has no knowledge of the concrete implementations injected into it.
 
-Early experiments with free-form JSON planning showed two problems: invalid output and hallucinated entities. The system therefore treats planning as structured prediction. The model selects a strategy and action types, while entity parameters are filled deterministically from the normalized alert. This removes hallucination by design.
+This is not boilerplate. Interface-driven design enables two critical capabilities.
+First, testing: the entire orchestrator can be exercised with lightweight in-memory
+stubs for every external dependency, making it possible to run thousands of alert
+scenarios in milliseconds without a live SIEM, HTTP service, or database.
+Second, replaceability: switching from the HTTP-based \texttt{HttpThreatScorerClient}
+to a hypothetical embedded scorer requires changing a single dependency-injection
+registration, not modifying the orchestrator itself.
+
+The interfaces are also the system's version contract. When the Python intelligence
+service evolves its response schema, only the HTTP client adapter needs to be updated;
+the rest of the orchestration code is unaffected.
+
+\subsection{Policy as a Local, Synchronous, Hard Layer}
+
+A critical design decision is that the policy engine lives entirely within the
+core engine---it is not a microservice, not a call to the intelligence service, and not
+a model. It is synchronous, deterministic, and executes in memory with no external
+dependencies.
+
+The reason for this comes directly from the safety requirement. If policy were implemented
+as a remote call, a network failure, a service restart, or a latency spike could
+result in actions being executed without policy evaluation. By keeping policy local and
+synchronous, the system guarantees that no action can bypass policy under any operational
+condition short of a process crash. Hard denials are evaluated before approval gating,
+so entity-presence violations are caught immediately rather than being queued for human
+review that can never be resolved.
+
+\subsection{Structured Prediction over Generative Planning}
+
+An early design explored using large language models to generate response plans as
+free-form JSON. This approach was abandoned after discovering two fundamental problems.
+First, sentence-piece tokenisers used by encoder-decoder models cannot reliably generate
+curly-brace characters, causing structured output to fail at inference time. Second, and
+more seriously, LLMs hallucinate entity values: they generate plausible-looking host IDs,
+IP addresses, and file hashes that do not correspond to any entity in the actual alert,
+producing plans that would target the wrong resources.
+
+The solution was to decompose planning into \textit{structured prediction}: the model
+classifies strategy, predicts a binary action set, and regresses priority. Entity
+parameters are then resolved deterministically from the enriched alert context. This
+eliminates hallucination entirely and reduces the planning problem to one that a small
+custom neural network can solve with over 96\% accuracy at a fraction of the inference
+cost of an LLM.
+
+\subsection{Reasoning and Explainability Design}
+
+Explainability is woven into the data model rather than added as an afterthought.
+Every major data structure carries human-readable explanation fields:
+\texttt{ThreatAssessment} includes a \texttt{hypothesis} and an \texttt{evidence} list;
+\texttt{DecisionPlan} includes a \texttt{rationale} list and per-action \texttt{rationale}
+strings; \texttt{PolicyDecision} includes per-action \texttt{reasons}. These fields are
+populated by the intelligence service and the policy engine respectively, recorded in
+the audit log verbatim, and displayed on the console during processing.
+
+What this means in practice is that no explanation is synthesized after the fact---what
+the analyst sees is the same text that drove the decision, not a post-hoc reconstruction.
+The consequence for model design is that any scorer or planner that cannot produce
+natural-language rationale is a poor fit for this system, regardless of its accuracy.
+
+\subsection{Safety and Fallback Mechanisms}
+
+The system is designed to degrade gracefully under failure, not to stop. Each of the
+pipeline stages that can fail---normalization, scoring, planning, policy, execution---is
+wrapped in an isolated try-catch boundary. A failure in any stage produces a structured
+error record in the audit log and a graceful outcome, but does not propagate to the
+caller or interfere with other alerts being processed concurrently.
+
+The intelligence service applies the same principle through its scorer and planner
+hierarchies. If the primary classifier scorer fails, the hybrid scorer falls back to the
+Ollama LLM; if Ollama is unavailable, a deterministic rule scorer is used. The planner
+similarly falls back to a rule-based planner if the neural network inference fails.
+The system never surfaces an empty result---there is always a response, even if it is
+a conservative one. Security teams would rather receive a cautious but well-formed
+response than an error that silently drops an alert.
 
 % -----------------------------------------------------------------------------
 \section{System Overview}
 
-The system processes alerts in a linear pipeline:
+With the design decisions established, the architecture resolves into two cooperating
+processes and a linear alert-processing pipeline. The pipeline for each alert follows
+seven sequential stages:
 
 \begin{verbatim}
-Ingest -> Normalize -> Enrich -> Score -> Plan -> Policy -> Execute -> Audit
+  [SIEM / Event Source]
+        |
+        v
+  [Event Ingestion]      (pull or webhook, cursor-based pagination)
+        |
+        v
+  [Normalization & Enrichment]  (schema alignment, asset/identity/TI lookup)
+        |
+        v
+  [Threat Scoring]       (HTTP -> Intelligence Service /v1/score)
+        |
+        v
+  [Decision Planning]    (HTTP -> Intelligence Service /v1/plan)
+        |
+        v
+  [Policy Evaluation]    (local, synchronous, hard safety rules)
+        |
+        v
+  [Action Execution]     (approved actions dispatched; pending queued)
+        |
+        v
+  [Audit & Case Management]  (JSONL log, case database, demo trace)
 \end{verbatim}
 
-Each stage emits structured data and is logged. The pipeline is synchronous and deterministic, which makes it easier to explain and to debug.
+The two-process boundary sits between the Policy Evaluation stage and the Threat
+Scoring / Decision Planning stages:
+
+\begin{verbatim}
+  +---------------------------+   HTTP/JSON    +---------------------------+
+  |       Core Engine         | <-----------> |   Intelligence Service    |
+  |  (C# / .NET 9)            |  /v1/score    |   (Python / FastAPI)      |
+  |                           |  /v1/plan     |                           |
+  |  AgentOrchestrator        |               |  ClassifierScorer         |
+  |  PolicyEngine             |               |  CustomNNPlanner          |
+  |  ExecutionPipeline        |               |  ModelRegistry            |
+  |  AuditLogger              |               |  LruCache                 |
+  +---------------------------+               +---------------------------+
+             |                                          |
+    SIEM connectors                           intelligence/models/
+    Action integrations                       (planner_nn/, classifier/)
+\end{verbatim}
 
 % -----------------------------------------------------------------------------
 \section{Event Ingestion Layer}
 
-The ingestion layer pulls alerts from external SIEMs or accepts them via webhook. Two connectors are implemented: a Wazuh connector for real SIEM input and a simulator for controlled demos. Each connector outputs a \texttt{RawAlert} object with the original payload and metadata such as source, alert ID, and timestamp.
+Every orchestration cycle begins with the ingestion of raw security events. Both
+ingestion modes are expressed through the same \texttt{ISiemConnector} interface,
+so downstream stages are unaware of which mode is active.
+
+\textbf{Polling mode} is the default. The orchestrator calls \texttt{PullAlertsAsync}
+each cycle, passing a \textit{cursor} that encodes the position reached in the last
+successful fetch. Cursor-based pagination is stateless from the SIEM's perspective and
+resilient to restarts: the cursor is preserved in memory and reused across cycles,
+so replay from the last checkpoint is automatic. When no cursor exists on first run,
+the engine falls back to a configurable \texttt{SinceUtc} timestamp.
+
+\textbf{Webhook mode} is the alternative for SIEMs that push events. A lightweight
+ASP.NET Core endpoint accepts inbound HTTP POST requests and calls
+\texttt{AgentOrchestrator.HandleAlertAsync} directly. Both modes share all downstream
+stages; only the entry point differs.
+
+The \texttt{RawAlert} type produced at this stage is intentionally minimal---it carries
+only the data the SIEM itself supplies: an identifier, a timestamp, a rule name, an alert
+type, the originating SIEM name, and an opaque \texttt{Properties} dictionary for
+vendor-specific fields. This prevents upstream schema variations from leaking into
+downstream components.
 
 % -----------------------------------------------------------------------------
 \section{Normalization and Enrichment}
 
-Normalization transforms non-uniform alert data formats to a standardized format.
-Consider the Wazuh alert format that stores the IP address of the source in data.srcip,
-and the Sentinel alert format that stores the IP address of the source as a list of
-entities. The mapping registry normalizes these differences.
-Enrichment provides contextual information like criticality of assets, threat intel hits,
-and identity privileges. These fields are optional; if an enrichment source is missing, the system continues with null values rather than failing the entire pipeline.
+Raw alerts must be translated into the system's canonical \texttt{EnrichedAlert}
+representation before any intelligence component can operate on them. This is the
+responsibility of the \texttt{INormalizationPipeline}, implemented as
+\texttt{BasicAlertValidator}.
+
+\textbf{Schema normalization} maps vendor-specific field names to a stable internal
+schema. Alert types are canonicalized to one of five categories:
+\texttt{PortScanFromIp}, \texttt{BruteForceUser}, \texttt{MalwareHashOnHost},
+\texttt{SuspiciousProcessOnHost}, and \texttt{BenignNoise}. Severity values from
+heterogeneous scales are rescaled to a uniform 0--100 integer.
+
+\textbf{Context enrichment} augments each normalized alert with three independent
+lookups performed in parallel:
+
+\begin{itemize}
+  \item \textbf{Asset context}: Given a host identifier or IP address, the enrichment
+    layer queries an asset registry for the asset's \texttt{criticality} (1--5),
+    its network \texttt{environment} (internal/DMZ/external), and privileged status.
+    Criticality 5 assets trigger mandatory escalation regardless of the scorer's output.
+
+  \item \textbf{Identity context}: If the alert references a username, the identity
+    provider is queried for the user's privileged flag, department, and role.
+    Privileged users carry higher inherent risk weight in both scoring and planning.
+
+  \item \textbf{Threat intelligence}: IP addresses and file hashes are checked against
+    a threat-intelligence feed, returning a \texttt{reputationScore} (0--100) and
+    matching tags such as \textit{known-scanner} or \textit{c2-server}. A high TI
+    score amplifies scorer confidence.
+\end{itemize}
+
+If any lookup fails, the enrichment stage records null for that context block rather
+than aborting---a deliberate fail-open design that prioritises pipeline continuity.
 
 % -----------------------------------------------------------------------------
 \section{Threat Scoring Component}
 
-The scoring stage produces a \texttt{ThreatAssessment} with severity, confidence, hypothesis, and evidence. The default scorer is a TF-IDF based classifier with calibrated confidence thresholds. A hybrid mode can add an LLM explanation when confidence is borderline. A rule-based fallback ensures that the pipeline always returns a score.
+The enriched alert is submitted to the intelligence service's \texttt{/v1/score}
+endpoint. The returned \texttt{ThreatAssessment} contains a \texttt{severity} integer
+(0--100), a \texttt{confidence} float (0--1), a natural-language \texttt{hypothesis},
+and a list of \texttt{evidence} strings.
 
-The scorer is informational, not authoritative. Its output drives planning and policy, but policy rules can still block actions even for high scores.
+The intelligence service scores alerts through a configurable hierarchy. In production
+the default is a \textbf{hybrid}: a TF-IDF + Logistic Regression classifier is the
+primary signal, an optional Ollama-hosted LLM provides secondary explanation when
+confidence is borderline, and a rule-based fallback ensures the pipeline never returns
+an empty score.
+
+The \texttt{ClassifierScorer} represents alert fields as a bag-of-words TF-IDF vector
+concatenated with structured features (alert type, asset criticality, privileged flag,
+exposure zone). Post-processing applies calibrated confidence floors per alert type and
+boosts the final score when the enrichment context contains a high TI reputation or a
+criticality-5 asset.
+
+The scorer is a read-only assessment---it provides evidence for the planning decision,
+not a trigger. The \texttt{hypothesis} and \texttt{evidence} fields are recorded verbatim
+in the audit log alongside every action taken, so analysts reviewing historical cases
+can reconstruct the system's reasoning exactly.
 
 % -----------------------------------------------------------------------------
 \section{Decision Planning Component}
 
-Planning converts an assessment into a structured \texttt{DecisionPlan}. Each plan includes a strategy, priority, a list of actions, and rationale text. The system uses five strategy labels:
+Given an enriched alert and a threat assessment, the planner produces a
+\texttt{DecisionPlan} specifying a \textbf{strategy}, a \textbf{priority}, an ordered
+list of \textbf{planned actions}, and \textbf{rationale} strings. The strategy is one
+of five values:
 
 \begin{itemize}
   \item \textbf{Ignore}: The alert is assessed as benign noise; no action is taken.
@@ -87,31 +381,117 @@ Planning converts an assessment into a structured \texttt{DecisionPlan}. Each pl
   \item \textbf{Contain}: Immediate high-confidence threat; containment is the priority.
 \end{itemize}
 
-The planner is model-driven, but its output is sanitized to enforce schema validity, safe actions at low confidence, and parameter completeness. This keeps the plan consistent even when models fail or return partial output.
+The intelligence service exposes planning through \texttt{/v1/plan}. Multiple backends
+are supported via the model registry. In production the \textbf{CustomNNPlanner} is
+used---a lightweight multi-head MLP trained from scratch on 8,644 labeled examples.
+
+The neural network decomposes planning into three parallel structured-prediction
+problems: strategy (5-class softmax), action set (multi-label sigmoid over 8 action
+types), and priority (sigmoid scaled to 0--100). A deterministic post-processing pass
+then resolves entity parameters from the enriched alert context, adds safe infrastructure
+actions that are always appropriate, and applies label sanitization to enforce coherence.
+This eliminates LLM hallucination entirely and reduces inference time to under 5 ms.
+
+The model registry allows multiple named profiles to coexist. A caller can request a
+specific profile via the \texttt{X-Intel-Profile} HTTP header, enabling A/B evaluation
+or graceful rollback without any change to the core engine.
 
 % -----------------------------------------------------------------------------
 \section{Policy and Safety Layer}
 
-The policy engine analyzes each proposed action and returns a decision of Approved, Pending,
-or Denied. Hard constraints are checked first (missing entities, forbidden actions, low confidence).
-Approval gates are applied next, using risk, environment, and asset criticality factors. All policy
-decisions are logged with explanations so that analysts can trace exactly why a particular action
-was allowed or denied.
+The policy engine is the system's safety backstop. It operates entirely within the core
+engine---synchronous, deterministic, no external calls---and evaluates every planned
+action against hard constraints before dispatch. Each action is triaged into one of three
+categories:
+
+\begin{itemize}
+  \item \textbf{Approved}: Passes all constraints; auto-executed.
+  \item \textbf{Pending}: Valid but above the risk threshold; held for human approval.
+  \item \textbf{Denied}: Violates a hard constraint; permanently blocked for this cycle.
+\end{itemize}
+
+Hard denials are evaluated first. They cover: actions requiring an entity (host ID, IP,
+username) that is absent from the enriched alert; irreversible actions on production
+assets below a severity threshold; and globally disabled action types. This ordering
+prevents a pending action from being queued for human review when no human action could
+resolve the underlying constraint violation.
+
+Threshold-based approval gating sits below hard denials. Actions above a configurable
+risk threshold require human approval even if all entity constraints are satisfied.
+Thresholds are tunable per environment. All policy decisions and their specific reasons
+are recorded in the audit log and displayed in the console during processing.
+
 % -----------------------------------------------------------------------------
 \section{Action Execution and Response}
 
-Approved actions are routed to executors (ticketing, notification, firewall, host isolation). Each executor validates parameters and returns a structured result. In demo mode, executors simulate the action and only write audit entries. This keeps the system safe while still showing a complete execution pipeline.
+Approved actions are dispatched by the \texttt{IExecutionPipeline}. Each
+\texttt{PlannedAction} carries a type (e.g., \texttt{BlockIp}, \texttt{IsolateHost},
+\texttt{QuarantineFile}), typed parameters, a risk level, and an
+\texttt{expectedImpact} score for ordering within a plan.
+
+\textbf{Dry-run mode} (the default) validates and logs every action with a
+\texttt{DryRun} status but makes no external calls. The audit trail produced in
+dry-run mode is structurally identical to that in live mode, so the transition to live
+execution requires no changes to reporting or observability tooling.
+
+\textbf{Live mode} dispatches actions to real integration targets. Handlers are resolved
+from the \texttt{ActionCatalog}, invoked with a configurable timeout, and their results
+collected into an \texttt{ExecutionReport} recording each action's status:
+\texttt{Succeeded}, \texttt{Failed}, \texttt{Skipped}, or \texttt{DryRun}.
+
+Rollback actions (\texttt{UnblockIp}, \texttt{UnisolateHost}, \texttt{EnableUser}) are
+included in every plan containing a corresponding containment action. They are stored
+in the plan's \texttt{rollbackActions} list and surfaced to analysts as reversibility
+documentation; they are not executed automatically.
+
+After execution, the orchestrator calls \texttt{TryAckAsync} to update the SIEM's
+alert status. Alerts with pending actions are acknowledged as \texttt{InProgress};
+fully resolved alerts are marked \texttt{Closed}.
 
 % -----------------------------------------------------------------------------
 \section{Audit and Explainability Components}
 
-Every stage writes structured audit events to JSONL. These logs include the raw alert, normalized alert, assessment, plan, policy decision, and execution results. The same data powers the reasoning console UI, which allows the full decision trail to be viewed and replayed.
+Every significant event is recorded by \texttt{IAuditLogger} as a structured
+\texttt{AuditEntry} in a newline-delimited JSON file. Each entry carries a correlation
+ID, a timestamp, a component name, an event type, a human-readable message, and a
+context-specific key-value dictionary. The log is append-only and designed for
+post-hoc querying.
+
+Beyond the event log, the system writes a \textbf{demo trace} for each processed alert:
+a complete snapshot of the raw alert, enriched alert, threat assessment, decision plan,
+policy decision, and execution report. These traces are written to \texttt{demo\_trace.jsonl}
+and serve two purposes. First, they enable full reproducibility---any alert can be
+replayed deterministically from its trace. Second, they power a demo user interface that
+visualises the complete decision pathway for stakeholder demonstrations.
+
+The \texttt{ICaseManager} groups related alerts into persistent cases backed by a SQLite
+database. Cases accumulate assessments and plans across alerts, providing a unified
+timeline view for multi-stage attacks that would be invisible at the individual-alert level.
 
 % -----------------------------------------------------------------------------
 \section{Cross-Cutting Concerns}
 
-\textbf{Configuration.} All services are configured via environment variables and a single \texttt{.env} file, making model switching and demo setup fast.
+\textbf{Fault isolation.} Each pipeline stage is wrapped in an independent try-catch
+boundary. A failure at any stage produces a structured error record and a graceful
+outcome, but does not propagate or affect other alerts being processed concurrently.
+Audit and case management failures are additionally isolated, since secondary concerns
+must never degrade alert handling throughput.
 
-\textbf{Resilience.} Each stage is isolated; a failure in one alert does not crash the pipeline for the entire batch.
+\textbf{Observability.} Each processed alert triggers \texttt{PrintDemoSummary}, which
+emits a structured, ANSI-colored console block showing the alert identity, enrichment
+context, assessment scores, plan strategy, and per-action policy decisions.
+At session end, \texttt{PrintExecutiveSummary} emits an aggregate table: total alerts
+processed, strategy breakdown, action counts by approval tier, and the highest-severity
+alert seen.
 
-\textbf{Extensibility.} New connectors, actions, or models can be added by implementing a single interface and registering it with the container or model registry.
+\textbf{Response caching.} The intelligence service maintains an LRU cache keyed on
+a hash of the alert content and the active model profile. Repeated submissions of the
+same alert---common when a SIEM re-delivers unacknowledged events---are served from
+cache without invoking the scorer or planner. Cache capacity defaults to 256 entries
+and is configurable via \texttt{INTEL\_CACHE\_SIZE}.
+
+\textbf{Configuration.} All runtime parameters are expressed through environment
+variables loaded from a \texttt{.env} file at startup. Neither side requires file-system
+writes or database migrations for configuration changes, simplifying deployment in
+containerized environments and making exact configurations reproducible from a single
+\texttt{.env} snapshot.

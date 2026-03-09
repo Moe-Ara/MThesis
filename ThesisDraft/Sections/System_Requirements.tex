@@ -3,20 +3,19 @@
 \lhead{\emph{System Requirements}}
 
 \section{Functional Requirements}
-The system must ingest alerts from external SIEM sources, normalize them to a common schema, enrich them with context, and produce ranked incident candidates. A scoring component must generate an explainable risk score and confidence for each incident, together with reason codes and context multipliers. A planning component must produce a structured response plan with a strategy, priority, actions, and rollback steps. Each plan must be validated against explicit policy rules before execution, and the execution stage must record action outcomes and errors.
 
-The system must support analyst feedback. An analyst can mark an incident as true positive, false positive, or needs more information, and optionally override severity. Feedback events must be recorded in an append-only log and used to update model weights in a bounded, auditable way. The system must also track investigation traces and use them to recommend next steps. A user interface must expose raw alerts, normalized alerts, scoring explanations, plans, policy checks, execution status, and audit logs.
+The system ingests alerts from external SIEM sources, normalises them to a common schema, enriches them with contextual data, and produces ranked incident candidates. For each incident the scoring component generates an explainable risk score and confidence value, accompanied by reason codes and context multipliers. The planning component then produces a structured response plan---strategy, priority, action set, and rollback steps---which is validated against explicit policy rules before any action is dispatched. The execution stage records action outcomes and errors.
+
+Analyst feedback is a first-class input. An analyst can mark an incident as true positive, false positive, or needs more information, and optionally override severity. Feedback events are recorded in an append-only log and used to update model weights in a bounded, auditable way. Investigation traces are tracked and used to recommend next steps. A user interface exposes raw alerts, normalised alerts, scoring explanations, plans, policy checks, execution status, and audit logs.
 
 \section{Non-Functional Requirements}
-The architecture must be modular to allow the intelligence models to be swapped without modifying the orchestration code. The interface between layers must be explicit. The system must be able to be executed as a single project to facilitate demonstrations or repeated experiments. The explanations must be human-readable. The explanations must be consistent to compare inputs.
-The implementation must be maintainable. There must be a clear separation between the domain logic, the application services, the infrastructure, and the UI. There must be structured logging to facilitate audits.
+
+The architecture is modular so that intelligence models can be swapped without touching orchestration code. The interface between layers is explicit and versioned. The system must run as a single project to facilitate demonstrations and repeated experiments. Explanations are human-readable and consistent across alerts to allow direct comparison.
+
+There is a clear separation between domain logic, application services, infrastructure, and the UI. Structured logging throughout facilitates audits and retrospective analysis.
+
 \section{Security and Safety Requirements}
-Automation must be bounded. The actions proposed by the planner should be subject to policy rules such as allow/deny lists, confidence thresholds, and asset criticality limits. High-impact actions should be subject to approval gates/dual control, and each automated action should have a rollback action.
 
-The execution layer must validate parameters, enforce entity presence checks, and refuse execution when required context is missing or policy checks fail. Rate limits and idempotency safeguards must prevent repeated execution under noisy alerts. If confidence is too low, or policy approval is not met, the system must fall back to recommendation-only behavior.
+Automation is bounded by design. All planner actions are subject to policy rules---allow/deny lists, confidence thresholds, asset criticality limits. High-impact actions require approval gates, and each automated action has a corresponding rollback. The execution layer validates parameters, enforces entity-presence checks, and refuses to execute when required context is missing or policy checks fail. Rate limits and idempotency safeguards prevent repeated execution under noisy alert conditions.
 
-Model risk must be controlled. Feedback-driven weight updates must be bounded and logged in an append-only audit trail.Model output should be traceable after updates.
-Support should be provided for drift detection and periodic offline recalibration.
-Data handling should conform to the principle of least privilege for connectors and executors,
-and sensitive field minimization or redaction should be employed where possible.
-All policy evaluations and execution outcomes should be logged with timestamps and actor identity.
+If confidence is too low or policy approval is not granted, the system falls back to recommendation-only behaviour. Model risk is controlled through bounded, logged weight updates. Model output is traceable after updates, and the system supports drift detection and periodic offline recalibration. Connectors and executors operate under least-privilege access, and sensitive fields are minimised or redacted where possible. All policy evaluations and execution outcomes are logged with timestamps and actor identity.

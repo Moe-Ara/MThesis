@@ -34,6 +34,7 @@
 \citation{tilbury2024humans}
 \citation{rulegenie2025}
 \citation{tilbury2024humans}
+\citation{ban2023alertfatigue}
 \@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.24}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
@@ -46,210 +47,248 @@
 \citation{nist80061}
 \citation{tilbury2024humans}
 \citation{nist80092}
-\citation{nist80092}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background and Related Work}{4}{chapter.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background and Related Work}{3}{chapter.29}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:background-related-work}{{2}{4}{Background and Related Work}{chapter.29}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Cybersecurity Monitoring and Security Operations Centers}{4}{section.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Security Information and Event Management (SIEM)}{4}{section.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Log Collection and Normalization}{4}{subsection.32}\protected@file@percent }
+\newlabel{chap:background-related-work}{{2}{3}{Background and Related Work}{chapter.29}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Cybersecurity Monitoring and Security Operations Centers}{3}{section.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Security Information and Event Management (SIEM)}{3}{section.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Log Collection, Normalization, and Correlation}{3}{subsection.32}\protected@file@percent }
 \citation{valeur2004alert}
 \citation{nist80061}
 \citation{tilbury2024humans}
 \citation{strom2018attack}
 \citation{rulegenie2025}
 \citation{ban2023alertfatigue}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Event Correlation}{5}{subsection.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.3}Alerting and Incident Response}{5}{subsection.34}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Limitations of Current SIEM Systems}{5}{section.35}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Rule-Based Detection}{5}{subsection.36}\protected@file@percent }
 \citation{axelsson2000baseratev}
-\citation{nist80092}
-\citation{rulegenie2025}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Alerting and Incident Response}{4}{subsection.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Limitations of Current SIEM Systems}{4}{section.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Rule-Based Detection and Alert Overload}{4}{subsection.35}\protected@file@percent }
 \citation{tilbury2024humans}
 \citation{garcia2009anomaly}
 \citation{sommer2010outside}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Alert Overload and False Positives}{6}{subsection.37}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Scalability and Data Volume}{6}{subsection.38}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}Dependence on Human Analysts}{6}{subsection.39}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Machine Learning Approaches to Intrusion Detection}{6}{section.40}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}System Requirements}{8}{chapter.41}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:system-requirements}{{3}{8}{System Requirements}{chapter.41}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Functional Requirements}{8}{section.42}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Non-Functional Requirements}{8}{section.43}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3.3}Security and Safety Requirements}{9}{section.44}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}System Design and Architecture}{10}{chapter.45}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:system-architecture}{{4}{10}{System Design and Architecture}{chapter.45}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.1}Design Goals}{10}{section.46}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.2}Key Architectural Decisions}{10}{section.47}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Modular Monolith over Multi-Agent Architecture}{10}{subsection.48}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Two-Process Boundary: C\# Orchestration and Python Intelligence}{11}{subsection.49}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Interface-Driven Design}{11}{subsection.50}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.4}Policy as a Local, Synchronous Gate}{11}{subsection.51}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.5}Structured Prediction over Free-Form Planning}{11}{subsection.52}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.3}System Overview}{11}{section.53}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.4}Event Ingestion Layer}{12}{section.54}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.5}Normalization and Enrichment}{12}{section.55}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.6}Threat Scoring Component}{12}{section.56}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.7}Decision Planning Component}{13}{section.57}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.8}Policy and Safety Layer}{13}{section.58}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.9}Action Execution and Response}{13}{section.59}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.10}Audit and Explainability Components}{14}{section.60}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.11}Cross-Cutting Concerns}{14}{section.61}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Implementation}{15}{chapter.62}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:implementation}{{5}{15}{Implementation}{chapter.62}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Technology Stack}{15}{section.63}\protected@file@percent }
-\newlabel{sec:impl-stack}{{5.1}{15}{Technology Stack}{section.63}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Orchestration Layer: .NET 9 / C\#}{15}{subsection.64}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Intelligence Layer: Python / FastAPI}{15}{subsection.65}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}Model Training}{15}{subsection.66}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.4}Persistence and Configuration}{16}{subsection.67}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}Core Engine Implementation}{16}{section.68}\protected@file@percent }
-\newlabel{sec:impl-core}{{5.2}{16}{Core Engine Implementation}{section.68}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}Key Interfaces}{16}{subsection.69}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Normalization and Enrichment}{17}{subsection.70}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Webhook and Polling Modes}{17}{subsection.71}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.3}Intelligence Service}{17}{section.72}\protected@file@percent }
-\newlabel{sec:impl-intelligence}{{5.3}{17}{Intelligence Service}{section.72}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.4}Model Registry and Profile-Based Backend Selection}{18}{section.73}\protected@file@percent }
-\newlabel{sec:impl-registry}{{5.4}{18}{Model Registry and Profile-Based Backend Selection}{section.73}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.5}Threat Scoring Component}{18}{section.74}\protected@file@percent }
-\newlabel{sec:impl-scoring}{{5.5}{18}{Threat Scoring Component}{section.74}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.6}Decision Planning Component}{18}{section.75}\protected@file@percent }
-\newlabel{sec:impl-planning}{{5.6}{18}{Decision Planning Component}{section.75}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.7}Policy and Safety Layer}{19}{section.76}\protected@file@percent }
-\newlabel{sec:impl-policy}{{5.7}{19}{Policy and Safety Layer}{section.76}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.8}Execution Pipeline}{19}{section.77}\protected@file@percent }
-\newlabel{sec:impl-execution}{{5.8}{19}{Execution Pipeline}{section.77}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.9}Auditing and Case Management}{19}{section.78}\protected@file@percent }
-\newlabel{sec:impl-audit}{{5.9}{19}{Auditing and Case Management}{section.78}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.10}Deployment and System Setup}{19}{section.79}\protected@file@percent }
-\newlabel{sec:impl-deploy}{{5.10}{19}{Deployment and System Setup}{section.79}{}}
-\citation{strom2018attack}
-\citation{rodriguez2020mordor}
-\citation{sharafaldin2018cic}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Dataset Pipeline and Training}{20}{chapter.80}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:dataset-pipeline}{{6}{20}{Dataset Pipeline and Training}{chapter.80}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Security Datasets and Their Roles}{20}{section.81}\protected@file@percent }
-\newlabel{sec:datasets}{{6.1}{20}{Security Datasets and Their Roles}{section.81}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}MITRE ATT\&CK (STIX)}{20}{subsection.82}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Mordor / Security Datasets}{20}{subsection.83}\protected@file@percent }
-\citation{darpatc}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}CIC-IDS2018}{21}{subsection.84}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.4}DARPA Transparent Computing (TC)}{21}{subsection.85}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.5}Synthetic Scenario Generation}{21}{subsection.86}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.2}Dataset Processing and Normalisation}{21}{section.87}\protected@file@percent }
-\newlabel{sec:dataset-processing}{{6.2}{21}{Dataset Processing and Normalisation}{section.87}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.1}Schema Mapping}{21}{subsection.88}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.2}Label Assignment and Severity Calibration}{21}{subsection.89}\protected@file@percent }
-\citation{dettmers2023qlora,hu2022lora,fdtnsec}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.3}Action Balancing}{22}{subsection.90}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.3}Training Data Format Evolution}{22}{section.91}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.1}Version 1: Full JSON Prompt}{22}{subsection.92}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.2}Version 2: Canonical Flat Format}{22}{subsection.93}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.3}Version 3: Compact Pipe-Delimited Format (Final)}{22}{subsection.94}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.4}The Scorer: From Non-Functional Baseline to Calibrated Classifier}{22}{section.95}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.1}Attempt 1: Zero-Shot LLM (baron-security)}{22}{subsection.96}\protected@file@percent }
-\citation{pedregosa2011sklearn}
-\citation{dettmers2023qlora,hu2022lora,fdtnsec}
-\citation{chung2022flan}
-\citation{paszke2019pytorch}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.2}Attempt 2: QLoRA Fine-Tuning on Foundation-Sec-8B}{23}{subsection.97}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.3}Attempt 3: TF-IDF Classifier Pipeline (Final)}{23}{subsection.98}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.5}The Planner: Four Approaches to Structured Prediction}{23}{section.99}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.1}Attempt 1: Zero-Shot LLM}{23}{subsection.100}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.2}Attempt 2: Foundation-Sec-8B QLoRA Fine-Tuning}{23}{subsection.101}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.3}Attempt 3: Seq2Seq Fine-Tuning (flan-t5)}{23}{subsection.102}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.4}Attempt 4: Custom Multi-Head MLP (Final)}{23}{subsection.103}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.6}Evaluation and Results Comparison}{24}{section.104}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.7}Integration with the Intelligence Service}{24}{section.105}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Evaluation}{25}{chapter.106}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:evaluation}{{7}{25}{Evaluation}{chapter.106}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.1}Evaluation Setup}{25}{section.107}\protected@file@percent }
-\newlabel{sec:eval-setup}{{7.1}{25}{Evaluation Setup}{section.107}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.1}Dataset and Split}{25}{subsection.108}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.2}Evaluation Metrics}{25}{subsection.109}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.3}Evaluation Environment}{26}{subsection.110}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7.2}Detection Performance}{26}{section.111}\protected@file@percent }
-\newlabel{sec:eval-detection}{{7.2}{26}{Detection Performance}{section.111}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.1}Scorer Results}{26}{subsection.112}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.2}Calibrated Confidence Behavior}{26}{subsection.113}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.3}Comparison with LLM Baselines}{26}{subsection.114}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7.3}Response Planning Evaluation}{27}{section.115}\protected@file@percent }
-\newlabel{sec:eval-planning}{{7.3}{27}{Response Planning Evaluation}{section.115}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.1}Summary of Model Progression}{27}{subsection.116}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.2}Interpretation of Remaining Errors}{27}{subsection.117}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.3}Policy Engine Correctness}{27}{subsection.118}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7.4}Example Incident Scenarios}{27}{section.119}\protected@file@percent }
-\newlabel{sec:eval-scenarios}{{7.4}{27}{Example Incident Scenarios}{section.119}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.1}Scenario 1: Malware Hash Detection --- Autonomous Containment}{27}{subsection.120}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.2}Scenario 2: Brute Force Attempt --- Conditional Containment}{28}{subsection.121}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.3}Scenario 3: Suspicious Process --- Investigative Hold}{28}{subsection.122}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.4}Scenario 4: Benign Noise --- Autonomous Dismissal}{28}{subsection.123}\protected@file@percent }
+\citation{du2017deeplog,scarselli2009gnn,vaswani2017attention}
+\citation{sommer2010outside,tilbury2024humans}
 \citation{ban2023alertfatigue}
-\citation{sommer2010outside}
-\@writefile{toc}{\contentsline {section}{\numberline {7.5}Discussion of Results}{29}{section.124}\protected@file@percent }
-\newlabel{sec:eval-results-discussion}{{7.5}{29}{Discussion of Results}{section.124}{}}
+\citation{tilbury2024humans,nist80061}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Dependence on Human Analysts}{5}{subsection.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Machine Learning Approaches to Intrusion Detection}{5}{section.37}\protected@file@percent }
 \citation{nist80061}
 \citation{tilbury2024humans}
-\citation{ban2023alertfatigue}
-\@writefile{toc}{\contentsline {chapter}{\numberline {8}Discussion}{30}{chapter.125}\protected@file@percent }
+\citation{strom2018attack}
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Automated and Intelligent Incident Response}{6}{section.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Research Gap}{6}{section.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}System Requirements}{7}{chapter.40}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:discussion}{{8}{30}{Discussion}{chapter.125}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {8.1}Advantages of the Proposed System}{30}{section.126}\protected@file@percent }
-\newlabel{sec:discussion-advantages}{{8.1}{30}{Advantages of the Proposed System}{section.126}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.1}Explainability as a First-Class Output}{30}{subsection.127}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.2}Safety Independent of Model Quality}{30}{subsection.128}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.3}Operational Feasibility}{30}{subsection.129}\protected@file@percent }
-\citation{nist80092}
+\newlabel{chap:system-requirements}{{3}{7}{System Requirements}{chapter.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Functional Requirements}{7}{section.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Non-Functional Requirements}{7}{section.42}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Security and Safety Requirements}{8}{section.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}System Design and Architecture}{9}{chapter.44}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{chap:system-architecture}{{4}{9}{System Design and Architecture}{chapter.44}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Design Goals}{9}{section.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Key Architectural Decisions}{10}{section.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Modular Monolith over Multi-Agent Architecture}{10}{subsection.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Two-Process Boundary: C\# Orchestration and Python Intelligence}{12}{subsection.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Interface-Driven Design in the Core Engine}{12}{subsection.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.4}Policy as a Local, Synchronous, Hard Layer}{13}{subsection.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.5}Structured Prediction over Generative Planning}{13}{subsection.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.6}Reasoning and Explainability Design}{14}{subsection.52}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.7}Safety and Fallback Mechanisms}{14}{subsection.53}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}System Overview}{14}{section.54}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Event Ingestion Layer}{16}{section.55}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.5}Normalization and Enrichment}{16}{section.56}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.6}Threat Scoring Component}{17}{section.57}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.7}Decision Planning Component}{17}{section.58}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.8}Policy and Safety Layer}{18}{section.59}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.9}Action Execution and Response}{19}{section.60}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.10}Audit and Explainability Components}{19}{section.61}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.11}Cross-Cutting Concerns}{20}{section.62}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Implementation}{21}{chapter.63}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{chap:implementation}{{5}{21}{Implementation}{chapter.63}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}Technology Stack}{21}{section.64}\protected@file@percent }
+\newlabel{sec:impl-stack}{{5.1}{21}{Technology Stack}{section.64}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Orchestration Layer: .NET 9 / C\#}{21}{subsection.65}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Intelligence Layer: Python / FastAPI}{22}{subsection.66}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}Model Training: PyTorch and scikit-learn}{22}{subsection.67}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.4}Persistence}{22}{subsection.68}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.5}Configuration}{23}{subsection.69}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}Core Engine Implementation}{23}{section.70}\protected@file@percent }
+\newlabel{sec:impl-core}{{5.2}{23}{Core Engine Implementation}{section.70}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}The Orchestration Pipeline}{23}{subsection.71}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Interface-Driven Architecture}{24}{subsection.72}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Domain Model: Alert Lifecycle}{25}{subsection.73}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.4}Normalization and the Multi-SIEM Mapping Registry}{26}{subsection.74}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.5}Enrichment Pipeline}{26}{subsection.75}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.6}Webhook Mode and Polling Mode}{27}{subsection.76}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Intelligence Service}{27}{section.77}\protected@file@percent }
+\newlabel{sec:impl-intelligence}{{5.3}{27}{Intelligence Service}{section.77}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.1}Service Startup and Backend Initialisation}{27}{subsection.78}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.2}Request Handling and the LRU Cache}{28}{subsection.79}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}Model Registry and Profile-Based Backend Selection}{29}{section.80}\protected@file@percent }
+\newlabel{sec:impl-registry}{{5.4}{29}{Model Registry and Profile-Based Backend Selection}{section.80}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}Threat Scoring Component}{30}{section.81}\protected@file@percent }
+\newlabel{sec:impl-scoring}{{5.5}{30}{Threat Scoring Component}{section.81}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.1}The Classifier Scorer}{31}{subsection.82}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Enrichment-Aware Confidence Boosting}{32}{subsection.83}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.3}Hypothesis and Evidence Generation}{33}{subsection.84}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Decision Planning Component}{33}{section.85}\protected@file@percent }
+\newlabel{sec:impl-planning}{{5.6}{33}{Decision Planning Component}{section.85}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Framing Planning as Structured Prediction}{33}{subsection.86}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}The Custom Neural Network Planner}{34}{subsection.87}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.3}Feature Engineering}{34}{subsection.88}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.4}Multi-Head Training with Masked Action Loss}{36}{subsection.89}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.5}Enrichment Post-Processing Layer}{37}{subsection.90}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Policy and Safety Layer}{38}{section.91}\protected@file@percent }
+\newlabel{sec:impl-policy}{{5.7}{38}{Policy and Safety Layer}{section.91}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Three-Tier Decision Model}{38}{subsection.92}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Entity Presence Validation}{39}{subsection.93}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Action Catalog}{40}{subsection.94}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.8}Action Execution and Response}{40}{section.95}\protected@file@percent }
+\newlabel{sec:impl-execution}{{5.8}{40}{Action Execution and Response}{section.95}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.9}Audit, Traceability, and Console Output}{41}{section.96}\protected@file@percent }
+\newlabel{sec:impl-audit}{{5.9}{41}{Audit, Traceability, and Console Output}{section.96}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9.1}Demo Trace Writer}{41}{subsection.97}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9.2}Console Output}{41}{subsection.98}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.10}Deployment and System Setup}{42}{section.99}\protected@file@percent }
+\newlabel{sec:impl-deployment}{{5.10}{42}{Deployment and System Setup}{section.99}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10.1}Single-Command Startup}{42}{subsection.100}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10.2}Webhook Demo Setup}{43}{subsection.101}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10.3}Environment Configuration Reference}{43}{subsection.108}\protected@file@percent }
+\citation{strom2018attack}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Dataset Pipeline and Training}{45}{chapter.109}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{chap:dataset-pipeline}{{6}{45}{Dataset Pipeline and Training}{chapter.109}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Security Datasets and Their Roles}{45}{section.110}\protected@file@percent }
+\newlabel{sec:datasets}{{6.1}{45}{Security Datasets and Their Roles}{section.110}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}MITRE ATT\&CK (STIX)}{45}{subsection.111}\protected@file@percent }
+\citation{rodriguez2020mordor}
+\citation{sharafaldin2018cic}
+\citation{darpatc}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Mordor / Security Datasets}{46}{subsection.112}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}CIC-IDS2018}{46}{subsection.113}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.4}DARPA Transparent Computing (TC)}{47}{subsection.114}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.5}Synthetic Scenario Generation}{47}{subsection.115}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Dataset Processing and Normalisation}{48}{section.116}\protected@file@percent }
+\newlabel{sec:dataset-processing}{{6.2}{48}{Dataset Processing and Normalisation}{section.116}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.1}Schema Mapping}{48}{subsection.117}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.2}Label Assignment and Severity Calibration}{49}{subsection.118}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.3}Action Balancing}{50}{subsection.119}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.3}Training Data Format Evolution}{50}{section.120}\protected@file@percent }
+\newlabel{sec:format-evolution}{{6.3}{50}{Training Data Format Evolution}{section.120}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.1}Version 1: Full JSON Prompt}{51}{subsection.121}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.2}Version 2: Canonical Flat Format}{51}{subsection.122}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.3}Version 3: Compact Pipe-Delimited Format (Final)}{51}{subsection.123}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.4}The Scorer: From Non-Functional Baseline to Calibrated Classifier}{52}{section.124}\protected@file@percent }
+\newlabel{sec:scorer-training}{{6.4}{52}{The Scorer: From Non-Functional Baseline to Calibrated Classifier}{section.124}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.1}Attempt 1: Zero-Shot LLM (baron-security)}{52}{subsection.125}\protected@file@percent }
+\citation{fdtnsec}
+\citation{dettmers2023qlora}
+\citation{hu2022lora}
+\citation{pedregosa2011sklearn}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.2}Attempt 2: QLoRA Fine-Tuning on Foundation-Sec-8B}{53}{subsection.126}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.3}Attempt 3: TF-IDF Classifier Pipeline (Final)}{53}{subsection.127}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.5}The Planner: Four Approaches to Structured Prediction}{54}{section.128}\protected@file@percent }
+\newlabel{sec:planner-training}{{6.5}{54}{The Planner: Four Approaches to Structured Prediction}{section.128}{}}
+\citation{chung2022flan,vaswani2017attention}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.1}Attempt 1: Zero-Shot LLM}{55}{subsection.129}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.2}Attempt 2: Foundation-Sec-8B QLoRA Fine-Tuning}{55}{subsection.130}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.3}Attempt 3: Seq2Seq Fine-Tuning (flan-t5)}{55}{subsection.131}\protected@file@percent }
+\citation{paszke2019pytorch}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.4}Attempt 4: Custom Multi-Head MLP (Final)}{57}{subsection.132}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.6}Evaluation and Results Comparison}{58}{section.133}\protected@file@percent }
+\newlabel{sec:eval-comparison}{{6.6}{58}{Evaluation and Results Comparison}{section.133}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Planner evaluation results across all training approaches.}}{59}{table.caption.134}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:planner-results}{{6.1}{59}{Planner evaluation results across all training approaches}{table.caption.134}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.7}Integration with the Intelligence Service}{59}{section.135}\protected@file@percent }
+\newlabel{sec:training-integration}{{6.7}{59}{Integration with the Intelligence Service}{section.135}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Evaluation}{61}{chapter.136}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{chap:evaluation}{{7}{61}{Evaluation}{chapter.136}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Evaluation Setup}{61}{section.137}\protected@file@percent }
+\newlabel{sec:eval-setup}{{7.1}{61}{Evaluation Setup}{section.137}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.1}Dataset and Split}{61}{subsection.138}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.2}Evaluation Metrics}{61}{subsection.139}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.3}Evaluation Environment}{62}{subsection.140}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}Detection Performance}{62}{section.141}\protected@file@percent }
+\newlabel{sec:eval-detection}{{7.2}{62}{Detection Performance}{section.141}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.1}Scorer Results}{62}{subsection.142}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.2}Calibrated Confidence Behaviour}{63}{subsection.143}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2.3}Comparison with LLM Baselines}{63}{subsection.144}\protected@file@percent }
 \citation{tilbury2024humans}
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}Response Planning Evaluation}{64}{section.145}\protected@file@percent }
+\newlabel{sec:eval-planning}{{7.3}{64}{Response Planning Evaluation}{section.145}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.1}Summary of Model Progression}{64}{subsection.146}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.2}Interpretation of Remaining Errors}{64}{subsection.147}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.3}Policy Engine Correctness}{64}{subsection.148}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Example Incident Scenarios}{65}{section.149}\protected@file@percent }
+\newlabel{sec:eval-scenarios}{{7.4}{65}{Example Incident Scenarios}{section.149}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.1}Scenario 1: Malware Hash Detection --- Autonomous Containment}{65}{subsection.150}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.2}Scenario 2: Brute Force Attempt --- Conditional Containment}{65}{subsection.151}\protected@file@percent }
+\citation{strom2018attack}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.3}Scenario 3: Suspicious Process --- Investigative Hold}{66}{subsection.152}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4.4}Scenario 4: Benign Noise --- Autonomous Dismissal}{66}{subsection.153}\protected@file@percent }
+\citation{ban2023alertfatigue}
+\citation{nist80061}
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Discussion of Results}{67}{section.154}\protected@file@percent }
+\newlabel{sec:eval-results-discussion}{{7.5}{67}{Discussion of Results}{section.154}{}}
+\citation{sharafaldin2018cic}
+\citation{rodriguez2020mordor}
+\citation{darpatc}
 \citation{sommer2010outside}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.4}Model-Agnostic Architecture}{31}{subsection.130}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8.2}Comparison with Traditional SIEM and SOAR Approaches}{31}{section.131}\protected@file@percent }
-\newlabel{sec:discussion-comparison}{{8.2}{31}{Comparison with Traditional SIEM and SOAR Approaches}{section.131}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2.1}Against SIEM Platforms}{31}{subsection.132}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2.2}Against Playbook-Based SOAR}{31}{subsection.133}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2.3}Against Generative LLM-Based Planning}{31}{subsection.134}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8.3}Limitations}{31}{section.135}\protected@file@percent }
-\newlabel{sec:discussion-limitations}{{8.3}{31}{Limitations}{section.135}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.1}Evaluation on Synthetic Data Only}{31}{subsection.136}\protected@file@percent }
 \citation{sommer2010outside}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.2}Limited Alert Type Coverage}{32}{subsection.137}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.3}Simulated SIEM Connector}{32}{subsection.138}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.4}Manually Authored Policy Rules}{32}{subsection.139}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.5}Feedback Loop Not Fully Closed}{32}{subsection.140}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8.4}Threats to Validity}{32}{section.141}\protected@file@percent }
-\newlabel{sec:discussion-threats}{{8.4}{32}{Threats to Validity}{section.141}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.1}Internal Validity}{32}{subsection.142}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.2}External Validity}{32}{subsection.143}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.3}Construct Validity}{33}{subsection.144}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.4}Statistical Validity}{33}{subsection.145}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {9}Conclusion and Future Work}{34}{chapter.146}\protected@file@percent }
+\citation{nist80061}
+\citation{tilbury2024humans}
+\@writefile{toc}{\contentsline {chapter}{\numberline {8}Discussion}{69}{chapter.155}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:conclusion}{{9}{34}{Conclusion and Future Work}{chapter.146}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.1}Summary of Contributions}{34}{section.147}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {9.2}Future Research Directions}{34}{section.148}\protected@file@percent }
+\newlabel{chap:discussion}{{8}{69}{Discussion}{chapter.155}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8.1}Advantages of the Proposed System}{69}{section.156}\protected@file@percent }
+\newlabel{sec:discussion-advantages}{{8.1}{69}{Advantages of the Proposed System}{section.156}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.1}Explainability as a Structural Property}{69}{subsection.157}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.2}Safety Guarantees Independent of Model Correctness}{69}{subsection.158}\protected@file@percent }
+\citation{nist80092,tilbury2024humans}
+\citation{nist80061}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.3}Inference Speed and Operational Feasibility}{70}{subsection.159}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.2}Comparison with Traditional SIEM and SOAR Approaches}{70}{section.160}\protected@file@percent }
+\newlabel{sec:discussion-comparison}{{8.2}{70}{Comparison with Traditional SIEM and SOAR Approaches}{section.160}{}}
+\citation{sommer2010outside}
+\@writefile{toc}{\contentsline {section}{\numberline {8.3}Limitations}{71}{section.161}\protected@file@percent }
+\newlabel{sec:discussion-limitations}{{8.3}{71}{Limitations}{section.161}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.1}Evaluation on Synthetic Data Only}{71}{subsection.162}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.2}Limited Alert Type Coverage}{71}{subsection.163}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.3}Simulated SIEM Connector and Manual Policy Rules}{71}{subsection.164}\protected@file@percent }
+\citation{sommer2010outside}
+\citation{tilbury2024humans,ban2023alertfatigue}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.4}Partially Implemented Feedback Loop}{72}{subsection.165}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.4}Threats to Validity}{72}{section.166}\protected@file@percent }
+\newlabel{sec:discussion-threats}{{8.4}{72}{Threats to Validity}{section.166}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.1}Internal and External Validity}{72}{subsection.167}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4.2}Construct and Statistical Validity}{72}{subsection.168}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {9}Conclusion and Future Work}{73}{chapter.169}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{chap:conclusion}{{9}{73}{Conclusion and Future Work}{chapter.169}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.1}Summary of Contributions}{73}{section.170}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1.1}Contributions of This Work}{73}{subsection.171}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1.2}The Broader Argument}{75}{subsection.172}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.2}Future Research Directions}{75}{section.173}\protected@file@percent }
 \@writefile{toc}{\vspace  {2em}}
 \bibstyle{unsrtnat}
 \bibdata{Bibliography}
@@ -261,25 +300,28 @@
 \bibcite{valeur2004alert}{{6}{2004}{{Valeur et~al.}}{{Valeur, Vigna, Kruegel, and Kemmerer}}}
 \bibcite{strom2018attack}{{7}{2018}{{Strom et~al.}}{{Strom, Applebaum, Miller, Nickels, Pennington, and Thomas}}}
 \bibcite{axelsson2000baseratev}{{8}{2000}{{Axelsson}}{{}}}
-\newlabel{Bibliography}{{9.2}{36}{Future Research Directions}{section.148}{}}
-\@writefile{toc}{\contentsline {chapter}{References}{36}{dummy.150}\protected@file@percent }
+\newlabel{Bibliography}{{9.2}{76}{Future Research Directions}{section.173}{}}
+\@writefile{toc}{\contentsline {chapter}{References}{76}{dummy.175}\protected@file@percent }
 \bibcite{garcia2009anomaly}{{9}{2009}{{Garcia-Teodoro et~al.}}{{Garcia-Teodoro, Diaz-Verdejo, Macia-Fernandez, and V\'{a}zquez}}}
 \bibcite{sommer2010outside}{{10}{2010}{{Sommer and Paxson}}{{}}}
-\bibcite{rodriguez2020mordor}{{11}{2020}{{Rodriguez and Rodriguez}}{{}}}
-\bibcite{sharafaldin2018cic}{{12}{2018}{{Sharafaldin et~al.}}{{Sharafaldin, Habibi~Lashkari, and Ghorbani}}}
-\bibcite{darpatc}{{13}{2019}{{Defense Advanced Research Projects Agency}}{{}}}
-\bibcite{dettmers2023qlora}{{14}{2023}{{Dettmers et~al.}}{{Dettmers, Pagnoni, Holtzman, and Zettlemoyer}}}
-\bibcite{hu2022lora}{{15}{2022}{{Hu et~al.}}{{Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and Chen}}}
-\bibcite{fdtnsec}{{16}{2025}{{Kassianik et~al.}}{{Kassianik, Saglam, Chen, et~al.}}}
-\bibcite{pedregosa2011sklearn}{{17}{2011}{{Pedregosa et~al.}}{{Pedregosa, Varoquaux, Gramfort, Michel, Thirion, Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos, Cournapeau, Brucher, Perrot, and Duchesnay}}}
-\bibcite{chung2022flan}{{18}{2024}{{Chung et~al.}}{{Chung, Hou, Longpre, Zoph, Tay, Fedus, Li, Wang, Dehghani, Brahma, Webson, Gu, Dai, Suzgun, Chen, Chowdhery, Castro-Ros, Pellat, Robinson, Valter, Narang, Mishra, Yu, Zhao, Huang, Dai, Yu, Petrov, Chi, Dean, Devlin, Roberts, Zhou, Le, and Wei}}}
-\bibcite{paszke2019pytorch}{{19}{2019}{{Paszke et~al.}}{{Paszke, Gross, Massa, Lerer, Bradbury, Chanan, Killeen, Lin, Gimelshein, Antiga, Desmaison, Kopf, Yang, DeVito, Raison, Tejani, Chilamkurthy, Steiner, Fang, Bai, and Chintala}}}
+\bibcite{du2017deeplog}{{11}{2017}{{Du et~al.}}{{Du, Li, Zheng, and Srikumar}}}
+\bibcite{scarselli2009gnn}{{12}{2009}{{Scarselli et~al.}}{{Scarselli, Gori, Tsoi, Hagenbuchner, and Monfardini}}}
+\bibcite{vaswani2017attention}{{13}{2017}{{Vaswani et~al.}}{{Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, and Polosukhin}}}
+\bibcite{rodriguez2020mordor}{{14}{2020}{{Rodriguez and Rodriguez}}{{}}}
+\bibcite{sharafaldin2018cic}{{15}{2018}{{Sharafaldin et~al.}}{{Sharafaldin, Habibi~Lashkari, and Ghorbani}}}
+\bibcite{darpatc}{{16}{2019}{{Defense Advanced Research Projects Agency}}{{}}}
+\bibcite{fdtnsec}{{17}{2025}{{Kassianik et~al.}}{{Kassianik, Saglam, Chen, et~al.}}}
+\bibcite{dettmers2023qlora}{{18}{2023}{{Dettmers et~al.}}{{Dettmers, Pagnoni, Holtzman, and Zettlemoyer}}}
+\bibcite{hu2022lora}{{19}{2022}{{Hu et~al.}}{{Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and Chen}}}
+\bibcite{pedregosa2011sklearn}{{20}{2011}{{Pedregosa et~al.}}{{Pedregosa, Varoquaux, Gramfort, Michel, Thirion, Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos, Cournapeau, Brucher, Perrot, and Duchesnay}}}
+\bibcite{chung2022flan}{{21}{2024}{{Chung et~al.}}{{Chung, Hou, Longpre, Zoph, Tay, Fedus, Li, Wang, Dehghani, Brahma, Webson, Gu, Dai, Suzgun, Chen, Chowdhery, Castro-Ros, Pellat, Robinson, Valter, Narang, Mishra, Yu, Zhao, Huang, Dai, Yu, Petrov, Chi, Dean, Devlin, Roberts, Zhou, Le, and Wei}}}
+\bibcite{paszke2019pytorch}{{22}{2019}{{Paszke et~al.}}{{Paszke, Gross, Massa, Lerer, Bradbury, Chanan, Killeen, Lin, Gimelshein, Antiga, Desmaison, Kopf, Yang, DeVito, Raison, Tejani, Chilamkurthy, Steiner, Fang, Bai, and Chintala}}}
 \@writefile{toc}{\vspace  {2em}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}Appendix}{39}{appendix.152}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Appendix}{79}{appendix.177}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\newlabel{chap:appendix}{{A}{39}{Appendix}{appendix.152}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.1}Additional Figures}{39}{section.153}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A.2}Configuration Details}{39}{section.154}\protected@file@percent }
-\gdef \@abspage@last{52}
+\newlabel{chap:appendix}{{A}{79}{Appendix}{appendix.177}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}Additional Figures}{79}{section.178}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}Configuration Details}{79}{section.179}\protected@file@percent }
+\gdef \@abspage@last{92}

@@ -1,3 +1,4 @@
+
 \chapter{Conclusion and Future Work}
 
 \label{chap:conclusion}
@@ -5,11 +6,35 @@
 \lhead{\emph{Conclusion and Future Work}}
 
 \section{Summary of Contributions}
-This thesis presents a generic SIEM reaction plugin that adds a reasoning layer to standard SIEM output. The system normalizes alerts, enriches context, scores risk with explanation, generates structured response plans, applies policy constraints, and records a full audit trail. A local intelligence service exposes multiple model backends through a single API, and a model registry enables rapid switching and comparison. The final planner is a lightweight custom neural network that achieves high accuracy while remaining fast enough for real-time use. The result is a practical, end-to-end pipeline that is explainable, auditable, and safe.
+
+This thesis started from a specific observation: there is a gap between detecting a security threat and doing something useful about it. SIEM platforms handle detection well. SOAR platforms can execute predefined responses. But the reasoning layer in between---where a system evaluates what happened, decides what to do, and acts safely---is largely missing. The system built in this thesis is that layer.
+
+\subsection{Contributions of This Work}
+
+\textbf{A layered, interface-driven orchestration architecture.}
+Every stage in the pipeline---ingestion, normalization, enrichment, scoring, planning, policy evaluation, execution, and audit---sits behind a versioned interface. Any component can be replaced without touching the rest. This was deliberate: security tooling changes quickly, and the system has to accommodate that without requiring a full rewrite when a better scorer or connector comes along. The interface-driven design also makes meaningful unit testing feasible, which is harder than it sounds in security tooling where integration complexity often makes isolated coverage impractical.
+
+\textbf{Explainability as a data-model constraint, not a reporting feature.}
+Every object that carries a decision also carries the reasoning behind it. A \texttt{ThreatAssessment} includes a hypothesis and an evidence list. A \texttt{DecisionPlan} includes per-action rationale strings. A \texttt{PolicyDecision} records the specific reason each action was approved, held, or denied. These fields are written at decision time and stored verbatim in the audit log---no post-hoc reconstruction, no secondary explanation module. This is a meaningful difference from the common pattern of training a model for accuracy and bolting on an explanation layer afterward.
+
+\textbf{Structured response prediction with deterministic entity resolution.}
+Response planning was split into three structured classification problems---strategy selection, action set prediction, and priority regression---rather than treated as a generation task. The reason became clear from experiment: generative LLM-based planners hallucinate entity values, producing plans that reference hostnames and IP addresses that were never in the alert. A plan targeting the wrong resource is worse than no plan at all. By separating \textit{what to do} (learned by the model) from \textit{what to target} (resolved deterministically from the enriched alert), the system eliminates this failure mode entirely. The resulting custom neural network achieves 96.4\% strategy accuracy and 97.2\% action F1 in full pipeline evaluation with roughly 270 thousand parameters---matching a 250-million-parameter fine-tuned transformer at a fraction of the inference cost.
+
+\textbf{A policy engine that is structurally prior to execution.}
+The policy layer is not advisory. It is a synchronous, in-process gate that every planned action must pass before dispatch. Hard denials---actions requiring entity data that is absent, irreversible actions on production assets below the severity threshold, globally disabled action types---are evaluated before any approval gate. There is no code path by which a model error or adversarial input can cause a hard-denied action to execute. This is a stronger guarantee than playbook-based SOAR platforms provide, where safety depends entirely on whoever authored the playbook.
+
+\textbf{A training pipeline that documents iterative improvement under real constraints.}
+The dataset and training chapter documents not just the final model but the full path to it: from a zero-shot LLM baseline that produced passive-only responses for every alert, through QLoRA fine-tuning of a foundation security model that hallucinated entity values, through multiple seq2seq variants, to the final structured prediction approach. Each iteration exposed a specific failure mode and motivated a specific fix. The outcome is not just a trained model but a documented methodology for building reliable, safety-constrained response planners from synthetic data when real incident labels are unavailable.
+
+\textbf{An end-to-end runnable system with full observability.}
+The system runs on a single development machine without cloud dependencies. Every alert processed during a session produces a demo trace---a complete snapshot of every stage it passed through---that can be replayed, inspected, and visualised. The console output during live processing shows every decision in real time: enrichment context, assessment score, chosen strategy, and the per-action policy outcome with specific reasons. This transparency makes the system demonstrable, debuggable, and auditable in a way that vendor black-box add-ons typically are not.
+
+\subsection{The Broader Argument}
+
+The response gap in security operations is not primarily a capability problem---it is a design problem. The capability to detect threats exists. The capability to execute responses exists. What has been missing is a principled intermediate layer that reasons about the connection between them, communicates that reasoning clearly, and enforces hard safety constraints independently of the reasoning quality. The system in this thesis is that layer. The evaluation is on synthetic data and the SIEM connectors are simulated, but the architecture is sound, the safety guarantees are structural, and the planning quality is high enough to show that learned response planning is practical and measurable---not a research curiosity.
 
 \section{Future Research Directions}
-Several directions can strengthen the system and move it closer to production use. First, evaluation should be expanded to larger and more diverse real-world datasets, including mixed cloud and on-prem environments, to test generalization. Second, the intelligence layer should support drift detection and bounded continual learning so that model quality does not degrade silently over time.
 
-Third, response planning can be improved by incorporating richer operational constraints such as change windows, business dependencies, and explicit approval workflows. Formal policy verification and stronger rollback semantics would further improve safety. Fourth, explainability should be aligned with standard security taxonomies so that explanations are consistent across systems and easier for analysts to trust.
+The most urgent next step is evaluation on real SOC data. The results in this thesis reflect performance on synthetic test examples drawn from the same generator as the training data---a controlled setting that cannot replicate the distribution of a live environment, the edge cases analysts actually encounter, or the way attacker behaviour shifts over time. Even a small annotated set from an operational SOC would either validate the approach or expose failure modes the synthetic generator masks. On the model side, the intelligence layer would benefit from continual-learning safeguards---drift detection, bounded weight updates, periodic recalibration---to prevent gradual degradation as alert distributions shift. The policy engine currently relies on manually authored rules; learning or refining policy thresholds from analyst feedback would be a natural improvement once the feedback loop is fully integrated.
 
-Finally, the system should be validated through real SOC deployments. Longitudinal studies with analysts are needed to measure trust, workload reduction, and the real operational impact of reasoning-driven response. These steps provide a clear path toward a production-grade reasoning layer for modern SIEM workflows.
+The most impactful evaluation, though, would be a deployment study with real SOC analysts. Offline accuracy metrics cannot measure whether the system actually reduces workload, improves response times, or earns analyst trust under realistic investigation pressure. A longitudinal study covering a full analyst shift cycle is the necessary next step toward making the reasoning layer something that can be deployed with confidence in a production environment.

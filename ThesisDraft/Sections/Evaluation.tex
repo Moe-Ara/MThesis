@@ -1,10 +1,11 @@
+
 \chapter{Evaluation}
 
 \label{chap:evaluation}
 
 \lhead{\emph{Evaluation}}
 
-This chapter evaluates the threat scorer and the response planner. It also walks through example incidents to show how the full pipeline behaves.
+This chapter covers the quantitative evaluation of the two machine-learning components---the threat scorer and the response planner---and walks through representative incident scenarios end-to-end to verify how the pipeline behaves in practice. The policy engine is evaluated separately for deterministic correctness rather than statistical accuracy, since it contains no probabilistic component.
 
 % -----------------------------------------------------------------------------
 \section{Evaluation Setup}
@@ -12,17 +13,19 @@ This chapter evaluates the threat scorer and the response planner. It also walks
 
 \subsection{Dataset and Split}
 
-Evaluation uses the synthetic dataset described in Chapter~\ref{chap:dataset-pipeline}. The dataset contains 8,644 labeled examples across five alert types: MalwareHashOnHost, BruteForceUser, SuspiciousProcessOnHost, PortScanFromIp, and BenignNoise. A fixed random seed (42) is used to split the data into 90\% training (7,779 examples) and 10\% test (865 examples), with stratification by alert type.
+All evaluation is performed on the synthetic dataset described in Chapter~\ref{chap:dataset-pipeline}. The full dataset contains 8,644 labelled examples generated from five alert types (MalwareHashOnHost, BruteForceUser, SuspiciousProcessOnHost, PortScanFromIp, BenignNoise) using the entity-conditional synthetic generation pipeline. The dataset is split 90/10 into training (7,779 examples) and held-out test (865 examples) sets using a fixed random seed (42) for reproducibility. Stratified sampling ensures each alert type contributes proportionally to both partitions.
 
 \subsection{Evaluation Metrics}
 
-Scorer evaluation uses two metrics. \textbf{Severity class accuracy} measures how often the predicted severity label (benign, low, medium, high, critical) matches the ground truth. \textbf{Severity MAE} measures the average absolute error on the 0--100 severity scale.
+Scorer evaluation uses two metrics. \textbf{Severity class accuracy} measures the proportion of test examples where the predicted severity class---one of five labels: benign, low, medium, high, or critical---matches the ground-truth label. \textbf{Severity mean absolute error (MAE)} measures the mean absolute difference between the predicted numeric severity and the ground-truth value on the 0--100 scale.
 
-Planner evaluation uses two metrics. \textbf{Strategy accuracy} is the exact-match rate for the strategy label (ContainAndCollect, Contain, Investigate, NotifyOnly, or Dismiss). \textbf{Action F1} is the macro-averaged F1 score over the predicted action set. Rollback actions are stripped from both predictions and targets. Plans are passed through \texttt{sanitize\_plan} before scoring to reflect real deployment behavior. A \textbf{relaxed strategy accuracy} is also reported, where Contain and ContainAndCollect are treated as near-matches.
+Planner evaluation uses two metrics. \textbf{Strategy accuracy} is the exact-match proportion of test examples where the predicted strategy label (ContainAndCollect, Contain, Investigate, NotifyOnly, or Dismiss) matches the ground-truth label. \textbf{Action F1} is the macro-averaged F1 score computed over the predicted action type set against the ground-truth set. Before computing either metric, rollback actions (\texttt{UnisolateHost}, \texttt{UnblockIp}, \texttt{EnableUser}) are stripped from both predictions and targets, and each predicted plan is passed through \texttt{sanitize\_plan} to match the post-sanitisation output a live deployment would produce. This pipeline evaluation protocol avoids inflating scores by crediting raw model outputs that would be silently corrected at runtime.
+
+A \textbf{relaxed strategy accuracy} variant additionally counts semantically adjacent strategy pairs as correct---predicting \texttt{ContainAndCollect} when the ground truth is \texttt{Contain} is treated as a near-miss rather than an error, since both involve active containment and differ only in whether forensic collection is triggered. This metric is reported alongside the exact-match figure to characterise the nature of remaining errors.
 
 \subsection{Evaluation Environment}
 
-Training and evaluation were run on a workstation with an Intel Core i9 CPU, 64 GB RAM, and an NVIDIA RTX 5070 Ti (16 GB VRAM). The intelligence service runs locally. Inference latency is measured at the C\# engine, including serialization and HTTP round-trip time.
+Training and evaluation were conducted on a single workstation with an Intel Core i9 processor, 64 GB RAM, and an NVIDIA RTX 5070 Ti GPU (16 GB VRAM). The intelligence service runs as a local FastAPI process. The C\# orchestration engine runs as a .NET 9 console application. Inference latency measurements are single-request wall-clock times recorded by the C\# engine, including JSON serialisation and the HTTP round-trip to the local intelligence service.
 
 % -----------------------------------------------------------------------------
 \section{Detection Performance}
@@ -30,17 +33,19 @@ Training and evaluation were run on a workstation with an Intel Core i9 CPU, 64 
 
 \subsection{Scorer Results}
 
-The TF-IDF classifier achieves \textbf{75.0\% severity class accuracy} with a \textbf{severity MAE of 8.30} on the test set. With five classes, random guessing yields 20\% accuracy, so the classifier is far above baseline. The MAE corresponds to less than one severity tier on average.
+The threat scorer is a TF-IDF logistic regression pipeline trained on 7,779 examples and evaluated on the 865-example held-out test set. It achieves \textbf{75.0\% severity class accuracy} and a \textbf{severity MAE of 8.30} on the 0--100 scale.
 
-Inference is sub-millisecond on CPU. The model artifact is 2.3 MB, which makes it easy to load and update.
+The accuracy figure makes most sense relative to the baseline. With five severity classes, random assignment gives 20\% accuracy; the classifier hits 75\%, a 55-percentage-point margin above chance. The 8.30-point MAE means the average numeric severity deviates from the ground-truth value by less than one severity tier width, since each tier spans roughly 20 points on the 0--100 scale. In practice, the critical errors---predicting benign for a confirmed malware hash, or critical for a routine DNS lookup---are rare because the discriminative boundary between the extreme classes is well-separated in TF-IDF feature space.
 
-\subsection{Calibrated Confidence Behavior}
+Inference is sub-millisecond on CPU, since the classifier is a sparse matrix multiplication followed by a softmax. The saved \texttt{.joblib} artefact is 2.3 MB, making it practical to load on startup and update by retraining without service interruption.
 
-Raw classifier probabilities underestimate decisiveness in multi-class settings. A simple calibration floor is applied: if the top class is clearly dominant, confidence is raised to a minimum floor. This prevents high-severity alerts from being treated as low-confidence by policy rules.
+\subsection{Calibrated Confidence Behaviour}
+
+The label-calibrated confidence floor described in Chapter~\ref{chap:dataset-pipeline} ensures that decisive high-severity predictions register at or above 72\% confidence. A decisive prediction is one where the top-class probability exceeds 1.1 times the runner-up. In practice, this means a malware hash alert with a decisive ``critical'' prediction reliably crosses the 80\% confidence threshold required for autonomous containment actions in the policy engine. Without this calibration, raw \texttt{predict\_proba} values for a five-class problem underestimate decisiveness and would cause the policy engine to treat clear-cut predictions as uncertain, pushing genuine high-severity alerts into the human-approval queue unnecessarily.
 
 \subsection{Comparison with LLM Baselines}
 
-A zero-shot LLM baseline produced near-zero discrimination and often returned empty outputs. A QLoRA fine-tuned Foundation-Sec model produced plausible severity ordering but was too slow (2--4 seconds per alert) and inconsistent in output format. The TF-IDF classifier provides reliable output at sub-millisecond latency and is therefore used as the default.
+The zero-shot LLM baseline (baron-security) achieved 0\% discrimination across all five alert types, assigning zero severity and zero confidence to every alert regardless of content. Prompt engineering could not recover this---the model's bias toward non-committal safety responses dominated any task-specific instruction. The Foundation-Sec-8B QLoRA fine-tune produced qualitatively correct severity ordering---malware scored higher than brute force, which scored higher than benign noise---and was therefore a functional scorer. However, its 2--4 second inference latency per alert made it impractical for near-real-time triage, and its inconsistent output format made automated metric computation on the full test set unreliable. The TF-IDF classifier provides comparable discrimination at sub-millisecond latency with a fully automated, reproducible evaluation pipeline.
 
 % -----------------------------------------------------------------------------
 \section{Response Planning Evaluation}
@@ -48,78 +53,88 @@ A zero-shot LLM baseline produced near-zero discrimination and often returned em
 
 \subsection{Summary of Model Progression}
 
-The custom MLP achieves \textbf{96.4\% strategy accuracy} and \textbf{97.2\% action F1} on the pipeline evaluation set. The flan-t5-base seq2seq model reaches similar accuracy on a smaller evaluation subset, but at much higher latency. The custom MLP was chosen as the default because it is both fast and reliable.
+The full progression of planner results across all training approaches is reported in Table~\ref{tab:planner-results} in Chapter~\ref{chap:dataset-pipeline}. The key result is that the custom MLP achieves \textbf{96.4\% strategy accuracy} and \textbf{97.2\% action F1} in pipeline evaluation on the 865-example test set, with a relaxed strategy accuracy of \textbf{96.8\%}. The 8-epoch flan-t5-base seq2seq model achieves 96.5\% strategy accuracy and 97.7\% action F1 on a 200-sample evaluation---less than one percentage point apart on both metrics, despite a 900-fold difference in parameter count (250 million versus 270 thousand) and a 160-fold difference in inference latency (800--1,200 milliseconds versus under 5 milliseconds).
 
 \subsection{Interpretation of Remaining Errors}
 
-Most errors are minor strategy shifts (Contain versus ContainAndCollect). These are near-misses rather than catastrophic mistakes. The relaxed accuracy (96.8\%) captures this effect. Truly severe errors, such as predicting Dismiss for a ContainAndCollect case, are rare.
+The 96.8\% relaxed strategy accuracy means the majority of the 3.6\% of strategy errors are minor escalation differences rather than fundamental misclassifications. A plan that predicts \texttt{Contain} when the ground truth is \texttt{ContainAndCollect} will block the threat but miss the forensic collection step; an analyst reviewing the audit log can identify and supplement the missing step. By contrast, a plan that predicts \texttt{Dismiss} when the ground truth is \texttt{ContainAndCollect} would suppress a genuine high-severity threat entirely. The small gap between the exact-match and relaxed accuracy figures (96.4\% versus 96.8\%) indicates that catastrophic misclassifications of this second kind are rare.
 
 \subsection{Policy Engine Correctness}
 
-The policy engine is deterministic. It enforces hard constraints regardless of model output, which means unsafe actions are blocked even when a model makes a mistake. This separation is a key safety property of the system.
+The policy engine is a deterministic rule evaluator and is not evaluated with statistical metrics. Its correctness holds by construction: the engine applies entity-presence checks, severity thresholds, irreversibility constraints, and global mode flags independently of the model output. A hard denial is reached before any approval gate, so there is no code path by which a model error or adversarial input can cause a hard-denied action to execute. This structural guarantee---that safety enforcement is independent of model quality---is the key property that distinguishes the system from playbook-based SOAR platforms, where safety depends on the correctness of the playbook author \cite{tilbury2024humans}.
 
 % -----------------------------------------------------------------------------
 \section{Example Incident Scenarios}
 \label{sec:eval-scenarios}
 
+The following scenarios trace individual alerts through the complete pipeline to illustrate how the scorer, enrichment layer, planner, and policy engine interact to produce a final decision. Each scenario represents a distinct alert type and demonstrates a qualitatively different pipeline outcome.
+
 \subsection{Scenario 1: Malware Hash Detection --- Autonomous Containment}
 
-A simulated EDR alert reports a known-bad file hash on a production domain controller.
+An alert arrives from a simulated EDR connector reporting a file hash match against a known-bad indicator on a production domain controller.
 
 \begin{verbatim}
 Type:            MalwareHashOnHost
-Severity:        88    Confidence: 0.91
+Severity:        88    Confidence: 0.91  (critical class, decisive)
 HostId:          dc01.corp.local
 FileHash:        4a8b9f...e29f
 ProcessName:     svchost_spoofed.exe
-AssetCriticality: 5 (maximum)
+AssetCriticality: 5 (maximum)    Exposure: internal
 \end{verbatim}
 
-Threat intel confirms the hash and raises the final score to 94. The planner selects \texttt{ContainAndCollect} with \texttt{IsolateHost}, \texttt{KillProcess}, \texttt{QuarantineFile}, and \texttt{CollectForensics}. Policy approves the actions because entity parameters are present and thresholds are met. The audit log records the full reasoning trail.
+The enrichment layer matches the file hash against the local threat intelligence store and returns a \texttt{malicious} reputation, applying a 1.5 multiplier to the base score. The final enriched score is 94. The planner selects strategy \texttt{ContainAndCollect} with actions \texttt{IsolateHost}, \texttt{KillProcess}, \texttt{QuarantineFile}, and \texttt{CollectForensics}. The policy engine evaluates each action against three criteria: entity presence (all four pass---host, process, and file hash are available), severity threshold (94 exceeds the isolation threshold of 85), and global mode (containment enabled). All four actions are approved for autonomous execution. Entity parameters (\texttt{hostId}, \texttt{processName}, \texttt{fileHash}) are resolved directly from the enriched alert context, not generated by the model. The audit log records each approval with the specific policy rule satisfied and the entity value used.
 
 \subsection{Scenario 2: Brute Force Attempt --- Conditional Containment}
 
-A brute force alert arrives with a source IP but no username.
+A brute force alert arrives with a source IP but no username entity, indicating a network-level password spray rather than a targeted account attack.
 
 \begin{verbatim}
 Type:            BruteForceUser
-Severity:        72    Confidence: 0.79
-SrcIp:           203.0.113.47
+Severity:        72    Confidence: 0.79  (high class)
+SrcIp:           203.0.113.47  (external)
 Username:        null
-AssetCriticality: 3
+AssetCriticality: 3    Exposure: external
 \end{verbatim}
 
-The planner selects \texttt{Contain} with \texttt{BlockIp} and \texttt{OpenTicket}. \texttt{DisableUser} is omitted because no username is present. Policy approves \texttt{BlockIp} and \texttt{OpenTicket}.
+No threat intelligence hit is returned for the source IP. The external exposure multiplier (1.2) raises the final score to 78. The planner selects strategy \texttt{Contain} with actions \texttt{BlockIp} and \texttt{OpenTicket}. Notably, \texttt{DisableUser} does not appear in the plan: because no username entity is present, the entity mask applied during training taught the model to omit this action when the entity is absent, and the policy engine would independently reject it as an entity-presence violation. The policy engine approves \texttt{BlockIp} (entity present, severity 78 above the block threshold of 70, action type enabled) and \texttt{OpenTicket} (always approved). An analyst receives a medium-priority ticket with the enrichment context and hypothesis.
 
 \subsection{Scenario 3: Suspicious Process --- Investigative Hold}
 
-A suspicious process is detected on an internal workstation.
+An alert arrives for a process creation event on an internal workstation with a process name pattern associated with living-off-the-land techniques \cite{strom2018attack}.
 
 \begin{verbatim}
 Type:            SuspiciousProcessOnHost
-Severity:        61    Confidence: 0.72
+Severity:        61    Confidence: 0.72  (medium class)
 HostId:          ws42.corp.local
-ProcessName:     certutil.exe
-AssetCriticality: 2
+ProcessName:     certutil.exe  (LOLBin pattern)
+AssetCriticality: 2    Exposure: internal
 \end{verbatim}
 
-The planner selects strategy \texttt{Investigate} with \texttt{CollectForensics} and \texttt{OpenTicket}. No containment is executed. The ticket includes the process name and host identity for analyst review.
+Enrichment returns no TI hit for the host; no exposure boost applies (internal). Final score: 61. The planner selects strategy \texttt{Investigate} with actions \texttt{CollectForensics} and \texttt{OpenTicket}. \texttt{IsolateHost} is not in the plan, so there is nothing to deny. \texttt{CollectForensics} is approved (always feasible; does not affect host availability). The analyst receives a ticket flagging the LOLBin pattern with the process name and host identity attached, allowing targeted investigation without service disruption.
 
 \subsection{Scenario 4: Benign Noise --- Autonomous Dismissal}
 
-A low-confidence internal DNS event is detected.
+A routine internal DNS lookup triggers a miscalibrated correlation rule.
 
 \begin{verbatim}
 Type:            BenignNoise
-Severity:        6     Confidence: 0.94
-SrcIp:           10.0.1.10
+Severity:        6     Confidence: 0.94  (benign class, decisive)
+SrcIp:           10.0.1.10  (internal)
 AssetCriticality: 1
 \end{verbatim}
 
-The planner selects \texttt{Dismiss} and no actions are executed. The event is logged for audit purposes. This suppresses low-value alerts and reduces analyst load. \cite{ban2023alertfatigue}
+Final score: 6. The planner selects strategy \texttt{Dismiss} with no actions beyond an internal audit record. The policy engine approves the null action set. No ticket is opened and no notification is sent. The event is written to the audit log with the dismissal rationale: severity below the notification threshold, benign class predicted with high confidence. This scenario demonstrates the alert suppression capability that directly addresses analyst alert fatigue \cite{ban2023alertfatigue}: routine events are handled entirely without analyst involvement, while the audit record ensures dismissed events remain visible for retrospective analysis.
 
 % -----------------------------------------------------------------------------
 \section{Discussion of Results}
 \label{sec:eval-results-discussion}
 
-The results support four conclusions. First, planning accuracy is driven more by data quality than by model size. Second, structured prediction avoids hallucinated parameters by design. Third, the policy engine provides a hard safety floor regardless of model errors. Fourth, synthetic evaluation is useful for controlled benchmarking, but real-world validation remains a necessary next step. \cite{sommer2010outside}
+The evaluation results support four main conclusions.
+
+\textbf{Performance is bounded by data quality, not model capacity.} The near-identical results of the 270K-parameter custom MLP and the 250M-parameter seq2seq model confirm that the response planning task, given the structured feature representation used here, does not require large pretrained language models. Every significant accuracy gain in the training progression came from a data improvement---fixing entity masking, balancing action labels, switching to the compact prompt format, adding TF-IDF bigram features---not from a change in model architecture or size. The practical consequence is that the training and inference cost of the custom MLP is negligible relative to the seq2seq baseline, and both deliver equivalent planning quality.
+
+\textbf{Structured prediction eliminates the hallucination failure mode.} The Foundation-Sec-8B fine-tuning experiment showed that generative planning produces entity hallucination: the model generates plausible but incorrect IP addresses for \texttt{BlockIp} parameters rather than copying the exact \texttt{srcIp} value from the alert. For an autonomous response system, this is a safety failure, not just an accuracy issue. The structured decomposition used by the custom MLP---classify which actions to include, then resolve entity parameters deterministically from the alert context---eliminates this failure mode entirely. Every parameter in every executed plan can be traced to a field in the original alert.
+
+\textbf{The policy engine provides a hard correctness floor independent of model quality.} A 96.4\% strategy accuracy means roughly 3.6\% of plans have the wrong strategy. The policy engine does not correct this---it cannot infer the correct strategy from policy rules alone---but it guarantees that the consequences of any model error are bounded. An incorrectly planned action that violates a hard constraint is blocked before execution. No model error can cause an unsafe action to reach the environment. This separation of learned inference from deterministic safety enforcement is the architectural property that makes the system appropriate for deployment in environments where safety cannot depend on model accuracy alone \cite{nist80061}.
+
+\textbf{Synthetic evaluation establishes a performance baseline, not a deployment guarantee.} The 96.4\% accuracy figure is computed on test examples from the same generator as the training data. The generator was designed to produce realistic patterns informed by real datasets (CIC-IDS2018 \cite{sharafaldin2018cic}, Mordor \cite{rodriguez2020mordor}, DARPA TC \cite{darpatc}), but a model evaluated on synthetic data from its own generator faces a fundamentally different distribution than one operating in a live SOC. As Sommer and Paxson observe \cite{sommer2010outside}, distribution shift and adversarial adaptation are structural challenges that benchmark evaluations on fixed datasets cannot capture. The results here are best read as a lower bound on planning quality under controlled conditions; real-world validation against genuine incident data is the necessary next step.

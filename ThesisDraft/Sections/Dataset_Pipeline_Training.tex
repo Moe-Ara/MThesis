@@ -2,91 +2,345 @@
 \label{chap:dataset-pipeline}
 \lhead{\emph{Dataset Pipeline and Training}}
 
-This chapter explains how the training data was built and how the scorer and planner models evolved. The process was not linear. Several approaches failed before the final pipeline stabilized.
+One of the most underestimated parts of building an intelligent security system is everything that happens before any model ever trains: sourcing the right data, normalising it into a consistent representation, deciding what the model should actually learn, and discovering---often the hard way---that the first attempt at all of the above is wrong. This chapter documents that process honestly. The training pipeline went through multiple complete redesigns, from an initial assumption that a pretrained language model would ``just work,'' through fine-tuning experiments with a large security LLM, through seq2seq models, and finally to a purpose-built lightweight neural network that outperforms all of its predecessors on the evaluation benchmark. Each step taught something that the next step needed.
 
 % -----------------------------------------------------------------------------
 \section{Security Datasets and Their Roles}
 \label{sec:datasets}
 
-No single dataset covers all alert types, entity patterns, and response scenarios. The pipeline therefore combines multiple sources plus a synthetic generator.
+No single publicly available dataset covers the full space of alert types, entity patterns, and response scenarios this system needs to handle. The dataset pipeline draws on four distinct sources, each contributing something the others cannot, combined with a synthetic generation layer that fills gaps and enforces coverage balance.
 
 \subsection{MITRE ATT\&CK (STIX)}
-The MITRE ATT\&CK framework provides a structured taxonomy of tactics and techniques. \cite{strom2018attack} It is used to ground labels and to generate realistic hypothesis text. The STIX data is downloaded and parsed so that technique IDs and descriptions can be attached to alerts.
+
+The MITRE ATT\&CK framework \cite{strom2018attack} provides a structured taxonomy of adversarial tactics, techniques, and procedures. It is distributed in STIX 2.1 format, a machine-readable standard for threat intelligence exchange. For this project, the ATT\&CK STIX data serves two purposes. First, it provides authoritative labels: the technique ID attached to a simulated alert can be used to confirm that the alert type classification is grounded in real-world adversary behaviour rather than invented categories. Second, the technique descriptions provide vocabulary for hypothesis text generation---the language used to describe a lateral movement technique in ATT\&CK is the same language a SOC analyst would use, which helps the generated training data sound authentic.
+
+The STIX data is downloaded via a dedicated script and parsed using the \texttt{stix2} Python library. Relevant technique metadata---ID, name, tactic mapping, and description---is extracted and stored locally for lookup during alert generation.
 
 \subsection{Mordor / Security Datasets}
-Mordor provides real telemetry from attack emulations. \cite{rodriguez2020mordor} It contributes realistic entity values (process names, registry paths, hostnames) and realistic co-occurrence patterns. For example, a Mimikatz run often appears with both process creation and network events.
+
+The Mordor project, now called Security Datasets \cite{rodriguez2020mordor}, provides pre-recorded telemetry from realistic attack emulations run in a controlled lab environment. The datasets contain Sysmon process creation events, registry modifications, network connections, and Windows Event Log entries captured during actual execution of offensive toolkits. This data is valuable because it shows what attacks look like in raw logs---not as abstract technique descriptions, but as concrete process names, command-line arguments, and file paths.
+
+For this project, the Mordor data contributes two things: realistic entity values for the training examples (real hostnames, real process names, real registry paths) and realistic entity \emph{co-occurrence} patterns. A Mimikatz execution on a domain controller, for instance, reliably produces both a process creation event and a network connection. That helps the model learn which entity types to expect together for each attack type. These co-occurrence patterns proved critical for teaching the planner when it makes sense to combine \texttt{IsolateHost} with \texttt{KillProcess} versus treating them as alternatives.
 
 \subsection{CIC-IDS2018}
-CIC-IDS2018 is a large labeled network-flow dataset. \cite{sharafaldin2018cic} It provides port scan and brute force patterns at scale. It is especially useful for calibrating severity ranges for network-based alerts.
+
+The Canadian Institute for Cybersecurity Intrusion Detection System dataset (CIC-IDS2018) \cite{sharafaldin2018cic} is a large labelled network flow dataset containing attacks across seven categories: brute force, heartbleed, botnet, DoS, DDoS, web attacks, and infiltration. The flows are labelled at the packet level, with detailed statistics---packet lengths, inter-arrival times, flag counts---that allow realistic severity calibration.
+
+For the planner training data, CIC-IDS2018 contributes the network-level perspective: port scan alerts naturally associate with source IP entities and \texttt{BlockIp} actions; brute force alerts associate with username entities and \texttt{DisableUser} actions; the severity distributions by attack category inform the numeric ranges used in synthetic alert generation. The dataset is large (over 16 million flows across 10 days of simulated network traffic), so only the labelled attack flows are used, sampled to avoid class imbalance.
 
 \subsection{DARPA Transparent Computing (TC)}
-DARPA TC provides provenance-rich traces across multiple attack stages. \cite{darpatc} These traces help generate alerts that include host, process, and file hash entities together, which are important for containment actions such as \texttt{QuarantineFile}.
+
+The DARPA Transparent Computing programme \cite{darpatc} produced provenance-rich datasets capturing multi-stage attack scenarios with full system call traces. Unlike the other datasets, TC data includes temporal dependencies: the provenance graph connects a malicious email attachment to the browser process that opened it, to the child process that spawned, to the registry key it modified, and to the external C2 connection it established. This richer structure informs how the system should reason about alert chains rather than treating each alert as isolated.
+
+For training purposes, the TC data is used to construct malware and suspicious process scenarios with realistic entity chains---alerts that come with a host ID, a process name, and a file hash, which is the complete entity set needed for a \texttt{QuarantineFile} response action. Without this dataset, file hash entities were severely under-represented in training, causing early models to consistently miss the \texttt{QuarantineFile} action even when the alert clearly indicated malware.
 
 \subsection{Synthetic Scenario Generation}
-Real datasets are imbalanced. Some alert types appear rarely, but the system must still handle them. A synthetic generator fills the gaps. It produces alerts with entity-conditional actions so the planner learns when actions are feasible. For example, \texttt{BlockIp} is only labeled when a source IP exists. This avoids teaching the model impossible actions.
+
+Despite the above sources, no combination of real datasets provides sufficient coverage of all five alert types, all eight action types, and all five strategy labels in balanced proportions. Real datasets are naturally imbalanced: port scans and brute force events are common; malware file hash detections with a complete entity set (host, process, hash) are rare. A model trained on this imbalance would learn to over-predict the common cases and under-predict the rare but critical ones.
+
+The synthetic generation layer, implemented in \texttt{generate\_dataset.py}, addresses this by generating structured training examples algorithmically. For each alert type, a generator function produces a plausible alert with randomised entity values, paired with a scored assessment and a labelled response plan. The generators are not naive random---they encode domain knowledge. A brute force generator, for instance, samples a failure count from a realistic distribution (50--500 attempts), assigns a severity in the 60--85 range, and generates a plan that includes \texttt{DisableUser} when a username entity is present and \texttt{BlockIp} when a source IP is present, falling back to \texttt{NotifyOnly} when neither is available:
+
+\begin{verbatim}
+def _gen_brute_force(rng):
+    src_ip   = _random_ip(rng)
+    username = rng.choice(["admin", "root", "service_acct", ...])
+    attempts = rng.randint(50, 500)
+    has_ip   = rng.random() > 0.3   # 70% of cases have src IP
+    has_user = rng.random() > 0.1   # 90% of cases have username
+
+    alert = { "type": "BruteForceUser",
+              "severity": rng.randint(60, 85),
+              "entities": {
+                  "srcIp":    src_ip if has_ip else None,
+                  "username": username if has_user else None } }
+
+    # Actions conditioned on which entities are actually present
+    actions = []
+    if has_ip:   actions.append({"type": "BlockIp",
+                                  "parameters": {"src_ip": src_ip}})
+    if has_user: actions.append({"type": "DisableUser",
+                                  "parameters": {"username": username}})
+    actions.append({"type": "OpenTicket", "parameters": {}})
+\end{verbatim}
+
+This entity-conditional generation was not present in the first version of the generator. The early version always generated all entities and always generated all actions, which meant the model could never learn the correct mapping between entity presence and action feasibility. When a \texttt{BlockIp} action appeared in every training example regardless of whether a source IP was present, the model learned to predict \texttt{BlockIp} unconditionally---and then the policy engine had to reject those actions at runtime because there was no IP to block. This is a concrete example of a data quality problem that looked like a model quality problem until traced back to its source.
 
 % -----------------------------------------------------------------------------
 \section{Dataset Processing and Normalisation}
 \label{sec:dataset-processing}
 
-All sources are mapped into the same canonical schema used by the production pipeline. This keeps training inputs aligned with inference inputs.
+Each data source arrives in a different format. STIX is JSON-LD; Mordor is JSON event logs; CIC-IDS2018 is CSV network flows; DARPA TC is compressed provenance graphs. Before any training can happen, all of these must be converted into the same canonical alert schema that the production system uses, so that the model is trained on inputs that are structurally identical to what it will see at inference time.
 
 \subsection{Schema Mapping}
-Each data source is mapped into a compact JSON structure with \texttt{type}, \texttt{severity}, \texttt{sourceSiem}, \texttt{entities}, and \texttt{rawPayload}. Missing fields are explicitly set to \texttt{null} rather than omitted. This helps the planner learn the difference between ``missing'' and ``not applicable.''
+
+The canonical alert schema used for training mirrors the compact JSON structure that the production \texttt{NormalizationPipeline} produces:
+
+\begin{verbatim}
+{
+  "type":       "BruteForceUser",
+  "severity":   75,
+  "sourceSiem": "cic-ids",
+  "entities": {
+    "srcIp":       "192.168.1.50",
+    "username":    "admin",
+    "hostname":    null,
+    "fileHash":    null,
+    "processName": null
+  },
+  "rawPayload": {
+    "attempts":      237,
+    "failed_logins": 237,
+    "rule_id":       "5710"
+  }
+}
+\end{verbatim}
+
+Mapping real data to this schema requires SIEM-specific extractors. A CIC-IDS2018 CSV row with label ``Brute Force'' maps to the \texttt{BruteForceUser} type; the source IP from the ``Source IP'' column maps to \texttt{srcIp}; the packet count maps to the \texttt{attempts} raw field. A Mordor Sysmon event with Event ID 1 (process creation) maps to \texttt{SuspiciousProcessOnHost}; the \texttt{Image} field maps to \texttt{processName}; the \texttt{Computer} field maps to \texttt{hostname}.
+
+One decision that turned out to matter significantly: fields that do not exist in the source data (such as \texttt{fileHash} for a network flow event) are explicitly set to \texttt{null} rather than omitted. A model trained on examples where absent fields are simply missing rather than explicitly null learns a different---and weaker---representation of entity absence. When \texttt{null} is explicit, the model learns ``this field is present but empty''; when the field is missing, the model cannot distinguish between ``not applicable'' and ``not yet extracted.'' Explicit nulls produced noticeably better entity-awareness in downstream planner predictions.
 
 \subsection{Label Assignment and Severity Calibration}
-Severity ranges are defined per alert type and then sampled within those ranges. For example, malware hash alerts receive higher severity than port scans. These ranges were calibrated using distributions from CIC-IDS2018 and Mordor.
+
+Severity labels for the scorer training data are assigned semi-automatically. For each alert type, a severity range is defined based on domain knowledge and calibrated against the severity distributions in the real datasets:
+
+\begin{itemize}
+    \item \textbf{MalwareHashOnHost}: 75--95 (a known-bad file hash is near-definitive evidence)
+    \item \textbf{BruteForceUser}: 60--85 (severity scales with failure count and account type)
+    \item \textbf{SuspiciousProcessOnHost}: 50--80 (broad range; high false positive rate)
+    \item \textbf{PortScanFromIp}: 40--70 (reconnaissance only; rarely immediately harmful)
+    \item \textbf{BenignNoise}: 0--20 (must score very low to train the model to suppress false positives)
+\end{itemize}
+
+Within each range, severity is modulated by context: higher failure counts increase brute force severity; a file hash entity matching a known-bad pattern pushes malware severity to the top of its range; alerts from external IP ranges receive higher severity than those from internal subnets.
 
 \subsection{Action Balancing}
-Early datasets were action-imbalanced: \texttt{OpenTicket} and \texttt{Notify} dominated, while containment actions were rare. The dataset builder therefore upsamples under-represented actions until each action type appears at a minimum frequency. This greatly improved planner recall for containment actions.
+
+A significant problem discovered during early evaluation was that the planner training data was heavily imbalanced in its action labels. \texttt{OpenTicket} and \texttt{Notify} appeared in nearly every example; containment actions (\texttt{BlockIp}, \texttt{IsolateHost}, \texttt{QuarantineFile}, \texttt{KillProcess}) appeared in far fewer. The model learned to default to notification-only responses even for high-severity threats---because the training data had taught it that notification was almost always the right answer.
+
+The fix was a deliberate action-balancing step in the dataset builder. The builder first constructs the full unbalanced dataset, then up-samples examples that contain under-represented containment actions until each action type appears at a minimum frequency. This is different from standard label balancing because one training example can contain multiple actions; the balancing must operate at the action-occurrence level, not the instance level. After balancing, the distribution of containment actions in the final 8,644-example training set reached workable proportions across all eight action types, with containment actions collectively present in over 60\% of examples rather than the 20\% seen in the unbalanced version.
 
 % -----------------------------------------------------------------------------
 \section{Training Data Format Evolution}
+\label{sec:format-evolution}
 
-Three formats were tested before settling on a compact prompt.
+The format of the training prompt went through three major revisions, each driven by a specific failure mode observed in the model trained on the previous version.
 
 \subsection{Version 1: Full JSON Prompt}
-The first format used full JSON blobs in the prompt and completion. This was too long for seq2seq models and produced unstable outputs.
+
+The first format sent the complete alert and assessment as pretty-printed JSON objects:
+
+\begin{verbatim}
+AlertSummary: {
+  "type": "BruteForceUser",
+  "entities": { "srcIp": "10.0.1.50", "username": "admin", ... },
+  ...
+}
+AssessmentSummary: { "severity": 75, "confidence": 0.80, ... }
+Generate a response plan:
+\end{verbatim}
+
+This format had two problems. First, for seq2seq models, the prompt was 800--1,200 tokens before the response began, leaving little room for the completion within the model's context window. Second, the model had to parse nested JSON to extract entity values for action parameters---and it would reliably hallucinate plausible-looking but incorrect IP addresses rather than copying the exact value from the input.
 
 \subsection{Version 2: Canonical Flat Format}
-The second format flattened the alert into key-value lines. This was more stable but still verbose and sensitive to minor formatting changes.
+
+The second format flattened the alert into a structured but non-JSON representation. This was shorter and clearer, but it still retained a JSON \texttt{Entities} block, which required the model to parse JSON-within-text to populate action parameters---still leaving room for hallucination.
 
 \subsection{Version 3: Compact Pipe-Delimited Format (Final)}
-The final format uses a compact, pipe-delimited prompt with a strict output schema. It is short, consistent, and easy to parse. This format is used for both seq2seq and custom NN training.
+
+The final format, used for the 8,644-example dataset, uses a flat key-value prompt and a pipe-delimited completion:
+
+\begin{verbatim}
+Type: BruteForceUser
+Severity: 75.0  Confidence: 0.80  (high)
+Entities: {"srcIp": "10.0.1.50", "username": "admin", ...}
+Hypothesis: Multiple failed logins from external source.
+Evidence: ["src_ip=10.0.1.50", "attempts=237", ...]
+Completion: Contain|BlockIp(src_ip=10.0.1.50),DisableUser(username=admin),
+            OpenTicket,Notify|priority=80
+\end{verbatim}
+
+The pipe-delimited completion format was chosen for a specific technical reason that is easy to miss: the flan-t5-base tokeniser (SentencePiece) cannot generate the \texttt{\{} and \texttt{\}} characters. This makes it structurally impossible to train a T5 model to output JSON. The pipe-delimited format encodes the same information using only characters that SentencePiece can produce. At inference time, a dedicated parser (\texttt{parse\_pipe\_completion}) reconstructs the full structured plan from the pipe-delimited string, then \texttt{sanitize\_plan} validates it before it is returned to the C\# engine.
+
+This is a good example of a constraint imposed not by the problem but by a tooling choice---a pattern that appeared repeatedly in the training pipeline. Discovering it required actually trying to train on JSON-format completions and noticing that the model's outputs never contained curly braces, then tracing that back to the tokeniser's vocabulary.
 
 % -----------------------------------------------------------------------------
 \section{The Scorer: From Non-Functional Baseline to Calibrated Classifier}
+\label{sec:scorer-training}
+
+The scorer converts a normalised alert into a numerical severity score, a confidence value, a hypothesis, and an evidence list. Getting this right took three distinct attempts, each revealing a different class of failure.
 
 \subsection{Attempt 1: Zero-Shot LLM (baron-security)}
-A zero-shot LLM baseline was tested first. It failed to produce stable severity outputs and often returned empty or overly safe responses.
+
+The first attempt assumed that a security-focused language model, prompted with the alert payload, would produce reasonable risk scores without any task-specific training. The model was \texttt{baron-security}, an Ollama-hosted LLM fine-tuned on security content.
+
+The results were unambiguous. Every alert---port scans, brute force attacks, confirmed malware hash detections, and benign DNS queries---received the exact same response:
+
+\begin{quote}
+\emph{severity: 0, confidence: 0, hypothesis: ``No malicious activity detected.''}
+\end{quote}
+
+Average severity across all six test alerts was 0.0; average confidence was 0.0. No evidence was provided for any alert. The model's instinct toward caution and non-committal safety, which is appropriate for many LLM applications, made it completely useless as a threat scorer. It had learned that the safe answer is always to deny any threat, and nothing in its zero-shot prompt could override that.
+
+This failure was surprising because the assumption had been that a \emph{security-focused} LLM would at minimum recognise that a confirmed malware hash deserved a non-zero severity. The reality was that no amount of prompt engineering fixed it---the model's learned behaviour was too strong. Fine-tuning was required.
 
 \subsection{Attempt 2: QLoRA Fine-Tuning on Foundation-Sec-8B}
-QLoRA fine-tuning was attempted to improve LLM scoring. \cite{dettmers2023qlora,hu2022lora,fdtnsec} While it produced plausible text, inference was slow and output formats were inconsistent for automated evaluation.
+
+The second attempt fine-tuned Foundation-Sec-8B \cite{fdtnsec}, an 8B-parameter security-focused model, using QLoRA \cite{dettmers2023qlora} (4-bit NF4 quantisation with LoRA \cite{hu2022lora} rank 16) on a dataset of 3,270 synthetic prompt-completion pairs:
+
+\begin{verbatim}
+lora_config = LoraConfig(
+    r=16, lora_alpha=32,
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.1, task_type="CAUSAL_LM"
+)
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True, bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16
+)
+\end{verbatim}
+
+Training ran for 2 epochs on an RTX 5070 Ti (16GB VRAM), taking approximately 1 hour 45 minutes. Final training loss was 0.41. The results were dramatically better than the baseline. Malware alerts now scored severity 90, confidence 0.85; port scans scored 40, confidence 0.55; benign noise correctly scored 0, confidence 0.20. The model produced specific, meaningful hypotheses and evidence lists. Threat discrimination was now present and qualitatively correct.
+
+However, the LLM approach carried a significant operational cost. Even with 4-bit quantisation, inference took 2--4 seconds per alert. Exporting the fine-tuned LoRA adapter to an Ollama-compatible format added an additional operational step. And the model's behaviour on out-of-distribution alert patterns was difficult to predict or debug, because the relevant decision logic was distributed across billions of weights rather than expressed in inspectable code.
 
 \subsection{Attempt 3: TF-IDF Classifier Pipeline (Final)}
-The final scorer is a TF-IDF classifier trained on the canonical prompt text. It is fast, stable, and easy to calibrate. The implementation uses scikit-learn. \cite{pedregosa2011sklearn} Confidence floors are applied when predictions are decisive, which aligns the output with policy thresholds.
+
+The third approach recognised that scoring is fundamentally a classification problem. Given the alert type and context, the severity label (benign / low / medium / high / critical) can be predicted by a discriminative classifier trained on the same prompt-completion pairs. The scorer is a scikit-learn \cite{pedregosa2011sklearn} pipeline:
+
+\begin{verbatim}
+pipeline = Pipeline([
+    ("tfidf", TfidfVectorizer(ngram_range=(1, 2),
+                              max_features=10000,
+                              sublinear_tf=True)),
+    ("clf",   LogisticRegression(max_iter=500,
+                                 class_weight="balanced", C=1.0))
+])
+pipeline.fit(train_prompts, train_labels)
+joblib.dump(pipeline, output_path / "model.joblib")
+\end{verbatim}
+
+Training takes under 30 seconds on CPU; the saved \texttt{.joblib} artefact is 2.3MB; inference is sub-millisecond. The classifier achieves 75\% severity class accuracy on the held-out evaluation set and a severity MAE of 8.30 points on a 0--100 scale. These numbers appear modest, but they are appropriate for the task: the classifier's role is to produce a severity label that drives confidence calibration and enrichment boosts, not to be the sole determinant of the final score. The TI reputation and asset criticality enrichment boosts modulate the label-derived score significantly for the alerts that matter most.
+
+A key refinement was the \textbf{label-calibrated confidence floor}. In a 5-class classification problem, raw \texttt{predict\_proba} values underestimate decisiveness: a top-class probability of 0.55 beating the runner-up at 0.15 is an extremely decisive prediction relative to the 0.20 random baseline, yet reporting 0.55 as the confidence would cause the policy engine to treat the assessment as uncertain. The calibrated floors apply label-specific minimum confidence values when the classifier makes a decisive prediction (top class $\geq$ 1.1$\times$ runner-up). A decisive prediction of ``critical'' registers at least 88\% confidence; a decisive ``high'' registers at least 72\%. This makes the downstream confidence thresholds in the policy engine behave as intended.
 
 % -----------------------------------------------------------------------------
 \section{The Planner: Four Approaches to Structured Prediction}
+\label{sec:planner-training}
+
+The planner's training journey was more complex than the scorer's, because planning is a harder problem: the output is not a single label but a structured object with multiple interdependent fields that must be internally consistent and entity-grounded.
 
 \subsection{Attempt 1: Zero-Shot LLM}
-A zero-shot LLM planner produced invalid JSON and hallucinated entity values. This was unsafe and unreliable.
+
+The same model that failed on scoring also failed on planning, though differently. Rather than returning empty outputs, it defaulted to the same passive response for every alert: \texttt{strategy: NotifyOnly}, \texttt{actions: [OpenTicket, Notify]}, \texttt{priority: 50}. Every alert---benign DNS query and confirmed malware execution alike---received the same treatment. Containment actions were never suggested. The response was also wrapped in a nested \texttt{"plan": \{...\}} key that the C\# engine's JSON deserializer did not expect, causing runtime failures.
 
 \subsection{Attempt 2: Foundation-Sec-8B QLoRA Fine-Tuning}
-QLoRA fine-tuning produced better plans but still suffered from format instability and slow inference. It was unsuitable for near-real-time use. \cite{dettmers2023qlora,hu2022lora,fdtnsec}
+
+Fine-tuning Foundation-Sec-8B on 3,270 planning examples (2 epochs, 2h 40m, final loss 0.24) produced qualitatively correct results: malware alerts generated \texttt{ContainAndCollect} strategies with \texttt{QuarantineFile} and \texttt{CollectForensics} actions; port scans generated \texttt{NotifyOnly} with \texttt{OpenTicket}. The schema nesting issue was resolved.
+
+However, new failure modes emerged. Two of the six test alerts produced empty plan objects---the model appeared to fall back to an internal ``insufficient confidence'' shortcut that bypassed plan generation. More seriously, the model hallucinated entity values in action parameters. It would generate a plausible-looking but incorrect IP address for a \texttt{BlockIp} action rather than copying the exact \texttt{srcIp} value from the input. For an autonomous response system, this is not a minor accuracy problem---it is a safety failure. Blocking the wrong IP because the model invented a plausible-looking address could cause service disruption on a legitimate host.
+
+This failure motivated the architectural insight described in Chapter~\ref{chap:implementation}: action parameters must be populated from the extracted alert entities, not generated by the model. The model's job is to decide \emph{which} action types to include; the entity lookup is deterministic and happens after model inference.
 
 \subsection{Attempt 3: Seq2Seq Fine-Tuning (flan-t5)}
-Seq2seq planning with Flan-T5 produced valid output in many cases. \cite{chung2022flan} However, inference was slow (hundreds of milliseconds) and still required sanitization.
+
+The seq2seq approach reformulated planning as text-to-text translation. The input is the compact alert prompt; the output is the pipe-delimited completion string. Because entity values in the output must match values present in the input, and the model is explicitly trained to copy them rather than generate them, hallucination is substantially reduced.
+
+\textbf{flan-t5-base} \cite{chung2022flan, vaswani2017attention} (250M parameters) was chosen over decoder-only models for a deliberate reason: its encoder-decoder architecture processes the full input before generating any output, which encourages the model to attend to all entity values before committing to a plan. A causal decoder-only model generates left-to-right from the first token, requiring it to produce action parameters before it has fully processed the entity context in the prompt.
+
+The first training run immediately surfaced a hardware-specific compatibility issue: training with \texttt{fp16} mixed precision on an RTX 5070 Ti (Ada Lovelace architecture) produced \texttt{NaN} loss from the first training step. Switching to \texttt{bfloat16} resolved the issue. The error output only said that the loss was \texttt{NaN}---not why. Isolating the root cause required checking whether the issue was in the model, the data, the loss function, or the hardware-precision combination, and systematically ruling out each:
+
+\begin{verbatim}
+# fp16 causes NaN loss on RTX 5070 Ti / Ada Lovelace
+# bf16 is required:
+training_args = Seq2SeqTrainingArguments(
+    bf16=True,
+    fp16=False,  # NaN loss if True on Ada Lovelace
+    ...
+)
+\end{verbatim}
+
+Multiple dataset variants and training configurations were explored systematically:
+
+\begin{itemize}
+    \item \textbf{Canonical dataset, 2 epochs}: strategy accuracy 80\%, action F1 77.1\% (30 samples). The full JSON prompt format was too long; the model's effective attention was diluted.
+    \item \textbf{Compact dataset, 2 epochs}: strategy accuracy 90\%, action F1 91.1\% (100 samples). The compact prompt format showed substantial improvement.
+    \item \textbf{flan-t5-large, compact}: strategy accuracy 80\%, action F1 77.1\% (30 samples). Identical to flan-t5-base on the same data---the larger model brought no benefit.
+    \item \textbf{Compact dataset, 8 epochs}: \textbf{strategy accuracy 96.5\%, action F1 97.7\%} (200 samples). Additional training epochs produced significant gains; the compact format with extended training became the benchmark.
+\end{itemize}
+
+The flan-t5-large result deserves comment. Doubling the parameter count from 250M to 770M produced no improvement over the base model on the same data. This is a meaningful finding: it suggests that the performance ceiling at this stage was set by data quality, not model capacity. A larger model with the same training data learns the same patterns as a smaller model, just more redundantly. Improving the data---adding TF-IDF features, fixing entity masks, balancing actions---improved results far more than increasing model size.
 
 \subsection{Attempt 4: Custom Multi-Head MLP (Final)}
-The final planner is a small multi-head MLP trained with PyTorch. \cite{paszke2019pytorch} It predicts strategy, action set, and priority from a structured feature vector. Feature engineering (keyword flags and TF-IDF) was the key factor in reaching high accuracy. The model is fast and stable and aligns well with the sanitization rules used in production.
+
+The custom MLP planner is described architecturally in Chapter~\ref{chap:implementation}. Here the focus is on the training process and what made it work.
+
+The model is implemented in PyTorch \cite{paszke2019pytorch}. The primary training innovation was \textbf{masked action loss}. Earlier training datasets implicitly assumed that every action label in the target was feasible for the given input. Many examples included \texttt{BlockIp} in the target even when no \texttt{srcIp} entity was present, and \texttt{QuarantineFile} even when no \texttt{fileHash} was available. The BCE loss for these infeasible actions was computed anyway, providing incoherent gradient signal. The fix computes an entity mask for each training example and zeros out the loss for infeasible action slots:
+
+\begin{verbatim}
+# Entity-aware mask: True where the action is feasible given entities
+def _build_entity_mask(entities):
+    has_ip   = bool(entities.get("srcIp"))
+    has_host = bool(entities.get("hostname") or entities.get("hostId"))
+    has_user = bool(entities.get("username"))
+    has_hash = bool(entities.get("fileHash"))
+    has_proc = bool(entities.get("processName"))
+    return torch.tensor([
+        has_ip,                 # BlockIp
+        has_host,               # IsolateHost
+        has_user,               # DisableUser
+        has_host and has_proc,  # KillProcess
+        has_host and has_hash,  # QuarantineFile
+        True,                   # CollectForensics (always feasible)
+        True,                   # OpenTicket
+        True,                   # Notify
+    ], dtype=torch.float32)
+
+# Applied in the training loop:
+action_loss = BCEWithLogitsLoss(reduction="none")(action_logits, targets)
+action_loss = (action_loss * entity_mask).mean()  # zero out infeasible
+\end{verbatim}
+
+A second important fix was \textbf{label sanitisation}. The training dataset had been built from LLM-generated examples, some of which included rollback actions (\texttt{UnisolateHost}, \texttt{UnblockIp}, \texttt{EnableUser}) in the primary action list rather than the rollback list. These rollback actions are deterministically derived from the primary containment actions and should never be predicted as primary plan actions. Sanitisation strips them from the training targets, ensuring the model never learns to predict them in the wrong position.
+
+\textbf{TF-IDF bigram features} provided the largest single accuracy improvement for the MLP. The initial 70-dimensional structured feature vector captured alert type, severity, confidence, entity flags, buckets, and keyword presence. Adding 128-dimensional TF-IDF features computed over the hypothesis and evidence text increased the feature vector to 198 dimensions. TF-IDF bigrams capture lexical patterns across pairs of adjacent words---the bigram ``lateral movement'' signals containment more strongly than either word alone. This expansion produced a jump from approximately 88.5\% to 96.4\% strategy accuracy on the pipeline evaluation.
 
 % -----------------------------------------------------------------------------
 \section{Evaluation and Results Comparison}
+\label{sec:eval-comparison}
 
-The custom MLP achieves the best balance of accuracy and speed. On the 865-example test set, it reaches 96.4\% strategy accuracy and 97.2\% action F1 in the pipeline evaluation. Seq2seq models reach comparable accuracy but at far higher latency and with larger resource requirements. The final choice favored stability and speed because the system is designed for operational use, not just benchmark performance.
+Table~\ref{tab:planner-results} summarises the planner evaluation results across all approaches. Evaluation uses two metrics: \textbf{strategy accuracy} (exact match on the predicted strategy label against the ground-truth label) and \textbf{action F1} (macro-averaged F1 on the predicted action type set, with rollback actions stripped from both predictions and targets before comparison). The pipeline evaluation runs the predicted plan through \texttt{sanitize\_plan} before scoring, ensuring that the metrics reflect post-sanitisation outputs rather than raw model outputs.
+
+\begin{table}[h]
+\centering
+\caption{Planner evaluation results across all training approaches.}
+\label{tab:planner-results}
+\footnotesize
+\begin{tabular}{p{3.8cm}p{1.9cm}rrcp{3.3cm}}
+\hline
+\textbf{Model} & \textbf{Type} & \textbf{S.Acc.} & \textbf{Act.F1} & \textbf{N} & \textbf{Notes} \\
+\hline
+baron-security (baseline)       & Ollama LLM  & ---            & ---            & 6   & Passive only; no discrimination \\
+Foundation-Sec-8B (fine-tuned)  & QLoRA LLM   & 0.80           & 0.84           & 30  & Hallucinated entity values \\
+flan-t5-base (canonical, 2ep)   & Seq2Seq     & 0.80           & 0.77           & 30  & Full JSON prompt too long \\
+flan-t5-base (compact, 2ep)     & Seq2Seq     & 0.90           & 0.91           & 100 & Compact format gain \\
+flan-t5-large (action-balanced) & Seq2Seq     & 0.80           & 0.77           & 30  & No gain over base model \\
+flan-t5-base (compact, 8ep)     & Seq2Seq     & \textbf{0.965} & \textbf{0.977} & 200 & Best seq2seq result \\
+Custom MLP (pipeline eval)      & MLP         & \textbf{0.964} & \textbf{0.972} & 865 & 270K params, $<$5ms inference \\
+\hline
+\end{tabular}
+\normalsize
+\end{table}
+
+The custom MLP matches the 8-epoch seq2seq model within rounding error on a much larger evaluation set (865 samples versus 200), using 270,000 parameters instead of 250 million, and inferring in under 5 milliseconds instead of 800--1,200 milliseconds. The relaxed strategy accuracy metric (where semantically adjacent strategies such as \texttt{Contain} and \texttt{ContainAndCollect} count as correct for the stricter target) is 96.8\% for the MLP---meaning the overwhelming majority of remaining errors are minor escalation differences rather than fundamental strategy mistakes.
+
+The most important finding from this progression is that the task is highly learnable from structured features alone. Once the prompt format was corrected, the dataset was balanced, entity masking was applied, and TF-IDF features were added, all models trained on the same data converged to similar performance. The gap between a 250M-parameter pretrained seq2seq model and a 270K-parameter custom MLP is less than one percentage point on both metrics. Performance is bounded by dataset quality, not model capacity. The next round of improvements should invest in richer training data---more diverse entity patterns, more SIEM sources, more edge cases---rather than larger architectures.
 
 % -----------------------------------------------------------------------------
 \section{Integration with the Intelligence Service}
+\label{sec:training-integration}
 
-All models are exposed through the same FastAPI service. The model registry selects the active profile at runtime, and models are loaded once at startup. This allows rapid switching between the custom MLP, the seq2seq planner, and rule-based baselines without code changes.
+Once trained, a model must integrate into the live intelligence service without disrupting existing inference. The model registry described in Chapter~\ref{chap:implementation} is the integration point: adding a new trained model requires only a new profile entry in \texttt{registry.json} pointing to the saved artefact directory. No code changes are needed in the service itself.
+
+Each artefact is self-describing. The custom MLP saves three files: \texttt{model.pt} (PyTorch state dict), \texttt{meta.json} (input dimension, per-action probability thresholds, training date, and dataset version), and \texttt{tfidf.pkl} (the fitted TF-IDF vectoriser). The metadata file ensures that the inference code loads a model compatible with its own feature extraction logic: if the feature vector dimension changed between training runs, the mismatch is caught at load time rather than at inference time, where a silent wrong answer would be produced. The seq2seq artefact saves as a Hugging Face checkpoint directory loaded directly by \texttt{Seq2SeqPlanner}. The classifier scorer saves \texttt{model.joblib} and a \texttt{meta.json} with the class-to-severity mapping.
+
+All artefact formats are versioned through \texttt{meta.json}, making it straightforward to retain multiple model generations and switch between them via the registry without rebuilding anything. During the evaluation phase, this made it easy to run the same alert batch through the seq2seq planner and the custom MLP planner back-to-back and compare their outputs directly, which is how the data in Table~\ref{tab:planner-results} was collected.

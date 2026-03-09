@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.2.27)  8 MAR 2026 16:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.2.27)  9 MAR 2026 05:04
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -697,7 +697,7 @@ Package hyperref Info: Link coloring ON on input line 35.
 \openout3 = `main.out'.
 
  (cover_asu.tex
-<Pictures/logo.jpg, id=551, 672.5125pt x 348.30125pt>
+<Pictures/logo.jpg, id=623, 672.5125pt x 348.30125pt>
 File: Pictures/logo.jpg Graphic file (type jpg)
 <use Pictures/logo.jpg>
 Package pdftex.def Info: Pictures/logo.jpg  used on input line 7.
@@ -778,135 +778,378 @@ Chapter 1.
 
 
 ]
-Overfull \hbox (4.88977pt too wide) in paragraph at lines 33--34
+Overfull \hbox (4.88977pt too wide) in paragraph at lines 29--30
 []\T1/cmr/m/n/10.95 Demonstrate the ap-proach through an end-to-end pro-to-type that in-cludes a runnable
  []
 
-) (Sections/Related_Work.tex [2] [3]
+) (Sections/Related_Work.tex [2]
 Chapter 2.
 ------------------------------------------------------------------------------
  2 Background and Related Work
 ------------------------------------------------------------------------------
 
-Overfull \hbox (1.9563pt too wide) in paragraph at lines 8--8
+Overfull \hbox (1.9563pt too wide) in paragraph at lines 9--9
 |[]\T1/cmr/bx/n/14.4 Cybersecurity Mon-i-tor-ing and Se-cu-rity Op-er-a-tions Cen-
  []
 
-LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 23.
+
+Overfull \hbox (2.48528pt too wide) in paragraph at lines 11--12
+\T1/cmr/m/n/10.95 Modern or-gan-i-sa-tions gen-er-ate large vol-umes of dig-i-tal events across their infrastructure---
+ []
+
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 20.
 (C:\Users\Mohamad\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
-) [4
+) [3
 
-] [5]) (Sections/System_Requirements.tex [6] [7]
+] [4] [5]) (Sections/System_Requirements.tex [6]
 Chapter 3.
 ------------------------------------------------------------------------------
  3 System Requirements
 ------------------------------------------------------------------------------
-[8
+[7
 
-]) (Sections/System_Architecture.tex [9]
+]) (Sections/System_Architecture.tex [8]
 Chapter 4.
 ------------------------------------------------------------------------------
  4 System Design and Architecture
 ------------------------------------------------------------------------------
-[10
+[9
 
-]
-Overfull \hbox (12.56313pt too wide) in paragraph at lines 51--51
-[]\T1/cmtt/m/n/10.95 Ingest -> Normalize -> Enrich -> Score -> Plan -> Policy -> Execute -> Audit[] 
+] [10]
+Overfull \hbox (9.142pt too wide) in paragraph at lines 87--92
+[]\T1/cmr/bx/n/10.95 Operational com-plex-ity. \T1/cmr/m/n/10.95 Multi-agent sys-tems bring distributed-systems fail-ure modes---
  []
 
-[11] [12] [13]) (Sections/Implementation.tex [14]
+
+Overfull \hbox (1.34352pt too wide) in paragraph at lines 87--92
+\T1/cmr/m/n/10.95 network par-ti-tions, agent crashes, mes-sage or-der-ing, du-pli-cate de-liv-ery, split-brain state---
+ []
+
+[11]
+Overfull \hbox (19.11557pt too wide) in paragraph at lines 151--156
+\T1/cmr/m/n/10.95 Every ma-jor com-po-nent in the C# or-ches-tra-tor is ex-pressed as an in-ter-face: \T1/cmtt/m/n/10.95 ISiemConnector\T1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (21.3721pt too wide) in paragraph at lines 151--156
+\T1/cmtt/m/n/10.95 INormalizationPipeline\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 IThreatScorer\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 IPlanner\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 IExecutionPipeline\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 IAuditLogger\T1/cmr/m/n/10.95 ,
+ []
+
+[12] [13] [14]
+Overfull \hbox (12.56313pt too wide) in paragraph at lines 262--262
+[]  \T1/cmtt/m/n/10.95 [Normalization & Enrichment]  (schema alignment, asset/identity/TI lookup)[] 
+ []
+
+
+Overfull \hbox (12.56313pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 +---------------------------+   HTTP/JSON    +---------------------------+[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |       Core Engine         | <-----------> |   Intelligence Service    |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |  (C# / .NET 9)            |  /v1/score    |   (Python / FastAPI)      |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |                           |  /v1/plan     |                           |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |  AgentOrchestrator        |               |  ClassifierScorer         |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |  PolicyEngine             |               |  CustomNNPlanner          |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |  ExecutionPipeline        |               |  ModelRegistry            |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 |  AuditLogger              |               |  LruCache                 |[] 
+ []
+
+
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 280--280
+[]  \T1/cmtt/m/n/10.95 +---------------------------+               +---------------------------+[] 
+ []
+
+[15]
+Overfull \hbox (71.85628pt too wide) in paragraph at lines 296--300
+\T1/cmr/m/n/10.95 Core end-point ac-cepts in-bound HTTP POST re-quests and calls \T1/cmtt/m/n/10.95 AgentOrchestrator.HandleAlertAsync
+ []
+
+
+Overfull \hbox (1.16412pt too wide) in paragraph at lines 315--320
+\T1/cmr/m/n/10.95 Alert types are canon-i-cal-ized to one of five cat-e-gories: \T1/cmtt/m/n/10.95 PortScanFromIp\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 BruteForceUser\T1/cmr/m/n/10.95 ,
+ []
+
+[16] [17] [18]
+Overfull \hbox (28.03316pt too wide) in paragraph at lines 442--446
+\T1/cmr/m/n/10.95 con-tain-ing a cor-re-spond-ing con-tain-ment ac-tion. They are stored in the plan's \T1/cmtt/m/n/10.95 rollbackActions
+ []
+
+[19]
+Overfull \hbox (4.29669pt too wide) in paragraph at lines 467--470
+[]\T1/cmr/m/n/10.95 The \T1/cmtt/m/n/10.95 ICaseManager \T1/cmr/m/n/10.95 groups re-lated alerts into per-sis-tent cases backed by a SQLite database.
+ []
+
+
+Overfull \hbox (50.01212pt too wide) in paragraph at lines 480--486
+\T1/cmr/m/n/10.95 ment scores, plan strat-egy, and per-action pol-icy de-ci-sions. At ses-sion end, \T1/cmtt/m/n/10.95 PrintExecutiveSummary
+ []
+
+) (Sections/Implementation.tex [20]
 Chapter 5.
 ------------------------------------------------------------------------------
  5 Implementation
 ------------------------------------------------------------------------------
-[15
+[21
 
-]
-Overfull \hbox (52.17172pt too wide) in paragraph at lines 46--46
+] [22] [23]
+Overfull \hbox (52.17172pt too wide) in paragraph at lines 73--73
 []    \T1/cmtt/m/n/10.95 PolicyDecision decision = policy.Evaluate(plan, assessment, enriched, context);[] 
  []
 
-[16]
-Overfull \hbox (2.74196pt too wide) in paragraph at lines 58--59
-[]\T1/cmr/bx/n/10.95 IExecutionPipeline\T1/cmr/m/n/10.95 : ex-e-cutes ap-proved ac-tions and re-turns an \T1/cmtt/m/n/10.95 ExecutionReport\T1/cmr/m/n/10.95 . 
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 84.
+
+Overfull \hbox (29.26616pt too wide) in paragraph at lines 84--85
+[]\T1/cmtt/m/n/10.95 ISiemConnector\T1/cmr/m/n/10.95 : Ab-stracts alert sources. Im-ple-ments \T1/cmtt/m/n/10.95 ConnectAsync\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 PullAlertsAsync\T1/cmr/m/n/10.95 ,
+ []
+
+[24]
+Overfull \hbox (14.78853pt too wide) in paragraph at lines 87--88
+[]\T1/cmtt/m/n/10.95 IPlanner\T1/cmr/m/n/10.95 : Ac-cepts an \T1/cmtt/m/n/10.95 EnrichedAlert\T1/cmr/m/n/10.95 , a \T1/cmtt/m/n/10.95 ThreatAssessment\T1/cmr/m/n/10.95 , and a \T1/cmtt/m/n/10.95 PlanningContext\T1/cmr/m/n/10.95 ,
+ []
+
+LaTeX Font Info:    Trying to load font information for TS1+cmtt on input line 107.
+(C:\Users\Mohamad\AppData\Local\Programs\MiKTeX\tex/latex/base\ts1cmtt.fd
+File: ts1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
+)
+Overfull \hbox (3.26361pt too wide) in paragraph at lines 109--110
+\T1/cmr/m/n/10.95 pro-vided, plus a canon-i-cal \T1/cmtt/m/n/10.95 AlertId\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 SiemName\T1/cmr/m/n/10.95 , and \T1/cmtt/m/n/10.95 TimestampUtc\T1/cmr/m/n/10.95 . The \T1/cmtt/m/n/10.95 NormalizedAlert
+ []
+
+[25]
+Overfull \hbox (2.37839pt too wide) in paragraph at lines 125--126
+\T1/cmr/m/n/10.95 reg-istry. Re-turns rep-u-ta-tion score (0--100) and matched tags such as \T1/cmtt/m/n/10.95 tor-exit-node
+ []
+
+[26] [27]
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 169--169
+[]    \T1/cmtt/m/n/10.95 scorer = HybridScorer(classifier, ollama_scorer, fallback=RuleScorer())[] 
+ []
+
+[28] [29]
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 229--229
+[]      \T1/cmtt/m/n/10.95 "planner": { "type": "seq2seq", "model_path": "...", "num_beams": 4 }[] 
+ []
+
+[30] [31] [32] [33]
+Overfull \hbox (17.28798pt too wide) in paragraph at lines 326--327
+\T1/cmr/m/n/10.95 The pri-mary plan-ner in the de-ployed sys-tem is a cus-tom multi-head MLP (\T1/cmtt/m/n/10.95 CustomNNPlanner\T1/cmr/m/n/10.95 )
+ []
+
+[34] [35]
+Overfull \hbox (29.53824pt too wide) in paragraph at lines 361--361
+[]  \T1/cmtt/m/n/10.95 \-- Priority head:  Linear(128, 32) + GELU + Linear(32, 1)  --> sigmoid * 100[] 
+ []
+
+[36] [37] [38] [39] [40] [41]
+Overfull \hbox (1.24638pt too wide) in paragraph at lines 537--537
+[]         \T1/cmtt/m/n/10.95 "Multiple failed auth attempts against 'root' (87 attempts). ..."[] 
  []
 
 
-Overfull \hbox (6.72255pt too wide) in paragraph at lines 85--86
-\T1/cmr/m/n/10.95 Models are se-lected through a JSON reg-istry file (\T1/cmtt/m/n/10.95 intelligence/models/registry.json\T1/cmr/m/n/10.95 ).
+Overfull \hbox (6.90475pt too wide) in paragraph at lines 537--537
+[]         \T1/cmtt/m/n/10.95 [NOTE  ] Strategy upgraded to ContainAndCollect -> critical asset.[] 
  []
 
-[17] [18]) (Sections/Dataset_Pipeline_Training.tex [19]
+
+Overfull \hbox (1.24638pt too wide) in paragraph at lines 537--537
+[]         \T1/cmtt/m/n/10.95 [PENDING ] DisableUser  (root)  -- target identity is privileged.[] 
+ []
+
+
+Overfull \hbox (20.41943pt too wide) in paragraph at lines 549--550
+\T1/cmr/m/n/10.95 the Python in-tel-li-gence ser-vice as a man-aged child pro-cess via \T1/cmtt/m/n/10.95 IntelligenceProcessManager\T1/cmr/m/n/10.95 .
+ []
+
+[42]
+Overfull \hbox (7.8133pt too wide) in paragraph at lines 573--574
+[]\T1/cmtt/m/n/10.95 INTEL_ACTIVE_PROFILE\T1/cmr/m/n/10.95 : Se-lects the model reg-istry pro-file (e.g., \T1/cmtt/m/n/10.95 custom-nn\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 seq2seq\T1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (47.51016pt too wide) in paragraph at lines 574--575
+[]\T1/cmtt/m/n/10.95 ENRICHMENT_DATA_PATH\T1/cmr/m/n/10.95 : Path to the di-rec-tory con-tain-ing \T1/cmtt/m/n/10.95 assets.json\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 threat_intel.json\T1/cmr/m/n/10.95 ,
+ []
+
+[43]) (Sections/Dataset_Pipeline_Training.tex [44]
 Chapter 6.
 ------------------------------------------------------------------------------
  6 Dataset Pipeline and Training
 ------------------------------------------------------------------------------
-[20
+[45
 
-] [21]
-Overfull \hbox (5.92401pt too wide) in paragraph at lines 58--58
+] [46] [47] [48]
+Overfull \hbox (31.9998pt too wide) in paragraph at lines 98--99
+\T1/cmr/m/n/10.95 A Mor-dor Sys-mon event with Event ID 1 (pro-cess cre-ation) maps to \T1/cmtt/m/n/10.95 SuspiciousProcessOnHost\T1/cmr/m/n/10.95 ;
+ []
+
+[49] [50]
+Overfull \hbox (1.24638pt too wide) in paragraph at lines 160--160
+[]\T1/cmtt/m/n/10.95 Completion: Contain|BlockIp(src_ip=10.0.1.50),DisableUser(username=admin),[] 
+ []
+
+[51]
+Overfull \hbox (5.92401pt too wide) in paragraph at lines 167--167
 |[]\T1/cmr/bx/n/14.4 The Scorer: From Non-Functional Base-line to Cal-i-brated
  []
 
-[22] [23]) (Sections/Evaluation.tex [24]
+[52]
+Overfull \hbox (0.80127pt too wide) in paragraph at lines 188--189
+\T1/cmr/m/n/10.95 The sec-ond at-tempt fine-tuned Foundation-Sec-8B [[]], an 8B-parameter security-focused
+ []
+
+[53] [54]
+Overfull \hbox (4.97385pt too wide) in paragraph at lines 238--239
+\T1/cmr/m/n/10.95 0.24) pro-duced qual-i-ta-tively cor-rect re-sults: mal-ware alerts gen-er-ated \T1/cmtt/m/n/10.95 ContainAndCollect
+ []
+
+[55] [56] [57]
+Underfull \hbox (badness 10000) in paragraph at lines 323--323
+[]|\T1/cmr/m/n/9 Foundation-Sec-8B (fine-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 324--324
+[]|\T1/cmr/m/n/9 flan-t5-base (canon-i-cal,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 325--325
+[]|\T1/cmr/m/n/9 flan-t5-base (com-pact,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 326--326
+[]|\T1/cmr/m/n/9 flan-t5-large (action-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 326--327
+[]|\T1/cmr/m/n/9 No gain over base
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 327--327
+[]|\T1/cmr/m/n/9 flan-t5-base (com-pact,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 328--328
+[]|\T1/cmr/m/n/9 Custom MLP (pipeline
+ []
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[58]) (Sections/Evaluation.tex [59] [60]
 Chapter 7.
 ------------------------------------------------------------------------------
  7 Evaluation
 ------------------------------------------------------------------------------
-[25
 
-] [26]
-Overfull \hbox (39.02596pt too wide) in paragraph at lines 78--79
-\T1/cmtt/m/n/10.95 ContainAndCollect \T1/cmr/m/n/10.95 with \T1/cmtt/m/n/10.95 IsolateHost\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 KillProcess\T1/cmr/m/n/10.95 , \T1/cmtt/m/n/10.95 QuarantineFile\T1/cmr/m/n/10.95 , and \T1/cmtt/m/n/10.95 CollectForensics\T1/cmr/m/n/10.95 .
+Overfull \hbox (2.2349pt too wide) in paragraph at lines 8--9
+\T1/cmr/m/n/10.95 This chap-ter cov-ers the quan-ti-ta-tive eval-u-a-tion of the two machine-learning components---
  []
 
-[27] [28]) (Sections/Discussion.tex [29]
+
+Overfull \hbox (2.90718pt too wide) in paragraph at lines 16--17
+\T1/cmr/m/n/10.95 HashOn-Host, Brute-ForceUser, Sus-pi-cious-Pro-ces-sOn-Host, PortScan-FromIp, Be-nign-Noise)
+ []
+
+[61
+
+] [62] [63] [64] [65]
+Overfull \hbox (13.23547pt too wide) in paragraph at lines 113--114
+\T1/cmtt/m/n/10.95 OpenTicket\T1/cmr/m/n/10.95 . \T1/cmtt/m/n/10.95 IsolateHost \T1/cmr/m/n/10.95 is not in the plan, so there is noth-ing to deny. \T1/cmtt/m/n/10.95 CollectForensics
+ []
+
+[66]
+Overfull \hbox (7.82602pt too wide) in paragraph at lines 136--137
+[]\T1/cmr/bx/n/10.95 Structured pre-dic-tion elim-i-nates the hal-lu-ci-na-tion fail-ure mode. \T1/cmr/m/n/10.95 The Foundation-
+ []
+
+[67]) (Sections/Discussion.tex [68]
 Chapter 8.
 ------------------------------------------------------------------------------
  8 Discussion
 ------------------------------------------------------------------------------
-[30
+[69
 
 ]
-Overfull \hbox (20.56898pt too wide) in paragraph at lines 28--28
+Overfull \hbox (20.56898pt too wide) in paragraph at lines 30--30
 |[]\T1/cmr/bx/n/14.4 Comparison with Tra-di-tional SIEM and SOAR Ap-proaches| 
  []
 
-[31] [32]) (Sections/Results_Conclusion.tex [33]
+
+Overfull \hbox (9.37688pt too wide) in paragraph at lines 35--36
+[]\T1/cmr/m/n/10.95 Commercial SOAR plat-forms ex-e-cute work-flows de-fined in ad-vance [[]]. For well-understood
+ []
+
+[70] [71]) (Sections/Results_Conclusion.tex [72]
 Chapter 9.
 ------------------------------------------------------------------------------
  9 Conclusion and Future Work
 ------------------------------------------------------------------------------
-) [34
 
-] [35] (main.bbl [36
+Overfull \hbox (10.70212pt too wide) in paragraph at lines 14--16
+\T1/cmr/bx/n/10.95 A lay-ered, interface-driven or-ches-tra-tion ar-chi-tec-ture. \T1/cmr/m/n/10.95 Ev-ery stage in the pipeline---
+ []
+
+[73
+
+] [74]) [75] (main.bbl [76
 
 
-] [37]) (Sections/Appendix.tex [38]
+] [77]) (Sections/Appendix.tex [78]
 Appendix A.
 ------------------------------------------------------------------------------
  A Appendix
 ------------------------------------------------------------------------------
-) [39
+) [79
 
 ] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 8BB0C592EEAC8868ECF38A5E2FFC3D18;31203.
+(rerunfilecheck)             Checksum: 59F4FA0ADF564B9D3107B3F68A457A96;36738.
  ) 
 Here is how much of TeX's memory you used:
- 17135 strings out of 475386
- 276449 string characters out of 2775962
- 621882 words of memory out of 3000000
- 37946 multiletter control sequences out of 15000+600000
- 484439 words of font info for 62 fonts, out of 8000000 for 9000
+ 17280 strings out of 475386
+ 278609 string characters out of 2775962
+ 622627 words of memory out of 3000000
+ 38010 multiletter control sequences out of 15000+600000
+ 489141 words of font info for 75 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,85p,762b,586s stack positions out of 10000i,1000n,20000p,200000b,80000s
- <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1000.pk><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb>
-Output written on main.pdf (52 pages, 497133 bytes).
+ 75i,12n,85p,1059b,587s stack positions out of 10000i,1000n,20000p,200000b,80000s
+ <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx0900.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\eccc1000.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tctt1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Mohamad\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1000.pk><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi9.pfb><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Mohamad/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
+Output written on main.pdf (92 pages, 714114 bytes).
 PDF statistics:
- 1724 PDF objects out of 1728 (max. 8388607)
- 226 named destinations out of 1000 (max. 500000)
- 1102 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2198 PDF objects out of 2487 (max. 8388607)
+ 294 named destinations out of 1000 (max. 500000)
+ 1246 words of extra memory for PDF output out of 10000 (max. 10000000)
 

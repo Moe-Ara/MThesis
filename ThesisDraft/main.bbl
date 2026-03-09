@@ -1,4 +1,4 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{22}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -88,6 +88,31 @@ Robin Sommer and Vern Paxson.
   Privacy}, pages 305--316. IEEE, 2010.
 \newblock \doi{10.1109/SP.2010.25}.
 
+\bibitem[Du et~al.(2017)Du, Li, Zheng, and Srikumar]{du2017deeplog}
+Min Du, Feifei Li, Guineng Zheng, and Vivek Srikumar.
+\newblock {DeepLog}: Anomaly detection and diagnosis from system logs through
+  deep learning.
+\newblock In \emph{Proceedings of the 2017 ACM SIGSAC Conference on Computer
+  and Communications Security}, pages 1285--1298. ACM, 2017.
+\newblock \doi{10.1145/3133956.3134015}.
+
+\bibitem[Scarselli et~al.(2009)Scarselli, Gori, Tsoi, Hagenbuchner, and
+  Monfardini]{scarselli2009gnn}
+Franco Scarselli, Marco Gori, Ah~Chung Tsoi, Markus Hagenbuchner, and Gabriele
+  Monfardini.
+\newblock The graph neural network model.
+\newblock \emph{IEEE Transactions on Neural Networks}, 20\penalty0
+  (1):\penalty0 61--80, 2009.
+\newblock \doi{10.1109/TNN.2008.2005605}.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, Lukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~30. Curran Associates, Inc., 2017.
+
 \bibitem[Rodriguez and Rodriguez(2020)]{rodriguez2020mordor}
 Roberto Rodriguez and Jose~Luis Rodriguez.
 \newblock {OTRF} security datasets: Structured attack telemetry for security
@@ -111,6 +136,12 @@ Iman Sharafaldin, Arash Habibi~Lashkari, and Ali~A. Ghorbani.
 \newblock URL
   \url{https://www.darpa.mil/research/programs/transparent-computing}.
 
+\bibitem[Kassianik et~al.(2025)Kassianik, Saglam, Chen, et~al.]{fdtnsec}
+Paul Kassianik, Baturay Saglam, Alexander Chen, et~al.
+\newblock Llama-3.1-{FoundationAI}-{SecurityLLM}-base-8b technical report.
+\newblock arXiv preprint arXiv:2504.21039, 2025.
+\newblock URL \url{https://arxiv.org/abs/2504.21039}.
+
 \bibitem[Dettmers et~al.(2023)Dettmers, Pagnoni, Holtzman, and
   Zettlemoyer]{dettmers2023qlora}
 Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer.
@@ -126,12 +157,6 @@ Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
 \newblock {LoRA}: Low-rank adaptation of large language models.
 \newblock In \emph{International Conference on Learning Representations}, 2022.
 \newblock URL \url{https://openreview.net/forum?id=nZeVKeeFYf9}.
-
-\bibitem[Kassianik et~al.(2025)Kassianik, Saglam, Chen, et~al.]{fdtnsec}
-Paul Kassianik, Baturay Saglam, Alexander Chen, et~al.
-\newblock Llama-3.1-{FoundationAI}-{SecurityLLM}-base-8b technical report.
-\newblock arXiv preprint arXiv:2504.21039, 2025.
-\newblock URL \url{https://arxiv.org/abs/2504.21039}.
 
 \bibitem[Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort, Michel, Thirion,
   Grisel, Blondel, Prettenhofer, Weiss, Dubourg, Vanderplas, Passos,

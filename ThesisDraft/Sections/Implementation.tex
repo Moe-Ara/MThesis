@@ -2,137 +2,578 @@
 \label{chap:implementation}
 \lhead{\emph{Implementation}}
 
-This chapter explains how the system is built and how the main components interact. The focus is on practical engineering choices and the reasons behind them.
+Building a system that reasons about security threats is, at its core, an exercise in managing complexity across layers that evolve at very different speeds. The orchestration layer must be rock-solid and deterministic --- it cannot afford to crash when a model fails or a network call times out. The intelligence layer, on the other hand, needs to be fluid: models get retrained, thresholds get tuned, and entirely new backends can be swapped in overnight. Getting this boundary right was one of the first and most consequential decisions in the implementation.
+
+This chapter walks through every major component of the system, explaining not just what was built but why each decision was made the way it was. The intent is to give a software engineer enough context to understand, reproduce, or extend any part of the implementation without needing to reverse-engineer intent from code alone.
 
 % -----------------------------------------------------------------------------
 \section{Technology Stack}
 \label{sec:impl-stack}
 
-\subsection{Orchestration Layer: .NET 9 / C\#}
-The orchestration engine is written in C\# and targets \texttt{net9.0}. This layer runs the end-to-end pipeline, applies policy rules, and records audit logs. .NET is a good fit because it provides strong typing, stable async I/O, and a built-in dependency injection container. These features make the pipeline easy to test and safe to extend.
+The system is split into two cooperating services with distinct runtime requirements, and the technology choices reflect that distinction honestly.
 
-The engine is a console application, not a web server. It can poll a SIEM API or listen to a webhook, but its main job is alert processing, not serving HTTP traffic.
+\subsection{Orchestration Layer: .NET 9 / C\#}
+
+The orchestration engine is written in C\# and targets \texttt{net9.0}. C\# was chosen because it provides strong static typing, high-performance async I/O, and a mature dependency injection container. These are not incidental features --- they are the specific properties the orchestration layer needs. Strong typing catches interface contract violations at compile time. Async I/O allows concurrent enrichment lookups without thread-per-request overhead. The DI container wires the pipeline together with minimal ceremony and makes it trivial to swap any component.
+
+The decision not to use a full web application framework like ASP.NET was deliberate. The engine runs as a console application, not a web server, because its job is to process alerts, not to serve HTTP requests. The webhook \emph{listener} is a small HTTP utility used only in webhook mode --- the engine remains a pipeline, not a service.
 
 \subsection{Intelligence Layer: Python / FastAPI}
-The intelligence service is a Python FastAPI app. Python is used because all ML tooling (PyTorch, scikit-learn, Hugging Face) is built around it. FastAPI provides clear request validation and OpenAPI docs, which helps keep the interface between the two services stable and visible.
 
-\subsection{Model Training}
-The planner is trained with PyTorch. The scorer uses scikit-learn with TF-IDF features. Both produce small model artifacts (\texttt{.pt} for PyTorch and \texttt{.joblib} for scikit-learn) that can be loaded directly at runtime without a separate model server.
+The intelligence service is implemented as a Python \texttt{FastAPI} application. Python was the only reasonable choice here: PyTorch, scikit-learn, and the Hugging Face ecosystem are Python-first and would have required awkward bridging in any other language. FastAPI was chosen over Flask or Django for two reasons. Its \texttt{async} request handling matches the expected load pattern (individual scoring and planning requests, not bulk data processing), and its automatic OpenAPI documentation makes the contract between the two services immediately visible during development. There is also a practical benefit: FastAPI's request parsing raises clear validation errors when the payload does not match the expected shape, which surfaces interface mismatches early.
 
-\subsection{Persistence and Configuration}
-Audit logs are stored as JSONL for simplicity and easy inspection. Cases are stored in SQLite to keep the system self-contained. Configuration is environment-based via a \texttt{.env} file, so switching models or connectors does not require recompiling the engine.
+\subsection{Model Training: PyTorch and scikit-learn}
+
+Model training uses PyTorch for the neural planner and scikit-learn for the classifier-based scorer. The two frameworks complement each other well. scikit-learn's pipeline abstraction is ideal for the text-based classifier (TF-IDF vectorization followed by a gradient-boosted classifier), while PyTorch handles the more structured multi-head MLP for planning. Both produce artefacts that can be loaded at inference time without framework-specific servers --- \texttt{.pt} files for PyTorch and \texttt{.joblib} files for scikit-learn --- which kept the intelligence service's runtime dependencies minimal.
+
+\subsection{Persistence}
+
+Persistence is intentionally lightweight. Audit events are written to an append-only JSONL file (\texttt{data/audit.jsonl}), chosen because JSONL requires no schema migration, is human-readable, and can be tailed in real time during a demo. Cases --- which represent the ongoing state of an investigated incident --- are stored in SQLite via the \texttt{SqliteCaseManager}. SQLite was preferred over a full relational database because it requires no server process and runs on any machine, which is appropriate for a single-machine demonstration system.
+
+\subsection{Configuration}
+
+All configuration is driven by environment variables, loaded from a \texttt{.env} file at startup by \texttt{EnvFileLoader}. This separates code from operational settings --- switching from the custom neural planner to the seq2seq planner, for instance, requires only a one-line change to \texttt{.env} without recompiling anything. This pattern also makes the system straightforward to reconfigure between different demo scenarios.
 
 % -----------------------------------------------------------------------------
 \section{Core Engine Implementation}
 \label{sec:impl-core}
 
-The orchestrator runs a strict, linear pipeline. Each stage is isolated behind an interface so it can be swapped or mocked in tests. The central loop is simple and explicit:
+The orchestration engine is the beating heart of the system. Every alert that enters the pipeline passes through a deterministic sequence of stages, each isolated behind an interface, each recorded in the audit log. The design goal was simple: any single stage could fail loudly without corrupting the rest, and an engineer reading the main processing loop should be able to understand the entire system at a glance.
+
+\subsection{The Orchestration Pipeline}
+
+The central class is \texttt{AgentOrchestrator}. It holds references to every stage of the pipeline as interface-typed dependencies, injected at construction time via the standard Microsoft DI container. In tests, any stage can be substituted with a stub. In production, the full implementation is wired up once in \texttt{Program.cs} and left alone. The primary processing method, simplified to its essential structure, reads as follows:
 
 \begin{verbatim}
+// Pull a batch of raw alerts from the SIEM connector
 RawAlert[] alerts = await connector.PullAlertsAsync(request, ct);
 
 foreach (RawAlert raw in alerts)
 {
+    // Stage 1: normalize and enrich
     EnrichedAlert enriched = await normalization.ProcessAsync(raw, ct);
+
+    // Stage 2: score the threat
     ThreatAssessment assessment = scorer.Score(enriched);
+
+    // Stage 3: generate a response plan
     DecisionPlan plan = planner.Plan(enriched, assessment, context);
+
+    // Stage 4: evaluate plan against policy
     PolicyDecision decision = policy.Evaluate(plan, assessment, enriched, context);
+
+    // Stage 5: execute approved actions
     ExecutionReport report = await execution.ExecuteAsync(
         enriched, assessment, plan, decision, execContext, ct);
 
+    // Stage 6: persist audit record and update case
     audit.Log(raw, enriched, assessment, plan, decision, report);
     caseManager.OpenOrUpdate(assessment, plan, decision);
 }
 \end{verbatim}
 
-Failures are contained at the stage boundary. For example, if normalization fails, the system logs the error and moves to the next alert. Scoring failures fall back to a low-confidence rule-based score rather than stopping the pipeline. This is critical in real SOC workflows where partial failures are normal.
+Each stage boundary is also an exception boundary. If normalization fails, the pipeline records a \texttt{NormalizationFailed} audit event and moves on to the next alert rather than terminating. The same principle applies to planning. Scoring goes a step further: a \texttt{ScoreSafe} wrapper catches exceptions and returns a low-confidence fallback assessment, because a scoring failure should never block the rest of the pipeline. A degraded score is better than a dropped alert.
 
-\subsection{Key Interfaces}
-The pipeline is built around a small set of interfaces:
+This was a deliberate choice over an alternative where failures terminate the run. In a real SOC environment, partial failures are normal: a model might time out on one alert while processing the next one perfectly. Failing the entire batch over a single bad alert would be operationally unacceptable.
+
+\subsection{Interface-Driven Architecture}
+
+Every major component is defined as a C\# interface before it is implemented. The full set of core interfaces is:
+
 \begin{itemize}
-    \item \textbf{ISiemConnector}: pulls alerts or accepts webhook input.
-    \item \textbf{INormalizationPipeline}: maps raw alerts to a canonical schema and enriches them.
-    \item \textbf{IThreatScorer}: returns \texttt{ThreatAssessment} objects.
-    \item \textbf{IPlanner}: returns \texttt{DecisionPlan} objects.
-    \item \textbf{IPolicyEngine}: evaluates plans and returns per-action decisions.
-    \item \textbf{IExecutionPipeline}: executes approved actions and returns an \texttt{ExecutionReport}.
-    \item \textbf{IAuditLogger} and \textbf{ICaseManager}: persist the decision trail.
+    \item \textbf{\texttt{ISiemConnector}}: Abstracts alert sources. Implements \texttt{ConnectAsync}, \texttt{PullAlertsAsync}, \texttt{AckAsync}, and \texttt{GetHealthAsync}. Both the Wazuh HTTP connector and the in-memory simulator implement this interface, so the orchestrator does not know which one it is talking to.
+    \item \textbf{\texttt{INormalizationPipeline}}: Accepts a \texttt{RawAlert} and returns an \texttt{EnrichedAlert}. Internally chains validation, field mapping, and enrichment, but the orchestrator sees only one method call.
+    \item \textbf{\texttt{IThreatScorer}}: Accepts an \texttt{EnrichedAlert} and returns a \texttt{ThreatAssessment}. In production this is an HTTP client that calls the Python intelligence service; in tests it is a stub that returns predetermined values.
+    \item \textbf{\texttt{IPlanner}}: Accepts an \texttt{EnrichedAlert}, a \texttt{ThreatAssessment}, and a \texttt{PlanningContext}, and returns a \texttt{DecisionPlan}.
+    \item \textbf{\texttt{IExecutionPipeline}}: Routes approved actions to the correct executor and returns an \texttt{ExecutionReport}.
+    \item \textbf{\texttt{IAuditLogger}}: Accepts structured \texttt{AuditEntry} records and persists them.
+    \item \textbf{\texttt{ICaseManager}}: Manages the lifecycle of investigated incidents as persistent cases.
 \end{itemize}
 
-This design makes the system easy to test and easier to extend. A new connector or planner can be introduced without changing the orchestrator.
+This level of interface coverage may look over-engineered for a research prototype, but it serves a real purpose. The system becomes testable without external infrastructure, and swapping any single component does not disturb the others. The policy engine and approval workflow went through several revisions --- their callers never had to change.
 
-\subsection{Normalization and Enrichment}
-Normalization translates alert fields from different SIEMs into a common schema. For example, a Wazuh alert stores the source IP under \texttt{data.srcip}, while a Sentinel alert uses a nested \texttt{entities} list. A mapping registry handles these differences so downstream components always see \texttt{srcIp}, \texttt{hostId}, \texttt{username}, and similar fields in the same place.
+\subsection{Domain Model: Alert Lifecycle}
 
-Enrichment adds context from JSON-based inventories (assets, identities, threat intel). These providers are optional. If a lookup fails, the pipeline keeps going with null values rather than aborting.
+An alert passes through a well-defined lifecycle of types, each richer than the last:
 
-\subsection{Webhook and Polling Modes}
-The engine can run in polling mode (periodic pulls from the SIEM API) or webhook mode (alerts pushed to a local listener). For demos, webhook mode is used with a replay script that posts recorded alerts at a controlled pace.
+\begin{verbatim}
+RawAlert
+  → (normalization) → NormalizedAlert
+  → (enrichment)    → EnrichedAlert
+  → (scoring)       → + ThreatAssessment
+  → (planning)      → + DecisionPlan
+  → (policy)        → + PolicyDecision
+  → (execution)     → + ExecutionReport
+\end{verbatim}
+
+The \texttt{RawAlert} is the unprocessed SIEM payload --- it contains whatever fields the source provided, plus a canonical \texttt{AlertId}, \texttt{SiemName}, and \texttt{TimestampUtc}. The \texttt{NormalizedAlert} applies a SIEM-specific mapping registry to extract a common set of fields: \texttt{AlertType}, \texttt{Severity}, and a structured \texttt{Entities} object containing fields like \texttt{SrcIp}, \texttt{Hostname}, and \texttt{Username}. The \texttt{EnrichedAlert} layers context on top --- an \texttt{AssetContext} with asset criticality and environment, a \texttt{ThreatIntelContext} with reputation scores and matched tags, and an \texttt{IdentityContext} with privilege level.
+
+These types are C\# records --- immutable value objects that are created once and never mutated. Immutability matters here: it means that any stage receiving an alert is guaranteed to see the same data that was passed into it, with no risk of a side effect in one part of the pipeline silently changing what another part sees.
+
+\subsection{Normalization and the Multi-SIEM Mapping Registry}
+
+One of the more interesting engineering challenges was handling alerts from heterogeneous SIEM sources. A Wazuh alert structures its fields very differently from a Microsoft Sentinel alert, yet both need to produce a \texttt{NormalizedAlert} with the same set of fields. The solution is a \texttt{MultiSiemMappingRegistry} that reads the \texttt{X-Siem-Name} header from incoming webhook requests and delegates to the appropriate SIEM-specific mapper.
+
+Each mapper knows, for instance, that a Wazuh alert stores the agent hostname at \texttt{agent.name} and the attacker IP at \texttt{data.srcip}, while a Sentinel alert stores the hostname in \texttt{entities[].HostName} and the tactic in \texttt{tactics[0]}. Alert type is inferred from the rule name and tactic when an explicit type field is not present. A Sentinel alert with tactic \texttt{CredentialAccess} and a title containing ``brute force'' maps to the \texttt{BruteForceUser} alert type.
+
+\subsection{Enrichment Pipeline}
+
+After normalization, the enrichment stage consults up to three data providers, each loaded from a JSON file at startup:
+
+\begin{itemize}
+    \item \textbf{\texttt{AssetInventoryEnricher}}: Matches \texttt{Hostname} or \texttt{HostId} against an assets registry. Returns asset criticality (1--5), environment (\texttt{prod}/\texttt{dev}/\texttt{dmz}), and asset category.
+    \item \textbf{\texttt{ThreatIntelEnricher}}: Matches \texttt{SrcIp} and \texttt{FileHash} against a threat intelligence registry. Returns reputation score (0--100) and matched tags such as \texttt{tor-exit-node} or \texttt{credential-stuffing}.
+    \item \textbf{\texttt{IdentityEnricher}}: Matches \texttt{Username} against an identity registry. Returns privilege level, department, and user risk score.
+\end{itemize}
+
+The enrichment providers are loaded lazily from disk and consulted in order. The \texttt{DefaultEnrichmentMerger} then folds their results into the \texttt{AlertContext}, combining fields from multiple providers into a single coherent context block. This context block is what flows into the Python intelligence service as part of the scoring and planning payload.
+
+The validation step, implemented in \texttt{BasicAlertValidator}, runs before enrichment. It enforces a small set of invariants: the alert must have a non-empty \texttt{AlertId}, a non-empty \texttt{SourceSiem}, and at least one actionable entity (a host, user, or IP address). Alerts that fail validation are rejected with a structured error rather than silently dropped. This ``fail loudly'' approach prevents downstream components from operating on underspecified inputs.
+
+\subsection{Webhook Mode and Polling Mode}
+
+The engine supports two operating modes, selected at startup. In \textbf{polling mode}, the engine calls \texttt{PullAlertsAsync} in a loop against a Wazuh API connector, sleeping for a configurable interval between cycles. In \textbf{webhook mode}, a lightweight HTTP listener (\texttt{WebhookAlertListener}) binds to a local port and calls \texttt{HandleAlertAsync} for each incoming POST request, passing the decoded JSON payload as a \texttt{RawAlert}.
+
+Webhook mode was the one used for the demo. Alerts are sent by an external replay script (\texttt{scripts/replay\_alerts.py}), which reads pre-recorded alert JSON files and POSTs them to the listener with a configurable delay between alerts. This gives full control over demo pacing while exercising the same code path that real SIEM webhook integrations would use.
 
 % -----------------------------------------------------------------------------
 \section{Intelligence Service}
 \label{sec:impl-intelligence}
 
-The intelligence service exposes two endpoints:
-\texttt{POST /v1/score} and \texttt{POST /v1/plan}. It loads models at startup to avoid first-request delays. If a model fails to load, the service falls back to a rule-based scorer or planner instead of crashing.
+The intelligence service is where the cognitive work happens. It exposes two endpoints --- \texttt{POST /v1/score} and \texttt{POST /v1/plan} --- and behind each one lives a configurable backend that can be a rule engine, a trained classifier, a neural network, a seq2seq model, an Ollama-hosted LLM, or any combination of these. From the C\# engine's perspective, all of these look the same: send JSON, receive JSON.
 
-A small LRU cache is used for scoring responses to reduce redundant inference during demos.
+\subsection{Service Startup and Backend Initialisation}
+
+When FastAPI starts, a single \texttt{\_build\_services()} function is called to instantiate the scorer and planner backends. It reads environment variables (or, if a model registry file is present, the active profile from that file) and constructs the appropriate scorer and planner objects. The reason for doing this at startup rather than lazily per request is that model loading is expensive: a seq2seq model or a neural network takes several seconds to load from disk. Failing at startup is the better operational choice --- it is far easier to diagnose a missing model file from a startup error than from a 500 response on the first real alert.
+
+The construction logic, simplified to its structure, looks like this:
+
+\begin{verbatim}
+# At startup:
+if planner_mode == "custom_nn":
+    planner = CustomNNPlanner(model_path)
+elif planner_mode == "seq2seq":
+    planner = Seq2SeqPlanner(model_path, max_new_tokens=384, num_beams=4)
+elif planner_mode == "ollama":
+    planner = OllamaPlanner(base_url, model_name, timeout=120)
+elif planner_mode == "hybrid":
+    planner = HybridPlanner(local_planner, remote_planner)
+else:
+    planner = RulePlanner()   # Always-available fallback
+
+# Similarly for scorer:
+if scorer_mode == "classifier":
+    scorer = ClassifierScorer(model_path)
+elif scorer_mode == "hybrid":
+    scorer = HybridScorer(classifier, ollama_scorer, fallback=RuleScorer())
+\end{verbatim}
+
+A \texttt{RulePlanner} and a \texttt{RuleScorer} are always available as last-resort fallbacks. If a model fails to load, or if an LLM endpoint is unreachable, the system degrades gracefully to rule-based behaviour rather than refusing to start.
+
+\subsection{Request Handling and the LRU Cache}
+
+Each POST to \texttt{/v1/score} extracts the alert payload, resolves the active model profile, and checks a fixed-size LRU cache (default: 256 entries) before calling the scorer. The cache key is a deterministic JSON serialisation of the alert and the profile name. In practice, many demo alerts are identical or near-identical --- a replay of the same event with a different timestamp but the same entities --- so the cache significantly reduces redundant model inference.
+
+If the scorer returns \texttt{None} --- meaning the backend could not produce a result, for instance because an LLM timed out --- the service falls back to the \texttt{RuleScorer} rather than returning an error. The \texttt{/v1/score} endpoint always returns a valid assessment, even if that assessment was produced by a fallback. The caller does not need to handle scoring failures.
+
+\begin{verbatim}
+@app.post("/v1/score")
+async def score(payload, request):
+    alert = payload.get("alert") or payload
+    key   = cache_key(alert, active_profile)
+
+    if cached := cache.get(key):
+        return cached
+
+    result = scorer.score(alert)
+    if result is None:
+        result = RuleScorer().score(alert)  # guaranteed non-None
+
+    cache.set(key, result)
+    return result
+\end{verbatim}
+
+Planning requests follow the same pattern but without caching, because plans depend on the full assessment context which may vary even for identical alert payloads. If planning raises an exception, the endpoint catches it and returns the output of the \texttt{RulePlanner} instead.
 
 % -----------------------------------------------------------------------------
 \section{Model Registry and Profile-Based Backend Selection}
 \label{sec:impl-registry}
 
-Models are selected through a JSON registry file (\texttt{intelligence/models/registry.json}). Each profile defines a scorer and planner backend. Profiles can be switched by changing one config value or by passing a header per request. This makes A/B evaluation simple and avoids code changes when models are swapped.
+One of the more useful infrastructure components in the intelligence service is the model registry. The registry is a JSON file (\texttt{intelligence/models/registry.json}) that defines named \emph{profiles}, each specifying a scorer type and a planner type with their respective configuration. An example profile looks like:
+
+\begin{verbatim}
+{
+  "active": "custom-nn",
+  "profiles": {
+    "custom-nn": {
+      "scorer": {
+        "type": "classifier",
+        "model_path": "intelligence/models/scorer_classifier"
+      },
+      "planner": {
+        "type": "custom_nn",
+        "model_path": "intelligence/models/planner_nn",
+        "action_threshold": 0.50
+      }
+    },
+    "seq2seq": {
+      "scorer": { "type": "classifier", ... },
+      "planner": { "type": "seq2seq", "model_path": "...", "num_beams": 4 }
+    },
+    "rule-only": {
+      "scorer": { "type": "rule" },
+      "planner": { "type": "rule" }
+    }
+  }
+}
+\end{verbatim}
+
+The \texttt{ModelRegistry} class reads this file at startup and builds \texttt{ModelProfile} objects from each entry. Scorer and planner instances are \emph{lazily} instantiated on the first request for each profile and then cached --- loading a 250M-parameter seq2seq model on every request would be unworkable. The active profile can be overridden per request via either the \texttt{modelProfile} field in the JSON payload or the \texttt{X-Intel-Profile} HTTP header, which makes it straightforward to compare profiles side-by-side without restarting the service.
+
+The reason for a declarative registry of named profiles, rather than simply hardcoding a single model at startup, is that model comparison becomes a configuration operation rather than a code change. During development, switching between the custom NN planner, the seq2seq planner, and the rule baseline required only changing a single environment variable.
 
 % -----------------------------------------------------------------------------
 \section{Threat Scoring Component}
 \label{sec:impl-scoring}
 
-The scorer outputs a \texttt{ThreatAssessment} with severity, confidence, hypothesis, and evidence. The default scorer is a TF-IDF based classifier. It predicts one of five severity labels and maps that label to a numeric score.
+The scorer's job is to answer a deceptively simple question: given everything we know about this alert, how serious is it, and why? The answer is a \texttt{ThreatAssessment} containing a \texttt{severity} (0--100), a \texttt{confidence} (0--1), a natural-language \texttt{hypothesis} string, and a list of structured \texttt{evidence} items.
 
-A calibrated confidence floor is applied when the top class is clearly dominant. For example, if the classifier is decisive on a ``critical'' label, the reported confidence is raised to a minimum floor rather than exposing a low raw probability. This helps policy thresholds behave sensibly.
+\subsection{The Classifier Scorer}
 
-Enrichment can also raise the score. A known-bad TI reputation or a critical asset will bump confidence and severity using simple max-based rules. This makes the system behave more like an analyst: strong external evidence should override a cautious model.
+The primary scorer in the deployed configuration is the \texttt{ClassifierScorer}. It wraps a scikit-learn pipeline trained on a prompt-based representation of alerts --- a text string encoding the alert type, severity, confidence, entities, and assessment context into a single paragraph. The classifier predicts one of five severity labels: \texttt{benign}, \texttt{low}, \texttt{medium}, \texttt{high}, or \texttt{critical}. The label is mapped to a numeric severity score via a calibrated class-to-severity table.
 
-Hypothesis and evidence strings are generated deterministically from alert fields and enrichment. This avoids LLM hallucination and keeps explanations reproducible.
+One key implementation detail is how raw classifier probability is converted to a meaningful confidence value. In a five-class problem, raw \texttt{predict\_proba} values tend to underestimate decisiveness: a top class probability of 0.55 beating the next class at 0.15 is, in practice, a very decisive classification, but reporting 0.55 as the confidence would look weak to a downstream consumer. To address this, label-calibrated confidence floors are applied when the top class beats the runner-up by at least a 1.1\texttimes\ margin:
+
+\begin{verbatim}
+# Label-calibrated confidence floors
+_LABEL_CONFIDENCE_FLOOR = {
+    "critical": 0.88,
+    "high":     0.72,
+    "medium":   0.52,
+    "low":      0.38,
+    "benign":   0.22,
+}
+
+raw_conf = float(max(predict_proba(prompt)))
+decisive  = sorted_proba[0] >= sorted_proba[1] * 1.1
+floor     = _LABEL_CONFIDENCE_FLOOR.get(label, 0.5)
+
+if decisive and raw_conf < floor:
+    confidence = floor
+else:
+    confidence = raw_conf
+\end{verbatim}
+
+This ensures that a decisive classification of ``critical'' registers a confidence of at least 88\%, which more accurately reflects the model's certainty and makes downstream policy thresholds (which are also expressed as confidence levels) behave sensibly.
+
+\subsection{Enrichment-Aware Confidence Boosting}
+
+One of the more nuanced scoring decisions is what to do when external enrichment context strongly corroborates --- or escalates --- the alert. Consider a brute-force alert from an IP address with a threat intelligence reputation score of 95/100 and a tag of \texttt{tor-exit-node}. A raw classifier might score this at 72\% confidence because the alert signal is moderately strong. But a security analyst looking at the same alert would feel much more certain: a known TOR exit node attacking a production asset is very unlikely to be a false positive.
+
+The scoring component incorporates this reasoning through a post-classification enrichment boost:
+
+\begin{verbatim}
+# Threat intelligence corroboration
+if ti_reputation >= 90:
+    confidence = max(confidence, 0.90)  # near-certain TI match
+    severity   = max(severity,   85.0)
+elif ti_reputation >= 70:
+    confidence = max(confidence, 0.82)  # strong TI corroboration
+    severity   = max(severity,   75.0)
+elif ti_reputation >= 50:
+    confidence = max(confidence, 0.70)  # moderate TI signal
+
+# Asset and identity context
+if asset_criticality >= 5:
+    confidence = max(confidence, 0.85)
+    severity   = max(severity,   80.0)
+elif asset_criticality >= 4:
+    confidence = max(confidence, 0.78)
+    severity   = max(severity,   70.0)
+
+if privileged:
+    confidence = max(confidence, 0.75)
+\end{verbatim}
+
+The \texttt{max()} operator is important here: the boosts are floors, not absolute assignments. If the classifier already scores at 92\% confidence, the TI boost does not change that. The boosts only activate when external context provides stronger evidence than the model's raw output.
+
+\subsection{Hypothesis and Evidence Generation}
+
+The \texttt{hypothesis} field in the assessment is a human-readable sentence that explains the alert in terms a SOC analyst would recognise. It is generated deterministically from the alert type, entities, and enrichment context --- there is no LLM call involved, just carefully constructed template logic. A brute-force alert against a known privileged account, from an IP flagged as a TOR exit node, generates:
+
+\begin{quote}
+\emph{``Multiple failed authentication attempts against account `root' (87 failed attempts) suggest brute-force activity. Origin identified in threat intelligence (tor-exit-node, brute-force, credential-stuffing; reputation 95/100). High likelihood of malicious intent. --- Target is a critical production asset; compromised account has elevated privileges.''}
+\end{quote}
+
+This is assembled from three independent pieces: the base activity description (parsed from alert type and entity values), the threat intelligence narrative (constructed when TI reputation $\geq$ 70), and the enrichment suffix (added when asset criticality or privilege level is notable). The choice to use deterministic templates rather than LLM generation is intentional --- the hypothesis is reproducible, debuggable, and can never hallucinate entity values.
+
+The \texttt{evidence} list is similarly constructed: a short array of structured key-value strings (e.g., \texttt{alert\_type=BruteForceUser}, \texttt{src\_ip=185.220.101.47}, \texttt{ti\_reputation=95/100}) that document what signals contributed to the score. An analyst reading the evidence list can immediately see why the system scored the alert the way it did.
 
 % -----------------------------------------------------------------------------
 \section{Decision Planning Component}
 \label{sec:impl-planning}
 
-Planning is treated as structured prediction. The model selects a strategy, action types, and a priority. Action parameters are filled from the normalized alert, not generated by the model. This prevents hallucinated IPs or hostnames.
+Planning is the most intellectually interesting component in the system. Given a scored alert, the planner must decide what to do: which containment strategy to adopt, which specific actions to recommend, in what priority order, and with which entity parameters. The planner must be both precise and safe --- recommending the right action with the wrong parameter (for instance, blocking the wrong IP) is worse than recommending nothing.
 
-The primary planner is a custom multi-head MLP trained on 8,644 structured examples. It predicts:
+\subsection{Framing Planning as Structured Prediction}
+
+A key early design decision was to treat planning as \emph{structured prediction} rather than text generation. The planner's output is not a paragraph describing what should happen. It is a structured object with typed fields: a \texttt{Strategy} enum (one of five values), a list of \texttt{PlannedAction} objects (each with a typed \texttt{ActionType} and a \texttt{Parameters} dictionary), and an integer \texttt{Priority}. Action parameters (IP addresses, hostnames, usernames) are populated directly from the entities extracted during normalization --- the model never generates entity values, it only decides which actions to include.
+
+The reason for this framing comes down to safety. If a model can generate entity values, it can hallucinate them. An LLM asked to produce a blocking action might generate a plausible-looking but incorrect IP address. By restricting the model's output to structural choices (which action types to include, what strategy to adopt) and filling parameters from the normalized alert, the planner is structurally incapable of hallucinating entity values.
+
+\subsection{The Custom Neural Network Planner}
+
+The primary planner in the deployed system is a custom multi-head MLP (\texttt{CustomNNPlanner}) trained entirely from scratch on a dataset of 8,644 structured examples. The decision to build a custom neural network rather than fine-tuning a pretrained language model was motivated by three factors.
+
+First, the task structure is highly regular: five alert types map to five strategies and eight possible action types, drawn from a fixed vocabulary. This is not a general-purpose language understanding problem --- it is a structured classification problem with strong domain regularities. A pretrained LLM brings 250 million parameters of general world knowledge that are simply not needed here.
+
+Second, inference speed matters for a real-time pipeline. A 250M-parameter seq2seq model takes 800--1200ms per example on CPU; the custom MLP infers in under 5ms. It can also be loaded entirely in RAM on any development machine without a GPU.
+
+Third, the custom MLP is inherently more interpretable. Its 198-dimensional feature vector is fully documented, and each feature has an explicit semantic meaning. The weights of a fine-tuned T5 model, by contrast, are distributed across attention heads and feed-forward layers in ways that resist simple interpretation.
+
+\subsection{Feature Engineering}
+
+The MLP receives a fixed-length feature vector assembled from the alert and its assessment. The full feature vector has 198 dimensions, composed as follows:
+
 \begin{itemize}
-    \item Strategy (5-class softmax)
-    \item Action set (multi-label sigmoid over 8 actions)
-    \item Priority (regression scaled to 0--100)
+    \item \textbf{Alert type one-hot} (5 dims): Encodes the alert type as a one-hot vector over the five recognised types (\texttt{PortScanFromIp}, \texttt{BruteForceUser}, \texttt{MalwareHashOnHost}, \texttt{SuspiciousProcessOnHost}, \texttt{BenignNoise}).
+    \item \textbf{Severity and confidence} (2 dims): Normalised severity ($\in [0,1]$) and confidence ($\in [0,1]$) from the assessment.
+    \item \textbf{Entity presence flags} (5 dims): Binary flags for the presence of \texttt{srcIp}, \texttt{hostId}, \texttt{username}, \texttt{fileHash}, and \texttt{processName}. These flags serve a dual purpose: they are features for strategy selection, and they are used to mask infeasible actions during training and inference.
+    \item \textbf{Confidence and severity buckets} (8 dims): Discretised bins for confidence ($<$0.3, 0.3--0.6, 0.6--0.85, $\geq$0.85) and severity ($<$30, 30--50, 50--70, $\geq$70). Buckets were added because the MLP's linear layers struggle to learn sharp threshold behaviour from continuous values alone.
+    \item \textbf{Interaction features} (10 dims): Element-wise products of the alert type one-hot with the normalised severity and confidence respectively. These capture, for example, that a brute-force alert at high confidence is qualitatively different from a port scan at the same confidence level.
+    \item \textbf{Security keyword presence} (27 dims): Binary membership flags for 27 domain-relevant keywords extracted from the hypothesis and evidence text (e.g., \texttt{malware}, \texttt{brute}, \texttt{privilege}, \texttt{lateral}, \texttt{forensic}). These capture semantic signals that are not captured by the alert type alone.
+    \item \textbf{SIEM source one-hot} (3 dims): Encodes the data source (CIC-IDS2018, MITRE ATT\&CK, Mordor), which correlates with the distribution of alert types and entity patterns.
+    \item \textbf{ATT\&CK technique presence} (1 dim): Binary flag for whether a MITRE ATT\&CK technique ID is present in the raw payload, which indicates higher-confidence attribution.
+    \item \textbf{TF-IDF text features} (128 dims): Bigram TF-IDF weights computed over the concatenated hypothesis and evidence text, fitted on the full training corpus. TF-IDF features capture lexical patterns that span multiple keywords and are complementary to the keyword presence flags.
 \end{itemize}
 
-The feature vector combines structured fields (alert type, severity, confidence, entity presence) with keyword flags and TF-IDF features from the hypothesis and evidence text. This combination proved more reliable than a large seq2seq model and runs in a few milliseconds on CPU.
+The architecture of the MLP itself follows a three-layer shared encoder with three independent output heads:
 
-A sanitization pass enforces schema validity, adds safe actions if needed, and strips actions that are infeasible due to missing entities. This ensures stable output even when model predictions are imperfect.
+\begin{verbatim}
+Input (198 dims)
+  → Linear(198, 512) + LayerNorm + GELU + Dropout(0.3)
+  → Linear(512, 256) + LayerNorm + GELU + Dropout(0.2)
+  → Linear(256, 128) + LayerNorm + GELU
+  --> Shared representation (128 dims)
+  +-- Strategy head:  Linear(128, 64) + GELU + Linear(64, 5)  --> softmax
+  +-- Action head:    Linear(128, 64) + GELU + Linear(64, 8)  --> sigmoid
+  \-- Priority head:  Linear(128, 32) + GELU + Linear(32, 1)  --> sigmoid * 100
+\end{verbatim}
+
+GELU activations were used in preference to ReLU because they produce smoother gradient flow, which was found empirically to reduce training variance. LayerNorm was added at each shared layer because the feature vector mixes dimensions with very different scales (binary flags alongside TF-IDF weights alongside normalised continuous values), and normalisation prevents the larger-magnitude dimensions from dominating the early layers. The total parameter count is approximately 270,000 --- roughly three orders of magnitude smaller than a fine-tuned T5 model.
+
+\subsection{Multi-Head Training with Masked Action Loss}
+
+Training uses three loss functions simultaneously:
+
+\begin{verbatim}
+# Per-batch training step
+strategy_loss = CrossEntropyLoss(strategy_logits, strategy_targets)
+action_loss   = BCEWithLogitsLoss(action_logits, action_targets,
+                                  weight=class_weights) * entity_mask
+priority_loss  = MSELoss(priority_pred, priority_targets)
+
+total_loss = 1.0 * strategy_loss
+           + 0.5 * action_loss.mean()
+           + 0.1 * priority_loss
+\end{verbatim}
+
+The \texttt{entity\_mask} in the action loss is particularly important. For each training example, action labels that are infeasible given the available entities are masked to zero in the loss computation. For instance, if an example does not have a source IP, the \texttt{BlockIp} loss is zeroed out for that example regardless of what the target label says. Without this masking, the model would be penalised for not predicting \texttt{BlockIp} on examples where no IP was present, which introduces incoherent gradient signal. The masking ensures that the model learns the association between action types and entity availability, not just the association between alert types and action labels.
+
+The strategy loss weight is set to 1.0 because strategy selection is the highest-level decision --- the action selection should follow from the strategy, not lead it. Action loss is weighted at 0.5 and priority at 0.1, reflecting the fact that priority is the least critical output for policy correctness.
+
+\subsection{Enrichment Post-Processing Layer}
+
+The MLP was trained on a dataset that did not include enrichment context (asset criticality, threat intelligence, identity privilege). Rather than retrain the model with additional features --- which would require new training data and a longer feature vector --- a deterministic post-processing layer was added that applies rule-based corrections to the model output after inference.
+
+The reasoning here is straightforward. Enrichment context provides reliable, high-priority signals that should always override the model's base output when present. A human analyst would think the same way: if the model says ``observe more'' for an alert on a criticality-5 production server with a 95/100 TI reputation score and 90\% confidence, that recommendation needs to be escalated, regardless of what the model's statistical patterns suggest. The post-processing layer encodes this reasoning explicitly:
+
+\begin{verbatim}
+# Strategy escalation for critical assets
+if asset_criticality >= 5 and confidence >= 0.70:
+    if strategy in ("ObserveMore", "NotifyOnly"):
+        strategy = "Contain"
+    elif strategy == "Contain":
+        strategy = "ContainAndCollect"
+
+# Privileged identity: don't leave at ObserveMore
+if privileged and confidence >= 0.65 and strategy == "ObserveMore":
+    strategy = "Contain"
+
+# Force forensic collection for critical assets
+if asset_criticality >= 4 and confidence >= 0.65:
+    if "CollectForensics" not in current_action_types:
+        actions.append({"type": "CollectForensics", ...})
+
+# Priority floors by asset criticality
+floor = {5: 85, 4: 70, 3: 55}.get(asset_criticality, 0)
+if floor and priority < floor:
+    priority = floor
+\end{verbatim}
+
+Every override appends a human-readable note to the plan's \texttt{rationale} list, which is surfaced in the console output as \texttt{[NOTE]} lines. This preserves full traceability: an analyst can always see exactly which enrichment signals caused the model output to be modified.
 
 % -----------------------------------------------------------------------------
 \section{Policy and Safety Layer}
 \label{sec:impl-policy}
 
-Policy evaluation is local and synchronous. Each planned action is checked against hard constraints (missing entities, forbidden actions, low confidence) and then evaluated for approval thresholds. The result is \texttt{Approved}, \texttt{Pending}, or \texttt{Denied}. This guarantees that model output never bypasses safety rules.
+The policy engine is the safety boundary between intelligence and execution. It receives a fully formed \texttt{DecisionPlan} and classifies each action into one of three outcomes: \textbf{Approved} (execute autonomously), \textbf{Pending} (requires human approval), or \textbf{Denied} (blocked unconditionally). This classification is the last chance to intercept a harmful recommendation before it reaches the execution layer.
+
+\subsection{Three-Tier Decision Model}
+
+The policy evaluation proceeds in two passes. The first pass checks for hard denials --- conditions where no approval path exists:
+
+\begin{verbatim}
+// Hard denial conditions
+if (!catalog.TryGet(action.Type, out var def))
+    → Denied: "Unknown or unsupported action type."
+
+if (action is missing required parameters)
+    → Denied: "Missing required parameters."
+
+if (action.Type is in ForbiddenActionsByEnvironment[environment])
+    → Denied: "Action forbidden in this environment."
+
+if (confidence < MinConfidenceForAutonomy
+    && action.Type is not in SafeLowConfidenceActions)
+    → Denied: "Confidence below minimum for autonomous action."
+
+if (criticality >= CriticalAssetThreshold
+    && action.Type is in ForbidActionsOnCriticalAssets)
+    → Denied: "Action forbidden on critical assets."
+\end{verbatim}
+
+Actions that survive the denial pass then enter the approval gate check:
+
+\begin{verbatim}
+// Approval gate conditions
+if (def.RequiresApprovalByDefault)
+    → Pending: "Catalog marks action as approval-required."
+
+if (action.Risk >= RiskApprovalThreshold)
+    → Pending: "Risk exceeds approval threshold."
+
+if (environment == "prod" && action.Type is in RequireApprovalInProd)
+    → Pending: "Requires approval in production."
+
+if (criticality >= CriticalAssetThreshold
+    && action.Type is in RequireApprovalOnCriticalAssets)
+    → Pending: "Target asset is critical."
+\end{verbatim}
+
+Actions that pass both checks are returned as Approved. The two-pass structure --- hard denials first, approval gates second --- means that a policy rule can always guarantee a denial regardless of any other configuration, while approval gating is additive and can be layered on top.
+
+\subsection{Entity Presence Validation}
+
+One detail that is easy to underestimate is that the policy engine independently validates entity presence for every action, even after the planner has already checked it. This redundancy is intentional. The planner runs in the Python intelligence service and communicates over HTTP; the policy engine runs in the C\# orchestration layer. Validating parameters in both layers means that a bug in the planner --- or a malformed HTTP response --- cannot result in an action being executed with missing parameters.
+
+The parameter validation logic uses alias-aware key lookup: for \texttt{BlockIp}, the presence of any of \texttt{src\_ip}, \texttt{srcIp}, \texttt{source\_ip}, or \texttt{ip} in the action parameters is accepted. This robustness against naming variation turned out to matter during integration testing, where different SIEM sources used different field name conventions.
+
+\subsection{Action Catalog}
+
+The \texttt{ActionCatalog} is a registry of all recognised action types, each described by an \texttt{ActionDefinition} that specifies:
+
+\begin{itemize}
+    \item \textbf{RequiredParameters}: The set of parameter keys that must be present for the action to be executable.
+    \item \textbf{RequiresApprovalByDefault}: Whether the action enters the approval queue by default, regardless of risk/impact scores.
+    \item \textbf{DefaultRisk} and \textbf{DefaultImpact}: Baseline scores (0--100) used when the planner does not specify explicit values.
+\end{itemize}
+
+\texttt{IsolateHost} and \texttt{BlockIp} are configured with \texttt{RequiresApprovalByDefault = false} and reasonable default risk scores, meaning they can be auto-executed when confidence and asset criticality conditions are met. \texttt{QuarantineFile} and \texttt{KillProcess} carry higher default impact scores and are denied on critical assets, reflecting the operational concern that killing a process on a production server may cause service disruption.
 
 % -----------------------------------------------------------------------------
-\section{Execution Pipeline}
+\section{Action Execution and Response}
 \label{sec:impl-execution}
 
-The execution pipeline routes approved actions to executors (ticketing, notification, firewall, host isolation). Each executor validates parameters and returns a structured result. In demo mode, executors simulate actions and only write audit entries.
+The execution pipeline routes approved actions to the correct executor and records every outcome. Each executor implements the \texttt{IActionExecutor} interface, which exposes a single method: \texttt{CanHandleAsync(action)} to determine if this executor handles the given action type, and \texttt{ExecuteAsync(action, context)} to carry out the action.
+
+In the deployed configuration, the following executors are registered:
+
+\begin{itemize}
+    \item \textbf{\texttt{FirewallExecutor}}: Handles \texttt{BlockIp} and \texttt{UnblockIp}. In dry-run mode, logs the intended action without making any network call.
+    \item \textbf{\texttt{HostIsolationExecutor}}: Handles \texttt{IsolateHost} and \texttt{UnisolateHost}. In dry-run mode, simulates the isolation response.
+    \item \textbf{\texttt{UserAccessExecutor}}: Handles \texttt{DisableUser} and \texttt{EnableUser}.
+    \item \textbf{\texttt{TicketingExecutor}}: Handles \texttt{OpenTicket}.
+    \item \textbf{\texttt{NotificationExecutor}}: Handles \texttt{Notify}.
+\end{itemize}
+
+The \texttt{ExecutorRouter} dispatches each action to the first registered executor that claims it, then collects results into an \texttt{ExecutionReport}. Actions for which no executor claims responsibility are recorded as failed. In dry-run mode (the default for all demo scenarios), every executor simulates its action --- writing the intended operation to the audit log without making any real network or system call. The dry-run flag is propagated from the environment configuration to the \texttt{ExecutionContext} and respected by every executor.
+
+The dry-run default was a deliberate safety choice. During development, testing, and demonstration, the system should never make real infrastructure changes. An engineer working on the planner or policy engine should not have to worry about accidentally triggering a firewall rule on a real network. The system's first posture is always ``recommend and record'' --- real execution requires an explicit opt-in.
 
 % -----------------------------------------------------------------------------
-\section{Auditing and Case Management}
+\section{Audit, Traceability, and Console Output}
 \label{sec:impl-audit}
 
-Every stage writes an audit record to JSONL. The case manager stores the current state of each incident in SQLite. This data powers the reasoning console and allows full replay of the decision chain.
+Auditability was treated as a first-class requirement from the start. Every stage of the pipeline writes a structured entry to the audit log: normalization failure, scoring completion, planning completion, policy decision, and execution outcome all produce entries with a shared \texttt{CorrelationId} that links them to the same alert. For any alert, the full decision trace can be reconstructed by filtering the JSONL audit file on its correlation ID.
+
+\subsection{Demo Trace Writer}
+
+In addition to the audit log, the system can optionally write a structured demo trace file (\texttt{data/demo\_trace.json}) via the \texttt{IDemoTraceWriter} interface. Each trace entry is a complete snapshot of the alert's state at the end of processing: the raw alert, the enriched alert, the assessment, the plan, the policy decision, and the execution report. This file is what the demo dashboard reads to reconstruct the full reasoning chain for display in the UI.
+
+\subsection{Console Output}
+
+The console output during a live demo is designed to communicate the system's reasoning at a glance without requiring the viewer to read JSON files. Each processed alert produces a structured block:
+
+\begin{verbatim}
+------------------------------------------------------------------------
+  ALERT  1a2b3c...  [WAZUH]
+  Rule : Multiple failed SSH logins (sshd)
+  Type : BruteForceUser  |  Severity: 85/100
+  Asset: web-server-prod  criticality=5/5  env=prod
+  TI   : reputation=95/100  tags=[tor-exit-node, brute-force]
+  Ident: userId=root  privileged=True  dept=Infrastructure
+  Score: confidence=90%  severity=85
+         "Multiple failed auth attempts against 'root' (87 attempts). ..."
+  Plan : strategy=ContainAndCollect  priority=85  actions=4
+         [NOTE  ] Strategy upgraded to ContainAndCollect -> critical asset.
+         [NOTE  ] CollectForensics added -> criticality=5/5.
+         [NOTE  ] Priority floored to 85 -> asset criticality=5/5.
+         [APPROVED] BlockIp  (185.220.101.47)
+         [APPROVED] IsolateHost  (web-server-prod)
+         [APPROVED] CollectForensics
+         [PENDING ] DisableUser  (root)  -- target identity is privileged.
+------------------------------------------------------------------------
+\end{verbatim}
+
+ANSI colour codes are used throughout: red for high severity and denied actions, yellow for pending actions and moderate severity, green for approved actions and high confidence, cyan for structural elements. Colour output is automatically disabled when the terminal does not support it, so the output degrades cleanly to plain text in CI environments or when piped to a file.
+
+At session end (triggered by Ctrl+C), the \texttt{PrintExecutiveSummary()} method produces a high-level statistical summary: total alerts processed, breakdown by SIEM source, strategy distribution, action outcome counts (approved / pending / denied), and the highest-severity alert seen during the session.
 
 % -----------------------------------------------------------------------------
 \section{Deployment and System Setup}
-\label{sec:impl-deploy}
+\label{sec:impl-deployment}
 
-The system starts from a single command once \texttt{.env} is configured. The C\# engine can launch the Python intelligence service as a child process, wait for its health check, and then start processing alerts. This keeps the demo setup simple and repeatable.
+\subsection{Single-Command Startup}
+
+The system is designed to start from a single command after configuring the \texttt{.env} file. The C\# engine reads the \texttt{.env} file via \texttt{EnvFileLoader} at process startup, then launches the Python intelligence service as a managed child process via \texttt{IntelligenceProcessManager}. The manager starts the FastAPI service with \texttt{uvicorn}, polls the \texttt{/health} endpoint until the service responds, and then signals the C\# engine to continue with the rest of startup. The result is that an engineer running the demo does not need to start two terminals or remember to launch the intelligence service separately --- starting the C\# engine is the only required step.
+
+\subsection{Webhook Demo Setup}
+
+The typical demo setup uses the following sequence:
+
+\begin{enumerate}
+    \item Start the C\# engine (webhook mode is selected when \texttt{ORCHESTRATOR\_WEBHOOK\_URL} is set in \texttt{.env}).
+    \item The startup banner is printed, confirming the model profile, enrichment provider count, webhook URL, and dry-run mode.
+    \item Run the replay script: \texttt{python scripts/replay\_alerts.py --siem demo --delay 2}.
+    \item The script sends six production-quality enriched alerts (three Wazuh and three Sentinel) with a two-second delay between each.
+    \item Each alert is processed through the full pipeline and a formatted summary is printed to the console.
+    \item Press Ctrl+C to terminate and print the session executive summary.
+\end{enumerate}
+
+The \texttt{--siem demo} mode was added specifically for the professor demonstration. It selects only the enriched, high-quality alerts from the full dataset, skipping the generic synthetic alerts that have no enrichment context and produce less informative output.
+
+\subsection{Environment Configuration Reference}
+
+All behavioural parameters are controlled by environment variables, which are documented here for completeness:
+
+\begin{itemize}
+    \item \textbf{\texttt{ORCHESTRATOR\_WEBHOOK\_URL}}: If set, starts the engine in webhook mode on the specified URL (e.g., \texttt{http://localhost:5050/}).
+    \item \textbf{\texttt{ORCHESTRATOR\_DRY\_RUN}}: If \texttt{true} (the default), no real infrastructure actions are taken.
+    \item \textbf{\texttt{INTEL\_ACTIVE\_PROFILE}}: Selects the model registry profile (e.g., \texttt{custom-nn}, \texttt{seq2seq}, \texttt{rule-only}).
+    \item \textbf{\texttt{ENRICHMENT\_DATA\_PATH}}: Path to the directory containing \texttt{assets.json}, \texttt{threat\_intel.json}, and \texttt{identities.json}.
+    \item \textbf{\texttt{CASE\_DB\_ENABLE}}: If \texttt{true}, enables SQLite case persistence.
+    \item \textbf{\texttt{DEMO\_TRACE\_PATH}}: If set, writes the full demo trace to the specified JSON file.
+\end{itemize}
+
+This environment-driven approach means that the same binary can be reconfigured for different scenarios --- local development, professor demo, and (hypothetically) production deployment --- by changing a single file, not the code.

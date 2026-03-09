@@ -1,3 +1,4 @@
+
 \chapter{Background and Related Work}
 
 \label{chap:background-related-work}
@@ -7,61 +8,66 @@
 % -----------------------------------------------------------------------------
 \section{Cybersecurity Monitoring and Security Operations Centers}
 
-Modern organisations generate massive volumes of digital events. These include network flows, logins, process executions, and file system changes. A Security Operations Center (SOC) is responsible for monitoring this activity, triaging suspicious events, and coordinating response.
+Modern organisations generate large volumes of digital events across their infrastructure---network flows, authentication attempts, file system changes, process executions---from servers, workstations, cloud instances, and IoT devices. The central mission of a \textit{Security Operations Center} (SOC) is to monitor this activity continuously, triage suspected incidents, and coordinate the response.
 
-The classic incident response lifecycle is documented by NIST in SP 800-61. \cite{nist80061} It separates work into preparation, detection and analysis, containment and recovery, and post-incident review. The detection and analysis phase is usually the most expensive because it depends on human interpretation and on the quality of monitoring infrastructure.
-
-SOC teams operate under high pressure. Tilbury and Flowerday report sustained alert overload and a tension between automation and human oversight. \cite{tilbury2024humans} Their conclusion is practical: automation should reduce mechanical workload, not remove human judgment from high-impact decisions. This thesis follows that principle.
+The procedural foundation for SOC operations comes from the NIST Computer Security Incident Handling Guide \cite{nist80061}, which defines a four-phase lifecycle: Preparation, Detection and Analysis, Containment/Eradication/Recovery, and Post-Incident Activity. The guide notes that detection and analysis is the most labor-intensive phase. Tilbury and Flowerday \cite{tilbury2024humans} confirm this in practice---SOC analysts operate under persistent workload pressure from alert volumes that exceed what any team can manually triage within a shift. Their study argues for augmentation over replacement: systems that absorb the mechanical triage burden so analysts can focus on the cases that genuinely need human judgment.
 
 % -----------------------------------------------------------------------------
 \section{Security Information and Event Management (SIEM)}
 
-\subsection{Log Collection and Normalization}
+\subsection{Log Collection, Normalization, and Correlation}
 
-A SIEM platform collects logs from heterogeneous sources and makes them queryable for analysts and correlation engines. NIST SP 800-92 describes SIEM log management as a pipeline: collect, parse, normalize, and store. \cite{nist80092}
+A SIEM platform is the core technology of a SOC \cite{nist80092}. It collects log data from heterogeneous sources---operating systems, applications, network devices, security appliances---aggregates it centrally, and makes it queryable by analysts and automated correlation engines. The normalization problem is harder than it looks: a \texttt{severity} field in a firewall log means the configured rule priority, while the same field in an antivirus alert means the malware's assessed danger level. Getting this wrong propagates errors into every downstream component.
 
-Normalization is a core requirement. Windows Event Logs, syslog, CEF, and LEEF all use different field layouts. A field called \texttt{severity} in one source can mean an alert priority, while in another it reflects a risk assessment. Normalization mistakes propagate into every downstream stage. For that reason, the system in this thesis treats normalization as a separate, explicit pipeline stage that can be updated without touching the intelligence layer. This aligns with the modularity principle in \cite{nist80092}.
+Event correlation is how raw logs become meaningful alerts. A single failed SSH login is unremarkable; ten thousand from a single IP in thirty seconds is a brute-force attempt.
 
-\subsection{Event Correlation}
+Valeur et al.\ \cite{valeur2004alert} offer a structured model of the full alert
+correlation workflow, breaking it down into a sequence of discrete stages that each
+serve a distinct purpose: raw events are first normalised and deduplicated, then
+related alerts are fused into higher-level signals, correlated across time and source,
+filtered to reduce false positives, and finally grouped into coherent attack sessions.
+What this model makes clear is that what most practitioners call ``alert correlation''
+is not one operation but several, and conflating them makes the system harder to reason
+about and harder to tune.
 
-Single events are rarely enough. A single failed login is usually noise, but many failed logins in a short time can indicate brute force. Correlation connects events across time and sources to create a higher-level alert.
-
-Valeur et al. \cite{valeur2004alert} describe correlation as a structured process: preprocessing, duplicate removal, alert fusion, correlation, false-positive reduction, and session reconstruction. Their work highlights a practical issue: what practitioners call ``correlation'' is often several different operations mixed together. Separating these stages makes the system easier to reason about and improves control over false positives.
+Time-window correlation rules---the workhorse of most commercial SIEMs---are computationally efficient and interpretable, but they require an expert to anticipate every relevant pattern. Rules that are too specific miss variants; rules that are too broad generate noise.
 
 \subsection{Alerting and Incident Response}
 
-The output of correlation is an alert. An analyst must decide whether it is real, how severe it is, and what response is appropriate. The process is formalized in \cite{nist80061}, but in practice prioritization varies by analyst and by workload. \cite{tilbury2024humans} This inconsistency motivates machine-assisted scoring and structured response planning.
+The output of the correlation engine is an alert asserting that a pattern matches a known-bad template. An analyst must then assess its fidelity, severity, and appropriate response. In theory this is a structured workflow \cite{nist80061}; in practice, prioritization varies considerably across shifts and teams depending on workload, experience, and fatigue \cite{tilbury2024humans}. Inconsistent triage is one of the core motivations for machine-assisted scoring.
 
 % -----------------------------------------------------------------------------
 \section{Limitations of Current SIEM Systems}
 
-\subsection{Rule-Based Detection}
+\subsection{Rule-Based Detection and Alert Overload}
 
-Rule-based correlation does not generalize. Rules encode what an expert anticipated, but they fail on novel or subtle patterns. Attackers exploit this with ``living-off-the-land'' techniques that use legitimate tools (PowerShell, WMI, certutil) to avoid signatures. \cite{strom2018attack}
+The fundamental limitation of rule-based correlation is that rules only encode patterns an expert anticipated---they say nothing about patterns that were not. \textit{Living-off-the-land} techniques deliberately use legitimate system tools like PowerShell, WMI, and certutil to carry out malicious activity in a way that evades signature-based detection \cite{strom2018attack}. Sarhan et al.\ \cite{rulegenie2025} document how rule sets accumulate over time without retirement, generating redundant and overlapping false positives that are difficult to reason about.
 
-Rule sets also accumulate and overlap. Sarhan et al. show that redundant rules generate unnecessary alerts and that rule hygiene has a measurable effect on alert quality. \cite{rulegenie2025} This is not only a volume problem; it is a correctness problem.
-
-\subsection{Alert Overload and False Positives}
-
-High false-positive rates lead directly to alert fatigue. Ban et al. report deployments where false positives dominate the alert stream, forcing analysts to ignore alerts just to keep up. \cite{ban2023alertfatigue}
-
-Axelsson's base-rate analysis explains why this is structural. \cite{axelsson2000baseratev} Even a detector with 99\% sensitivity and 99\% specificity can produce more false alerts than true alerts when the base rate of attacks is low. This makes precision a central requirement for any operational system.
-
-\subsection{Scalability and Data Volume}
-
-Enterprise log volume can reach terabytes per day. \cite{nist80092} Scaling ingestion is possible, but it does not reduce analyst workload. Alert volume depends on rule behavior and correlation quality. \cite{rulegenie2025} Without better reasoning, more data simply means more alerts.
+The consequence is alert fatigue. Ban et al.\ \cite{ban2023alertfatigue} report false-positive rates exceeding 90\% in some deployments---nine benign alerts for every genuine threat. The base-rate fallacy, formalised by Axelsson \cite{axelsson2000baseratev}, explains why this is structurally difficult to avoid: even a detector with 99\% sensitivity and 99\% specificity produces roughly one false positive per true positive when the true attack rate is 1-in-10,000 events. Acceptable false-positive performance requires specificity approaching 99.99\%+, a bar that most deployed systems---rule-based or ML-based---rarely sustain under distribution shift.
 
 \subsection{Dependence on Human Analysts}
 
-SOC effectiveness is still bounded by human availability. Tilbury and Flowerday describe analyst shortage, turnover, and burnout as persistent constraints. \cite{tilbury2024humans} This reinforces the need for systems that handle mechanical triage while preserving human control of high-impact decisions.
+The deeper structural limitation is that SIEM effectiveness is bounded by analyst availability and skill. Tilbury and Flowerday \cite{tilbury2024humans} document that skilled analysts are globally scarce, SOC turnover is high due to burnout, and the knowledge required to interpret alerts is tacit and difficult to transfer. Automation cannot replace analysts---the authors are explicit that high-stakes decisions must remain human-supervised---but it should absorb the mechanical parts of the triage workflow so analysts can focus where their judgment is genuinely needed.
 
 % -----------------------------------------------------------------------------
 \section{Machine Learning Approaches to Intrusion Detection}
 
-Rule limitations have driven research into machine learning for intrusion detection and alert analysis. Two main paradigms dominate the literature.
+Rule-based detection limitations have motivated substantial research into ML-based intrusion detection. The two dominant paradigms are anomaly-based detection---training a model on normal behaviour and flagging deviations---and signature-based detection, which applies classifiers trained on labelled attack examples. Garcia-Teodoro et al.\ \cite{garcia2009anomaly} survey the anomaly field comprehensively, finding that ML-based approaches achieve high detection rates for novel attacks but produce elevated false-positive rates because the space of ``abnormal but benign'' events is vast. Signature-based approaches achieve high precision when attack samples are available but face the same generalisation problem as rule-based systems: variants and zero-days fall outside the training distribution.
 
-\textbf{Anomaly-based detection} learns a model of normal behavior and flags deviations. Garcia-Teodoro et al. survey anomaly detection methods and show that while these systems can detect novel attacks, they often generate high false-positive rates because ``abnormal'' includes many benign but unusual behaviors. \cite{garcia2009anomaly}
+Sommer and Paxson \cite{sommer2010outside} provide an influential critical analysis of ML for network intrusion detection, identifying challenges absent in typical ML benchmarks: extreme class imbalance, distribution shift as adversaries adapt, high false-positive costs, and opacity of model decisions. Their critique has aged well. It anticipates the explainability requirement this thesis addresses directly---every score produced must be accompanied by evidence and reasoning an analyst can evaluate. More recent deep learning approaches \cite{du2017deeplog, scarselli2009gnn, vaswani2017attention} show promise on benchmarks but amplify this interpretability concern: the deeper the model, the harder it is to explain a specific flagged alert \cite{sommer2010outside, tilbury2024humans}.
 
-\textbf{Signature-based ML} treats detection as a classification problem trained on labeled attacks. This can produce high precision for known patterns but struggles on new attack variants, similar to rules.
+% -----------------------------------------------------------------------------
+\section{Automated and Intelligent Incident Response}
 
-Sommer and Paxson provide a critical analysis of ML for network intrusion detection. \cite{sommer2010outside} They argue that distribution shift, attacker adaptation, and data quality issues limit the operational reliability of ML systems. Their critique motivates the design of systems that emphasize explainability, policy constraints, and bounded automation rather than blind reliance on model accuracy.
+Academic work on the response side of the pipeline is thinner than on detection. Ban et al.\ \cite{ban2023alertfatigue} describe an AI-assisted SIEM framework that automatically prioritizes and summarises alerts, demonstrating meaningful workload reductions, though the response component remains recommendation-only---a human still executes every action. This pattern is common: automated response with actual execution is rare because of the safety concerns it raises \cite{tilbury2024humans, nist80061}.
+
+Commercial \textit{Security Orchestration, Automation, and Response} (SOAR) platforms---Palo Alto XSOAR, Splunk SOAR, IBM Security SOAR---take a playbook-scripted approach. An expert defines workflows in advance; the platform executes them on trigger \cite{nist80061}. This works well for high-frequency, well-understood incident types. It breaks down on novel patterns or hybrid scenarios where no playbook matches, and it provides no mechanism to learn from outcomes \cite{tilbury2024humans}. The MITRE ATT\&CK framework \cite{strom2018attack} has become a common reference for grounding alert types to adversary behaviour and appropriate response actions, and this thesis uses it as one basis for the response planning training data.
+
+% -----------------------------------------------------------------------------
+\section{Research Gap}
+
+The literature reveals a consistent pattern: detection is more mature than response, and the triage layer between them remains heavily human-dependent. This thesis targets three specific gaps.
+
+First, existing SIEM platforms are passive---they surface alerts but do not reason about them, produce response plans, or take any action. The system built here starts where the SIEM stops: it accepts a normalised alert and adds learned threat assessment, strategy-level response planning, policy-gated action execution, and a full audit trail. It is designed to sit downstream of a SIEM, not to replace one.
+
+Second, commercial SOAR platforms execute pre-authored playbooks. They cannot reason about an alert they have never seen, weigh a threat's severity against the impact of the response, or adapt when the alert falls between playbook categories. This thesis replaces the static playbook with a trained model that infers response strategy from the observed alert context, backed by a deterministic policy layer that enforces hard safety constraints independently of model quality. The result achieves over 96\% strategy accuracy at under 5 milliseconds of inference time, without any generative component that could hallucinate unsafe parameter values.
