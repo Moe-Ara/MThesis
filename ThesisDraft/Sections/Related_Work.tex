@@ -8,7 +8,7 @@
 % -----------------------------------------------------------------------------
 \section{Cybersecurity Monitoring and Security Operations Centers}
 
-Modern organisations generate large volumes of digital events across their infrastructure---network flows, authentication attempts, file system changes, process executions---from servers, workstations, cloud instances, and IoT devices. The central mission of a \textit{Security Operations Center} (SOC) is to monitor this activity continuously, triage suspected incidents, and coordinate the response.
+Modern organisations generate large volumes of digital events across their infrastructure---network flows, authentication attempts, file system changes, process executions---from servers, workstations, cloud instances, and IoT devices. The central mission of a \textit{Security Operations Center} (SOC) is to monitor this activity continuously, triage suspected incidents, and coordinate the response \cite{nist80061, nist80092}.
 
 The procedural foundation for SOC operations comes from the NIST Computer Security Incident Handling Guide \cite{nist80061}, which defines a four-phase lifecycle: Preparation, Detection and Analysis, Containment/Eradication/Recovery, and Post-Incident Activity. The guide notes that detection and analysis is the most labor-intensive phase. Tilbury and Flowerday \cite{tilbury2024humans} confirm this in practice---SOC analysts operate under persistent workload pressure from alert volumes that exceed what any team can manually triage within a shift. Their study argues for augmentation over replacement: systems that absorb the mechanical triage burden so analysts can focus on the cases that genuinely need human judgment.
 
@@ -19,7 +19,7 @@ The procedural foundation for SOC operations comes from the NIST Computer Securi
 
 A SIEM platform is the core technology of a SOC \cite{nist80092}. It collects log data from heterogeneous sources---operating systems, applications, network devices, security appliances---aggregates it centrally, and makes it queryable by analysts and automated correlation engines. The normalization problem is harder than it looks: a \texttt{severity} field in a firewall log means the configured rule priority, while the same field in an antivirus alert means the malware's assessed danger level. Getting this wrong propagates errors into every downstream component.
 
-Event correlation is how raw logs become meaningful alerts. A single failed SSH login is unremarkable; ten thousand from a single IP in thirty seconds is a brute-force attempt.
+Event correlation is how raw logs become meaningful alerts. A single failed SSH login is unremarkable; ten thousand from a single IP in thirty seconds is a brute-force attempt \cite{valeur2004alert}.
 
 Valeur et al.\ \cite{valeur2004alert} offer a structured model of the full alert
 correlation workflow, breaking it down into a sequence of discrete stages that each
@@ -30,7 +30,7 @@ What this model makes clear is that what most practitioners call ``alert correla
 is not one operation but several, and conflating them makes the system harder to reason
 about and harder to tune.
 
-Time-window correlation rules---the workhorse of most commercial SIEMs---are computationally efficient and interpretable, but they require an expert to anticipate every relevant pattern. Rules that are too specific miss variants; rules that are too broad generate noise.
+Time-window correlation rules---the workhorse of most commercial SIEMs---are computationally efficient and interpretable, but they require an expert to anticipate every relevant pattern. Rules that are too specific miss variants; rules that are too broad generate noise \cite{valeur2004alert, rulegenie2025}.
 
 \subsection{Alerting and Incident Response}
 
@@ -66,8 +66,8 @@ Commercial \textit{Security Orchestration, Automation, and Response} (SOAR) plat
 % -----------------------------------------------------------------------------
 \section{Research Gap}
 
-The literature reveals a consistent pattern: detection is more mature than response, and the triage layer between them remains heavily human-dependent. This thesis targets three specific gaps.
+The literature reveals a consistent pattern: detection is more mature than response, and the triage layer between them remains heavily human-dependent \cite{nist80061, tilbury2024humans, ban2023alertfatigue}. This thesis targets three specific gaps.
 
-First, existing SIEM platforms are passive---they surface alerts but do not reason about them, produce response plans, or take any action. The system built here starts where the SIEM stops: it accepts a normalised alert and adds learned threat assessment, strategy-level response planning, policy-gated action execution, and a full audit trail. It is designed to sit downstream of a SIEM, not to replace one.
+First, existing SIEM platforms are passive---they surface alerts but do not reason about them, produce response plans, or take any action \cite{nist80092, nist80061}. The system built here starts where the SIEM stops: it accepts a normalised alert and adds learned threat assessment, strategy-level response planning, policy-gated action execution, and a full audit trail. It is designed to sit downstream of a SIEM, not to replace one.
 
-Second, commercial SOAR platforms execute pre-authored playbooks. They cannot reason about an alert they have never seen, weigh a threat's severity against the impact of the response, or adapt when the alert falls between playbook categories. This thesis replaces the static playbook with a trained model that infers response strategy from the observed alert context, backed by a deterministic policy layer that enforces hard safety constraints independently of model quality. The result achieves over 96\% strategy accuracy at under 5 milliseconds of inference time, without any generative component that could hallucinate unsafe parameter values.
+Second, commercial SOAR platforms execute pre-authored playbooks. They cannot reason about an alert they have never seen, weigh a threat's severity against the impact of the response, or adapt when the alert falls between playbook categories \cite{nist80061, tilbury2024humans}. This thesis replaces the static playbook with a trained model that infers response strategy from the observed alert context, backed by a deterministic policy layer that enforces hard safety constraints independently of model quality. In this thesis evaluation (Section~\ref{sec:eval-planning}, Table~\ref{tab:planner-results}), the approach achieves over 96\% strategy accuracy with under 5 milliseconds inference time, without any generative component that could hallucinate unsafe parameter values.

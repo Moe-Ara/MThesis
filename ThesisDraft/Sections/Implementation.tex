@@ -327,7 +327,7 @@ The primary planner in the deployed system is a custom multi-head MLP (\texttt{C
 
 First, the task structure is highly regular: five alert types map to five strategies and eight possible action types, drawn from a fixed vocabulary. This is not a general-purpose language understanding problem --- it is a structured classification problem with strong domain regularities. A pretrained LLM brings 250 million parameters of general world knowledge that are simply not needed here.
 
-Second, inference speed matters for a real-time pipeline. A 250M-parameter seq2seq model takes 800--1200ms per example on CPU; the custom MLP infers in under 5ms. It can also be loaded entirely in RAM on any development machine without a GPU.
+Second, inference speed matters for a real-time pipeline. A 250M-parameter seq2seq model takes 800--1200ms per example on CPU; the custom MLP infers in under 5ms (Section~\ref{sec:eval-planning}; Table~\ref{tab:planner-results}). It can also be loaded entirely in RAM on any development machine without a GPU.
 
 Third, the custom MLP is inherently more interpretable. Its 198-dimensional feature vector is fully documented, and each feature has an explicit semantic meaning. The weights of a fine-tuned T5 model, by contrast, are distributed across attention heads and feed-forward layers in ways that resist simple interpretation.
 

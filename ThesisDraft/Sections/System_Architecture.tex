@@ -193,10 +193,11 @@ producing plans that would target the wrong resources.
 
 The solution was to decompose planning into \textit{structured prediction}: the model
 classifies strategy, predicts a binary action set, and regresses priority. Entity
-parameters are then resolved deterministically from the enriched alert context. This
-eliminates hallucination entirely and reduces the planning problem to one that a small
-custom neural network can solve with over 96\% accuracy at a fraction of the inference
-cost of an LLM.
+parameters are then resolved deterministically from the enriched alert context. In this
+thesis evaluation, this removes the entity-hallucination failure mode and reduces the
+planning problem to one that a small custom neural network can solve with over 96\%
+strategy accuracy at a fraction of the inference cost of an LLM (Section~\ref{sec:eval-planning},
+Table~\ref{tab:planner-results}).
 
 \subsection{Reasoning and Explainability Design}
 
@@ -390,7 +391,9 @@ problems: strategy (5-class softmax), action set (multi-label sigmoid over 8 act
 types), and priority (sigmoid scaled to 0--100). A deterministic post-processing pass
 then resolves entity parameters from the enriched alert context, adds safe infrastructure
 actions that are always appropriate, and applies label sanitization to enforce coherence.
-This eliminates LLM hallucination entirely and reduces inference time to under 5 ms.
+In the measured pipeline evaluation, this removes the LLM-style entity hallucination
+failure mode and reduces inference time to under 5 ms (Section~\ref{sec:eval-planning},
+Table~\ref{tab:planner-results}).
 
 The model registry allows multiple named profiles to coexist. A caller can request a
 specific profile via the \texttt{X-Intel-Profile} HTTP header, enabling A/B evaluation

@@ -10,7 +10,7 @@ This chapter puts the evaluation results in broader context, explains why certai
 
 \subsection{Explainability as a Structural Property}
 
-Most threat scoring systems treat explainability as something added after the fact---a model is trained for accuracy, and then an explanation mechanism like SHAP values or attention weights gets layered on top \cite{sommer2010outside}. The problem is that the explanation is a reconstruction of the decision, not the decision itself.
+Many threat scoring systems optimize predictive performance first and treat explainability as a secondary layer \cite{sommer2010outside, tilbury2024humans}. The problem is that the explanation is often a reconstruction of the decision, not the decision itself.
 
 This system is different. A \texttt{ThreatAssessment} cannot be created without a hypothesis string and an evidence list. A \texttt{DecisionPlan} requires per-action rationale fields. A \texttt{PolicyDecision} records the specific rule that approved, held, or denied each action. These fields are populated at decision time and written verbatim to the audit log---no post-hoc reconstruction. In environments where incident response documentation requires contemporaneous records of automated decisions \cite{nist80061}, this design satisfies that requirement structurally.
 
@@ -22,9 +22,9 @@ The entity-presence check ensures actions requiring a host identifier cannot exe
 
 \subsection{Inference Speed and Operational Feasibility}
 
-The custom MLP planner infers in under 5 milliseconds end-to-end, including the HTTP round-trip to the Python intelligence service. The TF-IDF scorer runs in sub-millisecond time on CPU. Together, the intelligence layer adds less than 10 milliseconds to the alert processing pipeline.
+The custom MLP planner infers in under 5 milliseconds end-to-end, including the HTTP round-trip to the Python intelligence service. The TF-IDF scorer runs in sub-millisecond time on CPU. Together, the intelligence layer adds less than 10 milliseconds to the alert processing pipeline (Section~\ref{sec:eval-planning}; Section~\ref{sec:eval-detection}; Table~\ref{tab:planner-results}).
 
-For comparison, the seq2seq model required 800--1,200 milliseconds per inference. That places it outside the practical range for real-time triage in a high-volume environment. The custom MLP achieves the same planning accuracy at 160 times lower latency. This is not a compromise---structured prediction turns out to be the better design for this task, not just the faster one.
+For comparison, the seq2seq model required 800--1,200 milliseconds per inference. That places it outside the practical range for real-time triage in a high-volume environment. The custom MLP achieves the same planning accuracy at 160 times lower latency (Section~\ref{sec:eval-planning}; Table~\ref{tab:planner-results}). This is not a compromise---structured prediction turns out to be the better design for this task, not just the faster one.
 
 % -----------------------------------------------------------------------------
 \section{Comparison with Traditional SIEM and SOAR Approaches}
@@ -32,9 +32,9 @@ For comparison, the seq2seq model required 800--1,200 milliseconds per inference
 
 SIEM platforms collect and correlate logs but do not reason about the resulting alerts, assess severity relative to asset context, or take any action \cite{nist80092, tilbury2024humans}. This system starts where the SIEM ends---accepting a normalised alert and adding learned threat assessment, strategy-level planning, policy-gated execution, and an audit trail linking each action to its evidence.
 
-Commercial SOAR platforms execute workflows defined in advance \cite{nist80061}. For well-understood incident types this works. It breaks down on novel patterns, because there is no mechanism to reason about an alert the platform has never seen. This system replaces the static playbook with a trained model that infers the appropriate response strategy from observed alert context. The model is not perfect (3.6\% of plans have the wrong strategy), but it generalises from training examples rather than failing silently when nothing matches.
+Commercial SOAR platforms execute workflows defined in advance \cite{nist80061}. For well-understood incident types this works. It breaks down on novel patterns, because there is no mechanism to reason about an alert the platform has never seen. This system replaces the static playbook with a trained model that infers the appropriate response strategy from observed alert context. The model is not perfect (about 3.6\% strategy error in this evaluation), but it generalises from training examples rather than failing silently when nothing matches (Section~\ref{sec:eval-planning}; Table~\ref{tab:planner-results}).
 
-The Foundation-Sec-8B fine-tuning experiment confirmed the core reliability problem with generative LLM planners: the model hallucinates entity values, producing plans that reference IP addresses and hostnames that were never in the alert. For a system that executes actions against real infrastructure, a plan targeting the wrong resource is a safety failure. The structured prediction approach avoids this by separating \textit{what to do} (learned by the model) from \textit{what to target} (resolved deterministically from the alert after inference).
+The Foundation-Sec-8B fine-tuning experiment confirmed the core reliability problem with generative LLM planners: the model hallucinates entity values, producing plans that reference IP addresses and hostnames that were never in the alert. For a system that executes actions against real infrastructure, a plan targeting the wrong resource is a safety failure. The structured prediction approach avoids this by separating \textit{what to do} (learned by the model) from \textit{what to target} (resolved deterministically from the alert after inference) (Section~\ref{sec:eval-results-discussion}).
 
 % -----------------------------------------------------------------------------
 \section{Limitations}
@@ -46,7 +46,7 @@ All quantitative results are computed on synthetic data generated by the same pi
 
 \subsection{Limited Alert Type Coverage}
 
-The system is trained and evaluated on five alert types. Commercial SIEM platforms handle hundreds across network, endpoint, identity, cloud, and application layers. The architecture supports expansion without changes to the orchestration or policy layers, but the training and validation work for production-grade coverage is substantial.
+The system is trained and evaluated on five alert types. Commercial SIEM platforms typically cover broad alert taxonomies across network, endpoint, identity, cloud, and application layers \cite{nist80092, tilbury2024humans}. The architecture supports expansion without changes to the orchestration or policy layers, but the training and validation work for production-grade coverage is substantial.
 
 \subsection{Simulated SIEM Connector and Manual Policy Rules}
 
