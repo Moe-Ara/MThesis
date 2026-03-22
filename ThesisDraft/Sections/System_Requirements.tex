@@ -1,3 +1,4 @@
+% !TeX root = ../main.tex
 \chapter{System Requirements}
 \label{chap:system-requirements}
 \lhead{\emph{System Requirements}}
@@ -7,6 +8,16 @@
 The system ingests alerts from external SIEM sources, normalises them to a common schema, enriches them with contextual data, and produces ranked incident candidates. For each incident the scoring component generates an explainable risk score and confidence value, accompanied by reason codes and context multipliers. The planning component then produces a structured response plan---strategy, priority, action set, and rollback steps---which is validated against explicit policy rules before any action is dispatched. The execution stage records action outcomes and errors.
 
 Analyst feedback is a first-class input. An analyst can mark an incident as true positive, false positive, or needs more information, and optionally override severity. Feedback events are recorded in an append-only log and used to update model weights in a bounded, auditable way. Investigation traces are tracked and used to recommend next steps. A user interface exposes raw alerts, normalised alerts, scoring explanations, plans, policy checks, execution status, and audit logs.
+
+Figure~\ref{fig:req-traceability} provides a requirement-to-component traceability view,
+showing where each requirement class is enforced in the architecture.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/Requirements_Traceability.png}
+  \caption{Traceability mapping from functional, non-functional, and safety requirements to core system components.}
+  \label{fig:req-traceability}
+\end{figure}
 
 \section{Non-Functional Requirements}
 

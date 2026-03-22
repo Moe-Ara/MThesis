@@ -1,4 +1,4 @@
-
+﻿
 \chapter{Evaluation}
 
 \label{chap:evaluation}
@@ -10,6 +10,16 @@ This chapter covers the quantitative evaluation of the two machine-learning comp
 % -----------------------------------------------------------------------------
 \section{Evaluation Setup}
 \label{sec:eval-setup}
+
+Figure~\ref{fig:eval-workflow} summarises the evaluation workflow used throughout this
+chapter, from the fixed dataset split to metric computation and scenario validation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/Evaluation_Workflow.png}
+  \caption{Evaluation workflow for scorer and planner models, including split protocol, metric computation, and scenario checks.}
+  \label{fig:eval-workflow}
+\end{figure}
 
 \subsection{Dataset and Split}
 
