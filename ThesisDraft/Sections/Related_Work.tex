@@ -8,7 +8,12 @@
 % -----------------------------------------------------------------------------
 \section{Cybersecurity Monitoring and Security Operations Centers}
 
-Modern organisations generate large volumes of digital events across their infrastructure---network flows, authentication attempts, file system changes, process executions---from servers, workstations, cloud instances, and IoT devices. The central mission of a \textit{Security Operations Center} (SOC) is to monitor this activity continuously, triage suspected incidents, and coordinate the response \cite{nist80061, nist80092}.
+Modern organisations generate large volumes of digital events across their infrastructure:
+network flows, authentication attempts, file-system changes, and process executions
+from servers, workstations, cloud instances, and IoT devices.
+The central mission of a \textit{Security Operations Center} (SOC) is to monitor this
+activity continuously, triage suspected incidents, and coordinate the response
+\cite{nist80061, nist80092}.
 
 The procedural foundation for SOC operations comes from the NIST Computer Security Incident Handling Guide \cite{nist80061}, which defines a four-phase lifecycle: Preparation, Detection and Analysis, Containment/Eradication/Recovery, and Post-Incident Activity. The guide notes that detection and analysis is the most labor-intensive phase. Tilbury and Flowerday \cite{tilbury2024humans} confirm this in practice---SOC analysts operate under persistent workload pressure from alert volumes that exceed what any team can manually triage within a shift. Their study argues for augmentation over replacement: systems that absorb the mechanical triage burden so analysts can focus on the cases that genuinely need human judgment.
 
@@ -61,7 +66,7 @@ Sommer and Paxson \cite{sommer2010outside} provide an influential critical analy
 
 Academic work on the response side of the pipeline is thinner than on detection. Ban et al.\ \cite{ban2023alertfatigue} describe an AI-assisted SIEM framework that automatically prioritizes and summarises alerts, demonstrating meaningful workload reductions, though the response component remains recommendation-only---a human still executes every action. This pattern is common: automated response with actual execution is rare because of the safety concerns it raises \cite{tilbury2024humans, nist80061}.
 
-Commercial \textit{Security Orchestration, Automation, and Response} (SOAR) platforms---Palo Alto XSOAR, Splunk SOAR, IBM Security SOAR---take a playbook-scripted approach. An expert defines workflows in advance; the platform executes them on trigger \cite{nist80061}. This works well for high-frequency, well-understood incident types. It breaks down on novel patterns or hybrid scenarios where no playbook matches, and it provides no mechanism to learn from outcomes \cite{tilbury2024humans}. The MITRE ATT\&CK framework \cite{strom2018attack} has become a common reference for grounding alert types to adversary behaviour and appropriate response actions, and this thesis uses it as one basis for the response planning training data.
+Commercial \textit{Security Orchestration, Automation, and Response} (SOAR) platforms generally take a playbook-scripted approach: an expert defines workflows in advance and the platform executes them on trigger \cite{nist80061, tilbury2024humans}. This works well for high-frequency, well-understood incident types. It breaks down on novel patterns or hybrid scenarios where no playbook matches, and it provides no mechanism to learn from outcomes \cite{tilbury2024humans}. The MITRE ATT\&CK framework \cite{strom2018attack} has become a common reference for grounding alert types to adversary behaviour and appropriate response actions, and this thesis uses it as one basis for the response planning training data.
 
 % -----------------------------------------------------------------------------
 \section{Research Gap}

@@ -10,9 +10,20 @@ One of the most underestimated parts of building an intelligent security system 
 
 No single publicly available dataset covers the full space of alert types, entity patterns, and response scenarios this system needs to handle. The dataset pipeline draws on four distinct sources, each contributing something the others cannot, combined with a synthetic generation layer that fills gaps and enforces coverage balance.
 
+Figure~\ref{fig:dataset-pipeline-overview} summarizes this data flow, from heterogeneous
+raw sources through schema and label processing to the final model registry profiles used
+at inference time.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/Dataset_Pipeline.png}
+  \caption{Dataset construction and training pipeline from public corpora and synthetic generation to deployable scorer/planner model profiles.}
+  \label{fig:dataset-pipeline-overview}
+\end{figure}
+
 \subsection{MITRE ATT\&CK (STIX)}
 
-The MITRE ATT\&CK framework \cite{strom2018attack} provides a structured taxonomy of adversarial tactics, techniques, and procedures. It is distributed in STIX 2.1 format, a machine-readable standard for threat intelligence exchange. For this project, the ATT\&CK STIX data serves two purposes. First, it provides authoritative labels: the technique ID attached to a simulated alert can be used to confirm that the alert type classification is grounded in real-world adversary behaviour rather than invented categories. Second, the technique descriptions provide vocabulary for hypothesis text generation---the language used to describe a lateral movement technique in ATT\&CK is the same language a SOC analyst would use, which helps the generated training data sound authentic.
+The MITRE ATT\&CK framework \cite{strom2018attack} provides a structured taxonomy of adversarial tactics, techniques, and procedures. It is distributed in STIX 2.1 format, a machine-readable standard for threat intelligence exchange \cite{stix21}. For this project, the ATT\&CK STIX data serves two purposes. First, it provides authoritative labels: the technique ID attached to a simulated alert can be used to confirm that the alert type classification is grounded in real-world adversary behaviour rather than invented categories. Second, the technique descriptions provide vocabulary for hypothesis text generation---the language used to describe a lateral movement technique in ATT\&CK is the same language a SOC analyst would use, which helps the generated training data sound authentic.
 
 The STIX data is downloaded via a dedicated script and parsed using the \texttt{stix2} Python library. Relevant technique metadata---ID, name, tactic mapping, and description---is extracted and stored locally for lookup during alert generation.
 
@@ -155,8 +166,10 @@ Severity: 75.0  Confidence: 0.80  (high)
 Entities: {"srcIp": "10.0.1.50", "username": "admin", ...}
 Hypothesis: Multiple failed logins from external source.
 Evidence: ["src_ip=10.0.1.50", "attempts=237", ...]
-Completion: Contain|BlockIp(src_ip=10.0.1.50),DisableUser(username=admin),
-            OpenTicket,Notify|priority=80
+Completion: Contain|
+            BlockIp(src_ip=10.0.1.50),DisableUser(username=admin),
+            OpenTicket,
+            Notify|priority=80
 \end{verbatim}
 
 The pipe-delimited completion format was chosen for a specific technical reason that is easy to miss: the flan-t5-base tokeniser (SentencePiece) cannot generate the \texttt{\{} and \texttt{\}} characters. This makes it structurally impossible to train a T5 model to output JSON. The pipe-delimited format encodes the same information using only characters that SentencePiece can produce. At inference time, a dedicated parser (\texttt{parse\_pipe\_completion}) reconstructs the full structured plan from the pipe-delimited string, then \texttt{sanitize\_plan} validates it before it is returned to the C\# engine.
@@ -315,7 +328,7 @@ Table~\ref{tab:planner-results} summarises the planner evaluation results across
 \caption{Planner evaluation results across all training approaches.}
 \label{tab:planner-results}
 \footnotesize
-\begin{tabular}{p{3.8cm}p{1.9cm}rrcp{3.3cm}}
+\begin{tabular}{L{3.8cm}L{1.9cm}rrcL{3.3cm}}
 \hline
 \textbf{Model} & \textbf{Type} & \textbf{S.Acc.} & \textbf{Act.F1} & \textbf{N} & \textbf{Notes} \\
 \hline

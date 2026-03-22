@@ -51,6 +51,25 @@ pipelines, and the ability to replay any alert from a stored demo trace.
 Several structural decisions shape the entire system. They are worth explaining before
 describing the components they produce.
 
+To make the architectural choices concrete, Figure~\ref{fig:siem-traditional-soar}
+shows the generic SIEM/SOAR operating pattern used as a baseline, while
+Figure~\ref{fig:siem-thesis-plugin} shows the structure implemented in this thesis
+\cite{nist80092, nist80061, tilbury2024humans}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/SIEM_Traditional_SOAR.png}
+  \caption{Typical SIEM and SOAR operating flow with rule correlation, analyst triage, and approval-gated playbook execution.}
+  \label{fig:siem-traditional-soar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/SIEM_Thesis_Plugin_Structure.png}
+  \caption{System structure implemented in this thesis: multi-SIEM normalization, intelligence scoring/planning, local policy guardrail, and traceable execution.}
+  \label{fig:siem-thesis-plugin}
+\end{figure}
+
 \subsection{Modular Monolith over Multi-Agent Architecture}
 
 The first and most fundamental choice was the overall \textit{architectural style}.
@@ -62,11 +81,9 @@ through a shared message bus or blackboard. Each agent would have its own percep
 loop, internal state, and decision logic.
 
 Multi-agent architectures are appealing in theory because they mirror the way human
-SOC teams actually work---different analysts specialize in different tasks---and because
-they seem well-suited to parallel workloads. They are also the dominant framing in
-much of the AI-oriented security automation literature, where the vocabulary of
-``agents,'' ``goals,'' and ``environments'' maps naturally onto reinforcement learning
-formulations. In practice, though, closer examination showed that multi-agent design
+SOC teams actually work---different analysts specialize in different tasks under
+workload pressure \cite{tilbury2024humans}---and because they seem well-suited to
+parallel workloads. In practice, though, closer examination showed that multi-agent design
 would have introduced significant costs with limited benefit for this system's goals.
 
 \textbf{Accountability and auditability.} When a response action is taken by a loosely
@@ -148,11 +165,12 @@ be recompiled and updated without disturbing a running model server.
 
 \subsection{Interface-Driven Design in the Core Engine}
 
-Every major component in the C\# orchestrator is expressed as an interface:
-\texttt{ISiemConnector}, \texttt{INormalizationPipeline}, \texttt{IThreatScorer},
-\texttt{IPlanner}, \texttt{IExecutionPipeline}, \texttt{IAuditLogger}, and
-\texttt{ICaseManager}. The \texttt{AgentOrchestrator} class depends only on these
-interfaces; it has no knowledge of the concrete implementations injected into it.
+Every major component in the C\# orchestrator is expressed as an interface.
+Core orchestration interfaces are \texttt{ISiemConnector},
+\texttt{INormalizationPipeline}, \texttt{IThreatScorer}, and \texttt{IPlanner}.
+Execution and evidence interfaces are \texttt{IExecutionPipeline},
+\texttt{IAuditLogger}, and \texttt{ICaseManager}. The \texttt{AgentOrchestrator}
+class depends only on these abstractions, not their concrete implementations.
 
 This is not boilerplate. Interface-driven design enables two critical capabilities.
 First, testing: the entire orchestrator can be exercised with lightweight in-memory
@@ -164,7 +182,15 @@ registration, not modifying the orchestrator itself.
 
 The interfaces are also the system's version contract. When the Python intelligence
 service evolves its response schema, only the HTTP client adapter needs to be updated;
-the rest of the orchestration code is unaffected.
+the rest of the orchestration code is unaffected. Figure~\ref{fig:class-orchestrator}
+highlights this dependency structure around the \texttt{AgentOrchestrator}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth,height=0.72\textheight,keepaspectratio]{Diagrams/Class_Orchestrator.png}
+  \caption{Core orchestrator class view and its principal collaborators in the C\# engine.}
+  \label{fig:class-orchestrator}
+\end{figure}
 
 \subsection{Policy as a Local, Synchronous, Hard Layer}
 
@@ -237,48 +263,24 @@ With the design decisions established, the architecture resolves into two cooper
 processes and a linear alert-processing pipeline. The pipeline for each alert follows
 seven sequential stages:
 
-\begin{verbatim}
-  [SIEM / Event Source]
-        |
-        v
-  [Event Ingestion]      (pull or webhook, cursor-based pagination)
-        |
-        v
-  [Normalization & Enrichment]  (schema alignment, asset/identity/TI lookup)
-        |
-        v
-  [Threat Scoring]       (HTTP -> Intelligence Service /v1/score)
-        |
-        v
-  [Decision Planning]    (HTTP -> Intelligence Service /v1/plan)
-        |
-        v
-  [Policy Evaluation]    (local, synchronous, hard safety rules)
-        |
-        v
-  [Action Execution]     (approved actions dispatched; pending queued)
-        |
-        v
-  [Audit & Case Management]  (JSONL log, case database, demo trace)
-\end{verbatim}
+Event Ingestion (polling or webhook), Normalization and Enrichment (schema alignment
+plus asset/identity/threat-intel lookup), Threat Scoring (\texttt{/v1/score}),
+Decision Planning (\texttt{/v1/plan}), Policy Evaluation (local hard safety rules),
+Action Execution (approved actions dispatched, pending queued), and Audit/Case
+Management (JSONL audit plus case database updates).
 
 The two-process boundary sits between the Policy Evaluation stage and the Threat
-Scoring / Decision Planning stages:
+Scoring / Decision Planning stages, which are reached through HTTP/JSON calls to the
+Python intelligence service. Figure~\ref{fig:architecture-overview} gives the complete
+end-to-end view; component-level class and sequence views are introduced in their
+respective sections below.
 
-\begin{verbatim}
-  +---------------------------+   HTTP/JSON    +---------------------------+
-  |       Core Engine         | <-----------> |   Intelligence Service    |
-  |  (C# / .NET 9)            |  /v1/score    |   (Python / FastAPI)      |
-  |                           |  /v1/plan     |                           |
-  |  AgentOrchestrator        |               |  ClassifierScorer         |
-  |  PolicyEngine             |               |  CustomNNPlanner          |
-  |  ExecutionPipeline        |               |  ModelRegistry            |
-  |  AuditLogger              |               |  LruCache                 |
-  +---------------------------+               +---------------------------+
-             |                                          |
-    SIEM connectors                           intelligence/models/
-    Action integrations                       (planner_nn/, classifier/)
-\end{verbatim}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Diagrams/Architecture_Overview.png}
+  \caption{High-level architecture and control flow across ingestion, intelligence, policy, execution, and evidence layers.}
+  \label{fig:architecture-overview}
+\end{figure}
 
 % -----------------------------------------------------------------------------
 \section{Event Ingestion Layer}
@@ -295,8 +297,8 @@ so replay from the last checkpoint is automatic. When no cursor exists on first 
 the engine falls back to a configurable \texttt{SinceUtc} timestamp.
 
 \textbf{Webhook mode} is the alternative for SIEMs that push events. A lightweight
-ASP.NET Core endpoint accepts inbound HTTP POST requests and calls
-\texttt{AgentOrchestrator.HandleAlertAsync} directly. Both modes share all downstream
+ASP.NET Core endpoint accepts inbound HTTP POST requests and calls the orchestrator's
+handler method (\texttt{HandleAlertAsync}) directly. Both modes share all downstream
 stages; only the entry point differs.
 
 The \texttt{RawAlert} type produced at this stage is intentionally minimal---it carries
@@ -311,7 +313,15 @@ downstream components.
 Raw alerts must be translated into the system's canonical \texttt{EnrichedAlert}
 representation before any intelligence component can operate on them. This is the
 responsibility of the \texttt{INormalizationPipeline}, implemented as
-\texttt{BasicAlertValidator}.
+\texttt{BasicAlertValidator}. Figure~\ref{fig:class-domain-model} shows the core
+domain objects that move through this transformation pipeline.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Diagrams/Class_Domain_Model.png}
+  \caption{Domain model class view for normalized/enriched alerts, assessments, plans, policy decisions, and execution results.}
+  \label{fig:class-domain-model}
+\end{figure}
 
 \textbf{Schema normalization} maps vendor-specific field names to a stable internal
 schema. Alert types are canonicalized to one of five categories:
@@ -430,7 +440,16 @@ are recorded in the audit log and displayed in the console during processing.
 Approved actions are dispatched by the \texttt{IExecutionPipeline}. Each
 \texttt{PlannedAction} carries a type (e.g., \texttt{BlockIp}, \texttt{IsolateHost},
 \texttt{QuarantineFile}), typed parameters, a risk level, and an
-\texttt{expectedImpact} score for ordering within a plan.
+\texttt{expectedImpact} score for ordering within a plan. The interaction between
+planner output, policy filtering, execution, and rollback preparation is illustrated in
+Figure~\ref{fig:sequence-execution-rollback}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Diagrams/Sequence_Execution_and_Rollback.png}
+  \caption{Sequence diagram for policy-approved action execution, failure handling, rollback, and case/audit updates.}
+  \label{fig:sequence-execution-rollback}
+\end{figure}
 
 \textbf{Dry-run mode} (the default) validates and logs every action with a
 \texttt{DryRun} status but makes no external calls. The audit trail produced in
