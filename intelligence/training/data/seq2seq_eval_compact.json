@@ -1,0 +1,8 @@
+{
+  "summary": {
+    "strategy_acc": 0.9,
+    "strategy_acc_relaxed": 0.98,
+    "action_f1": 0.9113333333333334
+  },
+  "samples": 100
+}

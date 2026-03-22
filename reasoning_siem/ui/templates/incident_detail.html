@@ -1,0 +1,112 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Incident Detail</h1>
+        <p class="subtitle">Explainable scoring and analyst action loop.</p>
+    </div>
+    <div class="page-actions">
+        <a class="button ghost" href="/ui/triage">Back to triage</a>
+    </div>
+</section>
+
+<section class="detail-grid">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="incident-id">{{ incident.incident_id }}</div>
+                <div class="incident-meta">{{ incident.event_type }} | {{ incident.asset_id }} | {{ incident.user }}</div>
+            </div>
+            <div class="score-pill large" id="risk-score" data-score="{{ incident.risk_score|round(1) }}">
+                <div class="score-label">Risk score</div>
+                <div class="score-value" id="risk-score-value">{{ incident.risk_score|round(1) }}</div>
+            </div>
+        </div>
+
+        <div class="explain-grid">
+            <div class="explain-block">
+                <h3>Raw evidence score</h3>
+                <p class="big-number" id="evidence-score">{{ incident.evidence_score_raw|round(2) }}</p>
+                <p class="muted">Bias + weighted signal contributions (pre-clip)</p>
+            </div>
+            <div class="explain-block">
+                <h3>Confidence</h3>
+                <p class="big-number" id="confidence">{{ (incident.confidence * 100)|round(1) }}%</p>
+                <p class="muted">Signal density + context quality</p>
+            </div>
+            <div class="explain-block">
+                <h3>Context multiplier</h3>
+                <p class="big-number">x{{ incident.context_multiplier|round(2) }}</p>
+                <div class="context-breakdown">
+                    {% for key, value in incident.context_breakdown.items() %}
+                    <div>{{ key.replace('_', ' ') }} <strong>x{{ value|round(2) }}</strong></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="reasons">
+            <div class="reasons-title">Top reasons</div>
+            <ul class="reasons-list" id="reasons-list">
+                {% for reason in incident.top_reasons %}
+                <li>
+                    <span class="reason-name">{{ reason.feature.replace('_', ' ') }}</span>
+                    <span class="reason-value">{{ reason.contribution|round(2) }}</span>
+                    <span class="reason-meta">w{{ reason.weight|round(1) }} | v{{ reason.value|round(2) }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="feedback">
+            <h3>Analyst feedback</h3>
+            <div class="feedback-controls">
+                <label>Severity override</label>
+                <input type="range" id="severity-override" min="0.5" max="2.0" step="0.1" value="1.0" />
+                <span id="severity-value">1.0</span>
+            </div>
+            <div class="button-row">
+                <button class="button success" onclick="submitFeedback('{{ incident.incident_id }}', 'tp')">Mark True Positive</button>
+                <button class="button warning" onclick="submitFeedback('{{ incident.incident_id }}', 'nmi')">Needs More Info</button>
+                <button class="button danger" onclick="submitFeedback('{{ incident.incident_id }}', 'fp')">Mark False Positive</button>
+            </div>
+            <div class="feedback-result" id="feedback-result"></div>
+        </div>
+    </article>
+
+    <aside class="panel assistant">
+        <div class="panel-header">
+            <h2>Investigation Assistant</h2>
+        </div>
+        <div class="assistant-section">
+            <div class="assistant-label">Last action</div>
+            <div class="assistant-value" id="last-action">{{ last_action or 'None yet' }}</div>
+        </div>
+        <div class="assistant-section">
+            <div class="assistant-label">Recommended next steps</div>
+            <div id="recommendations">
+                {% for rec in recommendations %}
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', '{{ rec.action }}')">
+                    {{ rec.action.replace('_', ' ') }} <span>{{ rec.count }}</span>
+                </button>
+                {% else %}
+                <div class="muted">No recommendations yet. Start with open incident.</div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="assistant-section">
+            <div class="assistant-label">Quick actions</div>
+            <div class="chip-grid">
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'open_incident')">Open incident</button>
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'review_auth_logs')">Review auth logs</button>
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'check_vpn_logs')">Check VPN logs</button>
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'run_endpoint_scan')">Run endpoint scan</button>
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'escalate_tp')">Escalate TP</button>
+                <button class="chip" onclick="logTrace('{{ incident.incident_id }}', 'close_fp')">Close FP</button>
+            </div>
+        </div>
+    </aside>
+</section>
+{% endblock %}
+
+

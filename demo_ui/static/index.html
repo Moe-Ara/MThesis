@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reasoning Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div class="hero-text">
+          <p class="eyebrow">Reasoning Console</p>
+          <h1>Explainable response, end to end</h1>
+          <p class="sub">
+            Scoring, planning, policy, execution, and learning in one live console.
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-row">
+            <span class="label">Trace</span>
+            <span id="traceStatus" class="pill neutral">Waiting</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">Stage</span>
+            <span id="stage" class="pill neutral">--</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">Correlation</span>
+            <span id="correlationId" class="mono">--</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">Models</span>
+            <div class="chips inline">
+              <span id="scorerModel" class="chip">scorer: --</span>
+              <span id="plannerModel" class="chip">planner: --</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="scoreboard">
+        <div class="kpi">
+          <span class="kpi-label">Severity</span>
+          <strong id="severity">--</strong>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Confidence</span>
+          <strong id="confidence">--</strong>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Evidence score</span>
+          <strong id="evidenceScore">--</strong>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Context multiplier</span>
+          <strong id="contextMultiplier">--</strong>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Risk score</span>
+          <strong id="riskScore">--</strong>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Strategy</span>
+          <strong id="strategy">--</strong>
+        </div>
+      </section>
+
+      <section class="pipeline">
+        <div class="step" data-step="Ingest">Ingest</div>
+        <div class="arrow"></div>
+        <div class="step" data-step="Normalize">Normalize</div>
+        <div class="arrow"></div>
+        <div class="step" data-step="Score">Score</div>
+        <div class="arrow"></div>
+        <div class="step" data-step="Plan">Plan</div>
+        <div class="arrow"></div>
+        <div class="step" data-step="Policy">Policy</div>
+        <div class="arrow"></div>
+        <div class="step" data-step="Execute">Execute</div>
+      </section>
+
+      <section class="layout">
+        <div class="column column-left">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Alert context</h2>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <span class="label">Alert</span>
+                <span id="alertSummary" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Entities</span>
+                <span id="entities" class="value mono">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Hypothesis</span>
+                <span id="hypothesis" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Evidence</span>
+                <span id="evidence" class="value">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Plan and policy</h2>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <span class="label">Priority</span>
+                <span id="priority" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Actions</span>
+                <div id="actions" class="chips"></div>
+              </div>
+              <div class="field">
+                <span class="label">Rollback</span>
+                <div id="rollbacks" class="chips"></div>
+              </div>
+              <div class="field">
+                <span class="label">Rationale</span>
+                <span id="rationale" class="value">--</span>
+              </div>
+              <div class="divider"></div>
+              <div class="field">
+                <span class="label">Approved</span>
+                <div id="approved" class="chips"></div>
+              </div>
+              <div class="field">
+                <span class="label">Pending</span>
+                <div id="pending" class="chips"></div>
+              </div>
+              <div class="field">
+                <span class="label">Denied</span>
+                <div id="denied" class="chips"></div>
+              </div>
+              <div class="field">
+                <span class="label">Policy notes</span>
+                <span id="policyNotes" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Policy decisions</span>
+                <div id="policyDecisions" class="execution-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Planner raw output</h2>
+            </div>
+            <div class="panel-body">
+              <pre id="plannerRawJson" class="code-block">--</pre>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Planner reasoning</h2>
+            </div>
+            <div class="panel-body">
+              <pre id="plannerReasoningJson" class="code-block">--</pre>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Execution and audit</h2>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <span class="label">Execution summary</span>
+                <span id="executionSummary" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Action results</span>
+                <div id="executionActions" class="execution-list"></div>
+              </div>
+              <div class="field">
+                <span class="label">Audit log</span>
+                <pre id="auditLog" class="code-block">--</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Raw alert</h2>
+            </div>
+            <div class="panel-body">
+              <pre id="rawAlertJson" class="code-block">--</pre>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Normalized alert</h2>
+            </div>
+            <div class="panel-body">
+              <pre id="normalizedAlertJson" class="code-block">--</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="column column-right">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Explainable score</h2>
+              <span class="pill neutral" id="weightsVersion">weights v--</span>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <span class="label">Top reasons</span>
+                <div id="topReasons" class="reason-list"></div>
+              </div>
+              <div class="field">
+                <span class="label">Context breakdown</span>
+                <div id="contextBreakdown" class="context-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Analyst feedback</h2>
+            </div>
+            <div class="panel-body">
+              <div class="feedback-actions">
+                <button data-verdict="true_positive" class="btn btn-good">True Positive</button>
+                <button data-verdict="false_positive" class="btn btn-bad">False Positive</button>
+                <button data-verdict="needs_more_info" class="btn btn-warn">Needs Info</button>
+              </div>
+              <div class="field">
+                <span class="label">Severity override</span>
+                <div class="range-row">
+                  <input id="severityOverride" type="range" min="0.5" max="2" step="0.1" value="1.0" />
+                  <span id="severityOverrideValue" class="mono">1.0</span>
+                </div>
+              </div>
+              <div class="field">
+                <span class="label">Latest model diff</span>
+                <div id="weightDiff" class="diff-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Investigation assistant</h2>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <span class="label">Last action</span>
+                <span id="lastAction" class="value">--</span>
+              </div>
+              <div class="field">
+                <span class="label">Recommended next steps</span>
+                <div id="recommendations" class="reason-list"></div>
+              </div>
+              <div class="field">
+                <span class="label">Quick actions</span>
+                <div class="quick-actions">
+                  <button class="chip action-chip" data-action="open_incident">open_incident</button>
+                  <button class="chip action-chip" data-action="check_asset_owner">check_asset_owner</button>
+                  <button class="chip action-chip" data-action="review_auth_logs">review_auth_logs</button>
+                  <button class="chip action-chip" data-action="check_vpn_logs">check_vpn_logs</button>
+                  <button class="chip action-chip" data-action="check_endpoint_logs">check_endpoint_logs</button>
+                  <button class="chip action-chip" data-action="collect_forensics">collect_forensics</button>
+                  <button class="chip action-chip" data-action="escalate_tp">escalate_tp</button>
+                  <button class="chip action-chip" data-action="close_fp">close_fp</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span class="mono">DEMO_UI_PORT</span>
+        <span>.</span>
+        <span id="lastUpdated">Awaiting data</span>
+      </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

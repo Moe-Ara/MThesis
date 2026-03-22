@@ -1,0 +1,36 @@
+flowchart LR
+  subgraph Req[Requirements]
+    FR[Functional Requirements]
+    NFR[Non Functional Requirements]
+    SAF[Security and Safety Requirements]
+  end
+
+  subgraph Comp[System Components]
+    SIEM[SIEM Connectors]
+    NORM[Normalization and Enrichment]
+    SCORE[Threat Scoring]
+    PLAN[Decision Planning]
+    POLICY[Policy Engine]
+    EXEC[Execution Pipeline]
+    AUDIT[Audit Logger and Case Manager]
+    UI[Analyst Console and UI]
+  end
+
+  FR --> SIEM
+  FR --> NORM
+  FR --> SCORE
+  FR --> PLAN
+  FR --> EXEC
+  FR --> UI
+
+  NFR --> SCORE
+  NFR --> PLAN
+  NFR --> AUDIT
+  NFR --> UI
+
+  SAF --> POLICY
+  SAF --> EXEC
+  SAF --> AUDIT
+
+  POLICY --> EXEC
+  EXEC --> AUDIT

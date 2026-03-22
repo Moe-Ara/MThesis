@@ -8,11 +8,14 @@ public sealed record HttpPlannerOptions(
     string Endpoint = "/v1/plan",
     string ApiKeyHeaderName = "Authorization",
     string ApiKeyPrefix = "Bearer",
-    int TimeoutSeconds = 30)
+    int TimeoutSeconds = 30,
+    string? ModelProfile = null)
 {
-    public static HttpPlannerOptions FromEnvironment()
+    public static HttpPlannerOptions FromEnvironment(string? baseUrlOverride = null)
     {
-        var baseUrl = Environment.GetEnvironmentVariable("PLANNER_API_BASEURL") ?? string.Empty;
+        var baseUrl = baseUrlOverride
+                      ?? Environment.GetEnvironmentVariable("PLANNER_API_BASEURL")
+                      ?? string.Empty;
         var apiKey = Environment.GetEnvironmentVariable("PLANNER_API_KEY");
         var endpoint = Environment.GetEnvironmentVariable("PLANNER_API_ENDPOINT") ?? "/v1/plan";
         var header = Environment.GetEnvironmentVariable("PLANNER_API_KEY_HEADER") ?? "Authorization";
@@ -22,6 +25,9 @@ public sealed record HttpPlannerOptions(
         if (int.TryParse(timeoutRaw, out var parsed))
             timeout = parsed;
 
-        return new HttpPlannerOptions(baseUrl, apiKey, endpoint, header, prefix, timeout);
+        var modelProfile = Environment.GetEnvironmentVariable("PLANNER_MODEL_PROFILE")
+                           ?? Environment.GetEnvironmentVariable("INTEL_MODEL_PROFILE")
+                           ?? Environment.GetEnvironmentVariable("INTEL_ACTIVE_PROFILE");
+        return new HttpPlannerOptions(baseUrl, apiKey, endpoint, header, prefix, timeout, modelProfile);
     }
 }

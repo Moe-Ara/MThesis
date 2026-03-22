@@ -1,0 +1,604 @@
+{
+  "summary": {
+    "scorer": {
+      "classifier": {
+        "severity_mae": 11.8,
+        "severity_class_acc": 0.6,
+        "confidence_mae": 0.13413118028504686
+      },
+      "foundation_sec": {
+        "severity_mae": 0.0,
+        "severity_class_acc": 1.0,
+        "confidence_mae": 0.0
+      }
+    },
+    "planner": {
+      "seq2seq": {
+        "strategy_acc": null,
+        "action_f1": null
+      },
+      "foundation_sec": {
+        "strategy_acc": 0.75,
+        "action_f1": 0.9166666666666666
+      }
+    },
+    "counts": {
+      "scorer_samples": 5,
+      "planner_samples": 5
+    }
+  },
+  "scorer_results": [
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "severity": 70,
+        "confidence": 0.75,
+        "hypothesis": "This schtasks.exe process may be malicious due to its suspicious parent process, indicating possible lateral movement or persistence techniques.",
+        "evidence": [
+          "schtasks.exe running from an unexpected directory",
+          "Process tree: schtasks.exe -> unknown parent process",
+          "MITRE technique T1014 Rootkit"
+        ]
+      },
+      "classifier": {
+        "severity": 71,
+        "confidence": 0.5212933795098956,
+        "hypothesis": "Suspicious process activity detected on a host. High likelihood of malicious intent.",
+        "evidence": [
+          "host_id=host-712",
+          "process=schtasks.exe",
+          "technique=T1014"
+        ]
+      },
+      "foundation_sec": {
+        "severity": 70,
+        "confidence": 0.75,
+        "hypothesis": "The schtasks.exe process on host-712 may be running a malicious rootkit to conceal its presence and activities from detection tools.",
+        "evidence": [
+          "schtasks.exe executed by PID 54633",
+          "MITRE T1014 Rootkit technique detected",
+          "Unusual or unexplained network connections"
+        ]
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "severity": 60,
+        "confidence": 0.55,
+        "hypothesis": "The source IP address 10.244.145.252 is scanning for FTP services on multiple hosts, which could be indicative of reconnaissance or port scanning activity.",
+        "evidence": [
+          "Port scan from suspicious IP 10.244.145.252",
+          "Targeting FTP service (port 21)",
+          "Multiple connections to different hosts"
+        ]
+      },
+      "classifier": {
+        "severity": 33,
+        "confidence": 0.4231093999201344,
+        "hypothesis": "Potential reconnaissance activity via port scanning. Impact appears limited.",
+        "evidence": [
+          "src_ip=10.244.145.252"
+        ]
+      },
+      "foundation_sec": {
+        "severity": 60,
+        "confidence": 0.55,
+        "hypothesis": "The source IP address 10.244.145.252 is scanning the destination port 21 on 192.168.172.25, which could be a slow HTTP test or reconnaissance activity.",
+        "evidence": [
+          "Port scan from unusual IP to common FTP service",
+          "Short flow duration of only two seconds",
+          "High packet rate in both forward and backward directions"
+        ]
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "severity": 79,
+        "confidence": 0.7,
+        "hypothesis": "An unauthorized registry modification occurred on WORKSTATION5.theshire.local for svchost.exe, which may be a lateral movement attempt or persistence technique by an attacker.",
+        "evidence": [
+          "Registry event type 12 indicates creation/deletion of registry keys",
+          "Process name 'svchost.exe' involved in suspicious activity",
+          "Host workstation5 identified as source"
+        ]
+      },
+      "classifier": {
+        "severity": 71,
+        "confidence": 0.6039908685784419,
+        "hypothesis": "Suspicious process activity detected on a host. High likelihood of malicious intent.",
+        "evidence": [
+          "host=WORKSTATION5.theshire.local",
+          "host_id=workstation5",
+          "process=svchost.exe"
+        ]
+      },
+      "foundation_sec": {
+        "error": "invalid scorer response"
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "severity": 50,
+        "confidence": 0.6,
+        "hypothesis": "Unusual process access on host 'pedro-computer' may indicate privilege escalation or lateral movement by an attacker.",
+        "evidence": [
+          "Process accessed by unusual source process (1172) and thread (1204)",
+          "Suspicious Sysmon Event ID 10",
+          "SourceImage: C:\\Windows\\System (system folder, but not a typical system image path for normal processes)"
+        ]
+      },
+      "classifier": {
+        "severity": 71,
+        "confidence": 0.45270458556127435,
+        "hypothesis": "Suspicious process activity detected on a host. High likelihood of malicious intent.",
+        "evidence": [
+          "host=pedro-computer",
+          "host_id=pedro-computer",
+          "event_id=10"
+        ]
+      },
+      "foundation_sec": {
+        "severity": 50,
+        "confidence": 0.6,
+        "hypothesis": "The process accessed by the suspicious user account may be running malicious code or performing unauthorized actions on the system.",
+        "evidence": [
+          "Process accessed by unusual user account",
+          "Unusual source image path (C:\\Windows\\System)",
+          "No clear indication of legitimate business purpose"
+        ]
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "severity": 50,
+        "confidence": 0.6,
+        "hypothesis": "The workstation5 host is running a suspicious process that may be malicious or lateral movement tool, based on Sysmon logon event EID10.",
+        "evidence": [
+          "Process accessed by unusual user account or privilege level",
+          "Unusual source image path",
+          "Possible lateral movement attempt"
+        ]
+      },
+      "classifier": {
+        "severity": 52,
+        "confidence": 0.6717541349949806,
+        "hypothesis": "Suspicious process activity detected on a host.",
+        "evidence": [
+          "host=WORKSTATION5",
+          "host_id=workstation5",
+          "event_id=10"
+        ]
+      },
+      "foundation_sec": {
+        "severity": 50,
+        "confidence": 0.6,
+        "hypothesis": "An unusual process access occurred on WORKSTATION5, which may indicate privilege escalation or lateral movement by an attacker.",
+        "evidence": [
+          "Sysmon event ID 10 recorded a new process access on workstation5",
+          "Process GUID {39e4a257-f1a8-5f8b-8d00-000000000700} is not native to the system",
+          "Unusual timing of this event at 12:28 PM"
+        ]
+      }
+    }
+  ],
+  "planner_results": [
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnHost-2023.03.15",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "A suspicious schtasks.exe process was detected on a host, indicating possible lateral movement or persistence techniques.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": "true",
+            "parameters": {
+              "host_id": "host-712"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe collection of additional data."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Collecting forensics will provide valuable information to aid in the investigation and remediation of this incident."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Documenting the incident for future reference and auditing purposes."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The schtasks.exe process is running from an unexpected directory, indicating possible malicious activity.",
+          "The parent process of schtasks.exe is unknown, which may indicate lateral movement or persistence techniques.",
+          "MITRE technique T1014 Rootkit has been identified."
+        ],
+        "tags": {
+          "risk": "high",
+          "category": "Process Anomaly"
+        }
+      },
+      "seq2seq": {
+        "error": "Seq2Seq planner returned invalid JSON."
+      },
+      "foundation_sec": {
+        "planId": "Suspicious Process on Host",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "An unusual schtasks.exe process was detected on a host with no clear parent process.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-712"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs to confirm the presence of rootkit or other malicious artifacts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident for further investigation and triage by a human analyst."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process is running from an unexpected directory, indicating possible persistence or lateral movement.",
+          "Further analysis of the host's logs may reveal additional malicious activity."
+        ],
+        "tags": {
+          "riskCategory": "High",
+          "technique": "T1014"
+        }
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "LowConfidencePortScanAlert",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Potential Port Scan from Low Confidence IP Address",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "rationale": "Document alert for further investigation"
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "rationale": "Alert SOC analysts of potential port scan activity"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Low confidence assessment prevents destructive actions.",
+          "Further investigation is needed before taking action against the source IP."
+        ],
+        "tags": {
+          "category": "Port Scan",
+          "confidence": "low"
+        }
+      },
+      "seq2seq": {
+        "error": "Seq2Seq planner returned invalid JSON."
+      },
+      "foundation_sec": {
+        "error": "HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=180)"
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "Suspicious-RegistryModification",
+        "strategy": "Contain",
+        "priority": 90,
+        "summary": "An unauthorized registry modification occurred on WORKSTATION5.theshire.local for svchost.exe, which may be a lateral movement attempt or persistence technique by an attacker.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 50,
+            "reversible": "true",
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the workstation will prevent further lateral movement attempts while we investigate this suspicious registry modification.",
+            "tags": {}
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 50,
+            "expectedImpact": 30,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "We need to gather more information about the registry modification and svchost.exe process.",
+            "tags": {}
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference.",
+            "tags": {}
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This registry modification could be a persistence technique or lateral movement attempt by an attacker.",
+          "Further investigation is needed to determine the exact nature of the event."
+        ],
+        "tags": {
+          "riskCategory": "Compromise"
+        }
+      },
+      "seq2seq": {
+        "error": "Seq2Seq planner returned invalid JSON."
+      },
+      "foundation_sec": {
+        "planId": "Mordor_EID12_Registryevent_20230215",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "An unauthorized registry modification occurred on WORKSTATION5.theshire.local for svchost.exe, which may be a lateral movement attempt or persistence technique by an attacker.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for a deeper investigation."
+          },
+          {
+            "type": "QuarantineFile",
+            "risk": 70,
+            "expectedImpact": 15,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5",
+              "file_hash": "<hash>"
+            },
+            "rationale": "Collecting the registry key involved in this event will provide valuable forensic data for further analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting the incident in our ticketing system ensures proper tracking and escalation if necessary."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The registry event type 12 indicates creation/deletion of registry keys, which is a common technique used by attackers for lateral movement or persistence.",
+          "Process name 'svchost.exe' involved in suspicious activity suggests potential malicious intent.",
+          "Host workstation5 identified as source supports the hypothesis that an attacker has compromised this system."
+        ],
+        "tags": {
+          "riskCategory": "Compromise",
+          "threatActor": "Unknown"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "pedro-computer-incident",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "Unusual process access on host 'pedro-computer' may indicate privilege escalation or lateral movement.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 40,
+            "reversible": "true",
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Isolating the host will prevent further lateral movement or data exfiltration.",
+            "tags": {}
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Gather more information about the suspicious process to aid in further analysis.",
+            "tags": {}
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Document the incident for future reference.",
+            "tags": {}
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process accessed was not a typical system image, and its source process and thread were unusual."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "error": "Seq2Seq planner returned invalid JSON."
+      },
+      "foundation_sec": {
+        "planId": "pedro-computer-incident",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "Unusual process access on host 'pedro-computer' may indicate privilege escalation or lateral movement.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper investigation."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather Sysmon logs to understand the full scope of suspicious activity on 'pedro-computer'."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference and tracking."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon event indicates an unusual process access on 'pedro-computer', which may be a sign of privilege escalation or lateral movement.",
+          "Further investigation is required to determine the full scope of malicious activity."
+        ],
+        "tags": {
+          "riskCategory": "Compromise",
+          "threatActor": "",
+          "attackVector": ""
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnHost-2023-02-15-14:30:00",
+        "strategy": "Contain",
+        "priority": 70,
+        "summary": "Contain workstation5 to prevent further lateral movement or data exfiltration while a more in-depth analysis is performed.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 20,
+            "reversible": "true",
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the workstation5 host will prevent any further malicious activity, but still allow for continued analysis and potential remediation.",
+            "tags": {}
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Create a ticket to track the incident, including relevant details from this alert.",
+            "tags": {}
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": "false",
+            "parameters": {},
+            "rationale": "Gather additional logs or artifacts to further understand the malicious process.",
+            "tags": {}
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The workstation5 host is running a suspicious process that may be malicious or used for lateral movement based on Sysmon logon event EID10."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "error": "Seq2Seq planner returned invalid JSON."
+      },
+      "foundation_sec": {
+        "planId": "SuspiciousProcessOnHost-20230220",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "A suspicious process was detected on workstation5, which may be malicious or used for lateral movement.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 50,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather Sysmon logs to understand the context of this process access event."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident in our ticketing system for further investigation and tracking."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon EID10 event indicates a suspicious process access on workstation5.",
+          "Further analysis is required to determine if this was an actual attack or false positive."
+        ],
+        "tags": {
+          "riskCategory": "High",
+          "incidentType": "Compromise"
+        }
+      }
+    }
+  ]
+}

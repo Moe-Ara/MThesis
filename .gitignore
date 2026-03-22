@@ -143,3 +143,48 @@ NetCore/Core.Tests/obj/Debug/net9.0/ref/Core.Tests.dll
 NetCore/Core.Tests/obj/Debug/net9.0/refint/Core.Tests.dll
 
 NetCore/Core/bin/Debug/
+
+# General local/runtime artifacts
+.env
+NUL
+.claude/
+*.tmp
+*.bak
+*.swp
+logs/
+models/
+datasets/
+__pycache__/
+*.pyc
+
+# .NET build artifacts
+**/bin/
+**/obj/
+
+# LaTeX build artifacts
+ThesisDraft/*.aux
+ThesisDraft/*.bbl
+ThesisDraft/*.blg
+ThesisDraft/*.fdb_latexmk
+ThesisDraft/*.fls
+ThesisDraft/*.lof
+ThesisDraft/*.lot
+ThesisDraft/*.out
+ThesisDraft/*.toc
+ThesisDraft/*.loa
+ThesisDraft/*.log
+ThesisDraft/*.synctex.gz
+ThesisDraft/main_*_check*.*
+ThesisDraft/main_trim_*.*
+
+# Local data/runtime traces
+data/audit.jsonl
+data/cases.db
+data/demo_trace.json
+data/demo_trace.jsonl
+data/external/
+data/reasoning/
+NetCore/Core/data/
+
+# Local backups
+ThesisDraft_backup_*/

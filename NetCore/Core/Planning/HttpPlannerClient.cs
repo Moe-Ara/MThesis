@@ -31,6 +31,7 @@ public sealed class HttpPlannerClient
         var url = CombineUrl(_options.BaseUrl, _options.Endpoint);
         var payload = new
         {
+            modelProfile = _options.ModelProfile,
             alert = new
             {
                 sourceSiem = alert.Base.SourceSiem,
@@ -124,7 +125,9 @@ public sealed class HttpPlannerClient
         var actions = ParseActions(root, "actions");
         var rollback = ParseActions(root, "rollbackActions");
         var rationale = ParseStringList(root, "rationale");
-        var tags = ParseStringMap(root, "tags");
+        var tags = ParseStringMap(root, "tags") ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        MaybeAttachRaw(tags, json);
+        MaybeAttachReasoning(tags, root);
 
         if (actions.Count == 0)
             return null;
@@ -183,7 +186,7 @@ public sealed class HttpPlannerClient
         return list;
     }
 
-    private static IReadOnlyDictionary<string, string>? ParseStringMap(JsonElement root, string property)
+    private static Dictionary<string, string>? ParseStringMap(JsonElement root, string property)
     {
         if (!root.TryGetProperty(property, out var obj) || obj.ValueKind != JsonValueKind.Object)
             return null;
@@ -192,6 +195,34 @@ public sealed class HttpPlannerClient
         foreach (var prop in obj.EnumerateObject())
             map[prop.Name] = prop.Value.ValueKind == JsonValueKind.String ? prop.Value.GetString() ?? string.Empty : prop.Value.ToString();
         return map;
+    }
+
+    private static void MaybeAttachRaw(Dictionary<string, string> tags, string json)
+    {
+        if (tags is null || string.IsNullOrWhiteSpace(json))
+            return;
+
+        const int maxLen = 4000;
+        var raw = json.Length <= maxLen ? json : json[..maxLen] + " ...[truncated]";
+
+        if (!tags.ContainsKey("planner_raw"))
+            tags["planner_raw"] = raw;
+        if (json.Length > maxLen && !tags.ContainsKey("planner_raw_truncated"))
+            tags["planner_raw_truncated"] = "true";
+    }
+
+    private static void MaybeAttachReasoning(Dictionary<string, string> tags, JsonElement root)
+    {
+        if (tags is null)
+            return;
+        if (!root.TryGetProperty("reasoning", out var reasoning))
+            return;
+        if (reasoning.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
+        {
+            var raw = reasoning.GetRawText();
+            if (!string.IsNullOrWhiteSpace(raw) && !tags.ContainsKey("planner_reasoning"))
+                tags["planner_reasoning"] = raw;
+        }
     }
 
     private static string? GetString(JsonElement root, string property)

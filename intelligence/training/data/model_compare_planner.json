@@ -1,0 +1,3339 @@
+{
+  "summary": {
+    "scorer": null,
+    "planner": {
+      "seq2seq": {
+        "strategy_acc": 0.5666666666666667,
+        "action_f1": 0.6777777777777777
+      },
+      "foundation_sec": {
+        "strategy_acc": 0.8,
+        "action_f1": 0.8352380952380953
+      }
+    },
+    "counts": {
+      "scorer_samples": 0,
+      "planner_samples": 30
+    }
+  },
+  "scorer_results": [],
+  "planner_results": [
+    {
+      "alert_type": "BenignNoise",
+      "target": {
+        "planId": "benign-noise-1",
+        "strategy": "ObserveMore",
+        "priority": 10,
+        "summary": "Low confidence benign noise alert with short flow duration and low packet count.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Documenting the alert for future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Informing on-site staff of benign activity."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert is classified as low confidence due to the short flow duration and low packet count.",
+          "No malicious indicators were found in the traffic data.",
+          "Label indicates 'Benign' traffic, supporting the noise hypothesis."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "c7dc5a45fc724a68bac6db94de8027f2",
+        "strategy": "ObserveMore",
+        "priority": 2,
+        "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.10",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy ObserveMore based on confidence 0.10 and severity 0.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:14:53.484369+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "benign-traffic-noise",
+        "strategy": "ObserveMore",
+        "priority": 0,
+        "summary": "The alert is likely benign noise due to low packet count and short flow duration.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "No further action required for this benign traffic."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert has been assessed as noise and will not be escalated to the SOC team."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert is likely benign due to low packet count and short flow duration."
+        ],
+        "tags": {
+          "category": "Benign Noise",
+          "subcategory": "Low Packet Count"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "GUIInputCaptureSuspicion",
+        "strategy": "ContainAndCollect",
+        "priority": 70,
+        "summary": "Unusual GUI prompt on host-762 may be part of a credential harvesting attempt.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-762"
+            },
+            "rationale": "Isolating the host will prevent further credential exfiltration attempts, but may impact legitimate user sessions."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 10,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-762"
+            },
+            "rationale": "Collecting process and network logs will help identify the origin of the suspicious GUI prompt."
+          },
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 1,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alerting the SOC team will ensure timely review and follow-up."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 1,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting the incident for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process 'regsvr32.exe' is not a typical system component, and the presence of this GUI prompt on host-762 may indicate an attacker attempting to harvest credentials.",
+          "This behavior aligns with MITRE technique T1056.002 (GUI Input Capture).",
+          "Further investigation is required to determine the origin and intent behind the suspicious prompt."
+        ],
+        "tags": {
+          "riskReasons": [
+            {
+              "type": "Unusual GUI prompt",
+              "confidence": 0.65
+            }
+          ]
+        }
+      },
+      "seq2seq": {
+        "planId": "64a9eb1e1a4c45f9891b66217318381c",
+        "strategy": "Contain",
+        "priority": 63,
+        "summary": "Strategy=Contain, Severity=50, Confidence=0.65",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-762"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-762"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.65 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:15:24.244032+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "SuspiciousScriptPrompt",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "A suspicious process 'regsvr32.exe' was detected on host-762, which may be part of a malicious script attempting to prompt the user for credentials.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-762"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity while we investigate."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 60,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "We need to gather more information about this process and its parent processes before deciding on a course of action."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "The SOC should be notified so they can assist in further investigation and response efforts."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This process is likely part of a malicious script attempting to prompt the user for credentials. Isolating the host will prevent further activity while we gather more information."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "Suspicious FTP Port Scan Attempt",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "The source IP address 10.227.65.239 is scanning for FTP services on the destination IP address 192.168.235.232.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "10.227.65.239"
+            },
+            "rationale": "Blocking the source IP address will prevent further malicious traffic from reaching our network."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident for future reference and possible follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The source IP address is scanning multiple hosts, indicating a potential reconnaissance or port scan attempt.",
+          "Further investigation is required to determine the intent behind these scans."
+        ],
+        "tags": {
+          "riskCategory": "High",
+          "riskLevel": "Moderate"
+        }
+      },
+      "seq2seq": {
+        "planId": "f149757413cb45dbb7136e112f03e101",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "PS-2023-01-15-001",
+        "strategy": "Contain",
+        "priority": 0,
+        "summary": "Anomalous FTP scanning activity detected from a suspicious IP address.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "10.227.65.239"
+            },
+            "rationale": "Blocking the source IP address will prevent further malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a ticket for incident management and tracking purposes."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious IP address is scanning multiple FTP services on the destination host, which could be indicative of reconnaissance or port scan attempts."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "LowConfidenceReconCheck",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Review slow HTTP test scan for malicious intent.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the alert to ensure proper review later."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Send an email notification for triage review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is low, and more context is needed to confirm malicious intent.",
+          "Block or isolate the IP address could be overly aggressive at this stage."
+        ],
+        "tags": {
+          "category": "triage",
+          "confidence": "low"
+        }
+      },
+      "seq2seq": {
+        "planId": "4de27779b24e49a28766d57285cae15e",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "slow-http-scan-response",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "Potential reconnaissance or DDoS attempt via slow HTTP test scan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Further investigation is needed to confirm malicious intent."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Provide notification for additional context and review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The slow HTTP test scan is unusual but does not necessarily indicate malicious intent. Further investigation is needed to confirm the attacker's intentions."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "LowConfidencePortScan",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Low confidence port scan from unusual source IP.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the low-confidence alert for potential future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "srcIp": "10.218.100.155"
+            },
+            "rationale": "Inform relevant parties of the low-confidence port scan event."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is too low to take destructive actions, but still worth documenting and notifying relevant teams."
+        ],
+        "tags": {
+          "confidenceLevel": "low",
+          "sourceSiem": "cic-ids"
+        }
+      },
+      "seq2seq": {
+        "planId": "f5810e690be74e0b8ab020bb479db21c",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "LowConfidenceScan",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "A single port scan from an unusual IP was observed, but confidence is low due to lack of additional context.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the alert for further investigation"
+          },
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 1,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert onboarding team to review and confirm normal maintenance activity"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The low confidence level does not justify immediate action. Further investigation is required before taking any remediation steps."
+        ],
+        "tags": {
+          "category": "Network Scan",
+          "subcategory": "Port Scan"
+        }
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "SlowHTTPScanAlert-20230220-1400",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "Anomalous port scan from IP address 10.211.253.163 to FTP service on 192.168.100.219.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "10.211.253.163"
+            },
+            "rationale": "Blocking the source IP address will prevent further suspicious traffic from reaching our network."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in the ticketing system for future reference and auditing purposes."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert relevant stakeholders about the suspicious traffic detected."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The source IP address is scanning a port on an internal FTP service, which is unusual and may indicate reconnaissance or DoS attack activity.",
+          "High confidence in this assessment due to short flow duration and high packets per second"
+        ],
+        "tags": {
+          "category": "Network Scan",
+          "subcategory": "Port Scan",
+          "riskLevel": "Medium-High"
+        }
+      },
+      "seq2seq": {
+        "planId": "edc2c4185ea24884a2a683861b514fea",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "PS-2023-01-15-001",
+        "strategy": "Contain",
+        "priority": 0,
+        "summary": "Anomalous port scan activity detected from a suspicious source IP address.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "10.211.253.163"
+            },
+            "rationale": "Blocking the source IP address will prevent further malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference and tracking."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The source IP address is scanning a port on the destination host, which may be an indication of reconnaissance or DoS attack activity."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "python-execution-on-host-233",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Bitsadmin.exe execution on host-233 indicates potential Python script execution by an adversary.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-233"
+            },
+            "rationale": "Isolating the compromised system will prevent further lateral movement and allow for deeper investigation."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting forensics data will provide valuable insights into the adversary's TTPs and tools used to compromise this system."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting the incident in our ticketing system ensures proper tracking and follow-up actions can be taken."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The presence of bitsadmin.exe execution on host-233 is a strong indicator that an adversary has executed Python scripts to further compromise this system.",
+          "This action will contain the compromised system, preventing further lateral movement and allowing for deeper investigation."
+        ],
+        "tags": {
+          "riskCategory": "High",
+          "techniqueName": "T1059.006"
+        }
+      },
+      "seq2seq": {
+        "planId": "a59b89f6c143472598d5c42b0eea5956",
+        "strategy": "Contain",
+        "priority": 85,
+        "summary": "Strategy=Contain, Severity=70, Confidence=0.75",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-233"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-233"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.75 and severity 70.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:17:21.789158+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "PS-2023-02-15-01",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual Python script execution on host-233 via bitsadmin.exe.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-233"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe forensics collection."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 50,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts from the isolated host to confirm malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The presence of bitsadmin.exe on host-233 is a strong indicator that an adversary may have executed malicious Python scripts."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "BenignNoise",
+      "target": {
+        "planId": "benign-noise-1",
+        "strategy": "ObserveMore",
+        "priority": 10,
+        "summary": "Low confidence benign noise alert with short flow duration and low packet count.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Documenting the alert for future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Informing on-site staff of benign activity."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert is classified as low confidence due to the short flow duration and low packet count.",
+          "No malicious indicators were found in the traffic data.",
+          "Label indicates 'Benign' traffic, supporting the noise hypothesis."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "8c45023bbe94412ba3a7a4299558b022",
+        "strategy": "ObserveMore",
+        "priority": 2,
+        "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.10",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy ObserveMore based on confidence 0.10 and severity 0.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:18:11.751621+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "benign-traffic-noise",
+        "strategy": "ObserveMore",
+        "priority": 0,
+        "summary": "Low-confidence benign noise alert with minimal evidence.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "No further action required for this low-confidence alert."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert will be monitored and reviewed in case of future anomalies."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This alert is likely benign noise due to the low packet count and short flow duration."
+        ],
+        "tags": {
+          "confidenceLevel": "low",
+          "alertType": "benign"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnPedroComputer",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "A suspicious process accessed an unusual location on pedro-computer.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Pedro's computer is acting suspiciously, so we should isolate it to prevent further malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 10,
+            "expectedImpact": 5,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the suspicious process for further investigation."
+          },
+          {
+            "type": "Notify",
+            "risk": 10,
+            "expectedImpact": 5,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert the SOC team to investigate further."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process accessed an unusual location, and the SourceProcessGUID is unknown."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "c8c55b81a5e044048bc7be47bbc5f8f4",
+        "strategy": "Contain",
+        "priority": 88,
+        "summary": "Strategy=Contain, Severity=75, Confidence=0.65",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.65 and severity 75.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:18:48.663240+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "SuspiciousProcessAccess",
+        "strategy": "ContainAndCollect",
+        "priority": 0,
+        "summary": "An unusual process accessed an unexpected directory on pedro-computer.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro-computer"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts to confirm the legitimacy of this process access event."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process accessed an unusual directory on pedro-computer, which could be a sign of malicious activity."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnPedro01",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual process access on host Pedro01 by an unknown process, possibly indicating privilege escalation or lateral movement attempts.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper forensics."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 30,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting host logs will provide additional context to help identify the malicious process and its intentions."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting this incident in our ticketing system to ensure proper tracking and follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process accessed on Pedro01 is unknown, indicating a potential privilege escalation or lateral movement attempt.",
+          "Further analysis of host logs will help identify the malicious process and its intentions."
+        ],
+        "tags": {
+          "risk": "High",
+          "category": "Host-Based"
+        }
+      },
+      "seq2seq": {
+        "planId": "5e5ec72999054c22933d8abd62cb8e6c",
+        "strategy": "Contain",
+        "priority": 85,
+        "summary": "Strategy=Contain, Severity=70, Confidence=0.75",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro01"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "pedro01"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.75 and severity 70.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:19:28.725581+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "SuspiciousProcessAccess",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual process access on host Pedro01 by an unknown process.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "pedro01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 60,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and process information to confirm the legitimacy of this event."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The unknown process accessing Pedro01 is likely malicious, requiring immediate isolation."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "lowConfidenceScan",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Low-confidence port scan from IP 10.57.159.138, unclear context.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the alert for future review"
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert SOC team to review and re-assess if confidence increases"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Port scan from unusual IP attempting FTP connection",
+          "Short duration of flow (2 seconds)",
+          "Low confidence due to lack of other malicious indicators"
+        ],
+        "tags": {
+          "confidence": "low",
+          "category": "scan"
+        }
+      },
+      "seq2seq": {
+        "planId": "9fac327995744c4f8f4d193dabee40d3",
+        "strategy": "NotifyOnly",
+        "priority": 39,
+        "summary": "Strategy=NotifyOnly, Severity=30, Confidence=0.45",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Notify analysts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy NotifyOnly based on confidence 0.45 and severity 30.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:20:07.467896+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "LOW-CONFIDENCE-PORTSCAN",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "Port scan from unusual IP attempting FTP connection, but context is unclear.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 50,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Gather more information about the source IP and its recent activity."
+          },
+          {
+            "type": "Notify",
+            "risk": 30,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert SOC team to review for potential false positive or benign scan"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is low due to lack of other malicious indicators and the short duration of the flow."
+        ],
+        "tags": {
+          "category": "Port Scan",
+          "subcategory": "FTP Port 21"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnHost-2023-02-16-14:30:00",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual process access on WORKSTATION5 may indicate privilege escalation or lateral movement attempts by an attacker.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further lateral movement or data exfiltration while we investigate this incident."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "We need to gather more information about the source process and its parent processes to better understand the attack chain."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference and triage."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon event ID 10 recorded a process access event for an unknown source process GUID, which could be indicative of privilege escalation or lateral movement.",
+          "The process is running from the C:\\windows\\system directory, which may indicate malicious activity.",
+          "SourceProcessId: 2072"
+        ],
+        "tags": {
+          "incident-type": "Compromise",
+          "threat-intelligence": "Unknown"
+        }
+      },
+      "seq2seq": {
+        "planId": "e4b9dc03cf8e4ea5a393ae3cec7b06ae",
+        "strategy": "Contain",
+        "priority": 62,
+        "summary": "Strategy=Contain, Severity=50, Confidence=0.60",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.60 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:20:44.087538+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "EID10-2023-02-15",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual process access on WORKSTATION5 may indicate privilege escalation or lateral movement attempts.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe collection of forensics."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 50,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts from the workstation to aid in further analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident for future reference and potential follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process access event is consistent with an attacker attempting to escalate privileges or move laterally."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousCmdExecution",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Contains 'cmd.exe' execution on host-820 to prevent further malicious activity.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 50,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-820"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for collection of additional evidence."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting this incident in our ticketing system ensures proper tracking and auditing of our response."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting additional forensics data will aid in understanding the full scope of this incident."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The presence of suspicious process execution on host-820 indicates potential adversary activity.",
+          "Isolating the compromised host is necessary to prevent further malicious communication and allow for a thorough investigation."
+        ],
+        "tags": {
+          "risk-score": 80,
+          "incident-type": "Host Compromise"
+        }
+      },
+      "seq2seq": {
+        "planId": "7b74a4f88267492bb36c038c8a564606",
+        "strategy": "ContainAndCollect",
+        "priority": 100,
+        "summary": "Strategy=ContainAndCollect, Severity=90, Confidence=0.85",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-820"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 35,
+            "expectedImpact": 20,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collect forensic artifacts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-820"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy ContainAndCollect based on confidence 0.85 and severity 90.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:21:10.421245+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "SuspiciousProcessOnHost-2023.02.15",
+        "strategy": "Contain",
+        "priority": 90,
+        "summary": "A suspicious process was detected on a host, indicating potential command-and-control communication.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-820"
+            },
+            "rationale": "Isolating the host prevents further malicious activity and allows for a more thorough investigation."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create an incident ticket to track this alert and any follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process execution is consistent with MITRE T1102 Command and Control technique, indicating potential adversary activity."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "markotb-incident",
+        "strategy": "ContainAndCollect",
+        "priority": 70,
+        "summary": "Possible Mark-of-the-Web bypass on 'host-942' via schtasks.exe process.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 40,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-942"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-942"
+            },
+            "rationale": "Gather logs and memory dumps to confirm the presence of Mark-of-the-Web bypass."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident for further review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The host and process have been isolated to prevent further malicious activity. Forensic collection is in progress.",
+          "Mark-of-the-Web bypass has a high confidence rating of 0.6, indicating it may be present."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "af70dd4c010843aab1378d49d35a4aea",
+        "strategy": "Contain",
+        "priority": 62,
+        "summary": "Strategy=Contain, Severity=50, Confidence=0.60",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-942"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-942"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.60 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:21:32.410123+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "MOTW-Bypass-Evasion",
+        "strategy": "ContainAndCollect",
+        "priority": 70,
+        "summary": "The process 'schtasks.exe' on host 'host-942' may be performing Mark-of-the-Web bypass to subvert security controls.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-942"
+            },
+            "rationale": "Isolating the compromised host prevents further lateral movement and allows for safe forensics collection."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 40,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts from the compromised host to support further analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this alert in our ticketing system for future reference and triage by the incident response team."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The process 'schtasks.exe' on host 'host-942' may be performing Mark-of-the-Web bypass to subvert security controls. Isolating the compromised host prevents further lateral movement and allows for safe forensics collection."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "LowConfidenceScan",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Low-confidence alert indicating a slow HTTP test scan from an IP address.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 20,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "This alert requires further investigation before any action can be taken."
+          },
+          {
+            "type": "Notify",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Provide incident response team with a notification of the low-confidence scan."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence level is too low to take any destructive actions.",
+          "Additional context and evidence are required before making any decisions."
+        ],
+        "tags": {
+          "confidenceLevel": "Low",
+          "alertType": "PortScanFromIp"
+        }
+      },
+      "seq2seq": {
+        "planId": "2d6f6e70da2a49829c93b560e5539d78",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "slow-http-test-scan-response",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "Potential slow HTTP test scan from IP address 10.120.36.176.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Further investigation is required to confirm the nature of this activity."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert SOC team for additional review and follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The evidence is not conclusive enough to take more aggressive action at this time."
+        ],
+        "tags": {
+          "category": "Network Scan",
+          "subcategory": "PortScanFromIp"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "privilege-escalation-abuse",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "Potential privilege escalation attempt via Winlogon abuse on 'host-796' by 'msiexec.exe' process.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-796"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts to confirm the presence of malicious code in 'msiexec.exe'."
+          },
+          {
+            "type": "Notify",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert security team for further investigation and containment actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Winlogon abuse is a common technique used by adversaries to escalate privileges, so this activity warrants immediate isolation of the host.",
+          "Further analysis will be required to confirm if 'msiexec.exe' has been compromised and any additional steps needed for remediation."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "b4dd1b2800cf4c64820a185df61d13b3",
+        "strategy": "Contain",
+        "priority": 95,
+        "summary": "Strategy=Contain, Severity=80, Confidence=0.75",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-796"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-796"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.75 and severity 80.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:22:22.309637+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "PRIVILEGE-ESCALATION-WINLOGON",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "Potential privilege escalation via Winlogon abuse on 'host-796' using msiexec.exe.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-796"
+            },
+            "rationale": "Isolating the compromised host prevents further lateral movement and allows for deeper forensics collection."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts to confirm the presence of malicious code execution via Winlogon abuse."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for further tracking and auditing purposes."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The presence of msiexec.exe on a host indicates potential privilege escalation via Winlogon abuse. Isolating the compromised host prevents further lateral movement, while collecting forensics ensures we have sufficient evidence to confirm malicious activity."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "LowConfidenceHostAccess",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Low-confidence alert indicating process access on 'pedro-computer' with unusual source process GUID.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the incident for future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert team notified of low-confidence event."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This alert is below the confidence threshold for destructive actions. Further investigation is required to confirm malicious intent."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "73bca2c4a01647a3bd69937ffe7606b2",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "LOW-CONFIDENCE-1",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "Collect additional logs to confirm malicious intent before escalating.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Gather more context from the SOC team before deciding on a response."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Keep SOC teams informed of low-confidence alerts for potential follow-up"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Insufficient evidence exists to confirm malicious intent."
+        ],
+        "tags": {
+          "confidenceLevel": "Low",
+          "riskAssessment": "Medium-Low"
+        }
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "SlowHTTP-Scan-20230215",
+        "strategy": "Contain",
+        "priority": 60,
+        "summary": "Potential slow HTTP test scan from IP address 10.116.136.5 to port 21.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 40,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "10.116.136.5"
+            },
+            "rationale": "Blocking the source IP address will prevent further scans from this host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The slow HTTP test scan is not highly suspicious, but it still warrants further investigation.",
+          "No clear TTPs or malicious artifacts were found in the alert data."
+        ],
+        "tags": {
+          "riskCategory": "Suspicious Activity",
+          "incidentType": "PortscanFromIp"
+        }
+      },
+      "seq2seq": {
+        "planId": "9aff500218244afc8257943610b321ff",
+        "strategy": "NotifyOnly",
+        "priority": 52,
+        "summary": "Strategy=NotifyOnly, Severity=40, Confidence=0.60",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Notify analysts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy NotifyOnly based on confidence 0.60 and severity 40.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:23:30.977436+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "slow-http-scan-response",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Potential slow HTTP test scan from IP address 10.116.136.5.",
+        "actions": [
+          {
+            "type": "CollectForensics",
+            "risk": 30,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Gather additional logs and network traffic to confirm the nature of this scan."
+          },
+          {
+            "type": "Notify",
+            "risk": 10,
+            "expectedImpact": 1,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert SOC team for further review and triage."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is moderate due to lack of clear TTPs or malicious artifacts."
+        ],
+        "tags": {
+          "category": "Network Scan",
+          "subcategory": "PortscanFromIp"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousRegistryModification",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "A suspicious registry modification attempt was observed on workstation5, with a new key creation by process HxTsr.exe.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 50,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the workstation will prevent further malicious activity and allow for deeper analysis."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting host logs and network traffic will provide additional context to confirm the malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference and tracking."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process HxTsr.exe is attempting to create a new registry key, which may be indicative of malicious activity.",
+          "Further analysis is required to confirm the legitimacy of this action."
+        ],
+        "tags": {
+          "riskCategory": "Malicious Activity",
+          "threatActor": "",
+          "affectedHosts": "workstation5"
+        }
+      },
+      "seq2seq": {
+        "planId": "11172a896a9c4feab81164ff879de042",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "PS-2023-03-15.01",
+        "strategy": "ContainAndCollect",
+        "priority": 0,
+        "summary": "An unusual process named HxTsr.exe was detected on workstation5 attempting to create a new registry key.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe collection of forensics."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts to confirm the malicious process and its intentions."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process is attempting to create a new registry key, which could be an indicator of malicious activity."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "BenignNoise",
+      "target": {
+        "planId": "benign-connection",
+        "strategy": "ObserveMore",
+        "priority": 20,
+        "summary": "Low-confidence benign TCP connection, likely a test or diagnostic packet.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "This alert is below the confidence threshold and does not warrant any destructive actions."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Logging this incident for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The low packet count and short duration suggest a benign connection.",
+          "The 'Benign' label in the raw payload supports this assessment.",
+          "No anomalous port usage was observed."
+        ],
+        "tags": {}
+      },
+      "seq2seq": {
+        "planId": "158c357a485a439d9ea12adaa48caedd",
+        "strategy": "ObserveMore",
+        "priority": 4,
+        "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.20",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy ObserveMore based on confidence 0.20 and severity 0.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:24:41.010621+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "benign-tcp-connection",
+        "strategy": "ObserveMore",
+        "priority": 10,
+        "summary": "Low-confidence benign TCP connection alert.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "This alert is below the SOC's confidence threshold and does not require immediate action."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alerting teams to low-confidence events for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This alert is below the SOC's confidence threshold and does not require immediate action."
+        ],
+        "tags": {
+          "confidenceThreshold": "0.2",
+          "alertType": "BenignNoise"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnHost-20230816",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "A suspicious process was executed on host ACCT01.pandalab.com, indicating potential malicious activity by an unknown or unauthorized program.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "acct01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for a deeper investigation."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 80,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting forensics data from the host will provide valuable insights into the malicious activity."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Documenting this incident in our ticketing system ensures proper tracking and auditing."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process was executed on a host with unusual characteristics, indicating potential malicious activity.",
+          "No whitelisted processes were found to match the process GUID."
+        ],
+        "tags": {
+          "riskCategory": "Malicious Activity",
+          "severity": "High"
+        }
+      },
+      "seq2seq": {
+        "planId": "2ec30f6ac64b40fbb1a550010c14f621",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Auto-generated response plan.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [],
+        "tags": {}
+      },
+      "foundation_sec": {
+        "planId": "PS-20230220-001",
+        "strategy": "Contain",
+        "priority": 0,
+        "summary": "Isolate host ACCT01.pandalab.com to prevent further malicious activity, then collect forensics for deeper analysis.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "acct01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe forensics collection."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system to track progress and assign tasks."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The suspicious process was executed on a critical host, indicating potential privilege escalation or lateral movement."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "PortScanFromIp",
+      "target": {
+        "planId": "LowConfidenceScanningActivity",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Low-confidence port scan from an unusual IP address, requires further investigation.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the alert for future reference."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert onboarding team to perform further analysis."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is low, and there is not enough evidence to take destructive actions.",
+          "Further investigation is required before making any changes."
+        ],
+        "tags": {
+          "confidence": "low",
+          "category": "Port Scan"
+        }
+      },
+      "seq2seq": {
+        "planId": "8519f02420284cbebd4e7ee97bf477e3",
+        "strategy": "NotifyOnly",
+        "priority": 38,
+        "summary": "Strategy=NotifyOnly, Severity=30, Confidence=0.40",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Notify analysts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy NotifyOnly based on confidence 0.40 and severity 30.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:25:52.520042+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "LowConfidenceScan",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Insufficient confidence to block or isolate the source IP address. Further investigation is required.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Low confidence in malicious activity means we should not take any action that could impact legitimate traffic."
+          },
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 1,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert the SOC team to review further and provide guidance on next steps."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Insufficient confidence in malicious activity means we should not take any action that could impact legitimate traffic."
+        ],
+        "tags": {
+          "confidenceLevel": "low",
+          "riskAssessment": "medium"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "LowConfidenceAssessment",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Insufficient confidence to block or isolate 'mshta.exe' on host-936; additional context is needed.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Low confidence prevents destructive actions."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert SOC team to review and gather more data for a confident assessment."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Insufficient confidence in the malicious nature of 'mshta.exe' due to low severity and lack of clear indicators.",
+          "Further context is required before taking destructive actions."
+        ],
+        "tags": {
+          "confidence": "low"
+        }
+      },
+      "seq2seq": {
+        "planId": "e881416e5a364198a4e44e35634626a3",
+        "strategy": "NotifyOnly",
+        "priority": 58,
+        "summary": "Strategy=NotifyOnly, Severity=50, Confidence=0.40",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Notify analysts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy NotifyOnly based on confidence 0.40 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:26:20.931507+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "LOW-CONFIDENCE-MALICIOUS-PROCESS",
+        "strategy": "NotifyOnly",
+        "priority": 0,
+        "summary": "The process 'mshta.exe' on host 'host-936' is suspicious, but confidence is low due to lack of clear indicators.",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert the SOC team to review this alert at their earliest convenience."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Insufficient confidence in malicious activity to take immediate action."
+        ],
+        "tags": {
+          "confidenceLevel": "Low",
+          "riskAssessment": 50
+        }
+      }
+    },
+    {
+      "alert_type": "BruteForceUser",
+      "target": {
+        "planId": "CredentialTheft-MFA-Interception",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "An attacker is attempting MFA interception against the 'root' account on multiple failed login attempts from unusual source IP 172.16.244.3",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 90,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "172.16.244.3"
+            },
+            "rationale": "Blocking the source IP prevents further attempts while we investigate the compromise of 'root' credentials"
+          },
+          {
+            "type": "DisableUser",
+            "risk": 80,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "username": "root"
+            },
+            "rationale": "Disabling the compromised account prevents further unauthorized access until we can reset credentials and apply MFA"
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a ticket for further investigation into the compromise of 'root' credentials"
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The high confidence and evidence from multiple sources indicate an active attempt to steal credentials via MFA interception.",
+          "Further analysis is required to determine the root cause of this attack and prevent future attempts."
+        ],
+        "tags": {
+          "category": "Credential Theft",
+          "subcategory": "MFA Interception"
+        }
+      },
+      "seq2seq": {
+        "planId": "a06fadaeb04748e99a6c03bebf1f2d74",
+        "strategy": "Contain",
+        "priority": 86,
+        "summary": "Strategy=Contain, Severity=70, Confidence=0.80",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 55,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "172.16.244.3"
+            },
+            "rationale": "Block suspicious source IP."
+          },
+          {
+            "type": "DisableUser",
+            "risk": 65,
+            "expectedImpact": 50,
+            "reversible": true,
+            "parameters": {
+              "username": "root"
+            },
+            "rationale": "Disable user account."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "EnableUser",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "username": "root"
+            },
+            "rationale": "Rollback for DisableUser"
+          },
+          {
+            "type": "UnblockIp",
+            "risk": 10,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {
+              "src_ip": "172.16.244.3"
+            },
+            "rationale": "Rollback for BlockIp"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.80 and severity 70.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:27:26.841443+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "Credential Theft Prevention",
+        "strategy": "Contain",
+        "priority": 90,
+        "summary": "An attacker is attempting credential theft via MFA interception against the 'root' account on multiple failed login attempts from IP address 172.16.244.3.",
+        "actions": [
+          {
+            "type": "BlockIp",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "172.16.244.3"
+            },
+            "rationale": "Blocking the attacker's IP address will prevent any future attempts to compromise our systems."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": ""
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The attacker is attempting credential theft via MFA interception against the 'root' account on multiple failed login attempts from IP address 172.16.244.3."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "PS-2022-09-01-001",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Potential privilege escalation attempt via container service on host-803 using certutil.exe.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 60,
+            "expectedImpact": 30,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-803"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity while allowing for a deeper investigation."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting forensics will help identify the exact nature of the privilege escalation attempt."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Notify on-call team to review forensics findings and plan next steps."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Based on the suspicious process running as certutil.exe, we believe an adversary may be attempting privilege escalation via container service techniques.",
+          "Isolating the host will prevent further malicious activity while forensics are collected to understand the full scope of the attack."
+        ],
+        "tags": {
+          "riskCategory": "High",
+          "technique": "T1543.005"
+        }
+      },
+      "seq2seq": {
+        "planId": "30b8e0d4f0564b30abb868410b9cfce3",
+        "strategy": "Contain",
+        "priority": 85,
+        "summary": "Strategy=Contain, Severity=70, Confidence=0.75",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-803"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-803"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.75 and severity 70.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:27:51.121578+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "PS-20230220-001",
+        "strategy": "ContainAndCollect",
+        "priority": 0,
+        "summary": "Potential privilege escalation attempt via container service on host-803 using certutil.exe.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "host-803"
+            },
+            "rationale": "Isolating the compromised host will prevent further lateral movement and allow for safe forensics collection."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather process memory dumps and network connections to understand the scope of compromise."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system for future reference and tracking."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The certutil.exe process is often used by adversaries to escalate privileges on a compromised host. Isolating the host will prevent further lateral movement while we gather more information."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "BenignNoise",
+      "target": {
+        "planId": "LowConfidenceAlert",
+        "strategy": "ObserveMore",
+        "priority": 20,
+        "summary": "Low-confidence alert with no clear malicious indicators.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the event for future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Inform on-call personnel of the alert."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert lacks clear indicators of compromise.",
+          "Further analysis is needed before taking action."
+        ],
+        "tags": {
+          "confidence": "low"
+        }
+      },
+      "seq2seq": {
+        "planId": "03759a4ad8604ec89953f741c9f87d87",
+        "strategy": "ObserveMore",
+        "priority": 2,
+        "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.10",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy ObserveMore based on confidence 0.10 and severity 0.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:28:33.353516+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "benign-traffic",
+        "strategy": "ObserveMore",
+        "priority": 0,
+        "summary": "Benign network flow record with no malicious indicators.",
+        "actions": [
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "The alert is classified as benign noise and does not require further action."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the alert in ticketing system for future reference."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert is classified as benign noise and does not require further action."
+        ],
+        "tags": {
+          "category": "Benign Noise",
+          "subcategory": "Network Flow Record"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "SuspiciousProcessOnHost-20230827-220939",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Unusual process access on IT01.pandalab.com indicates potential privilege escalation or lateral movement.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "it01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper forensics."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Collecting host logs will provide more information about the suspicious process access event."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alerting security teams to this incident ensures timely triage and containment of the compromised host."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon EventID 10 indicates suspicious process access, and the source image is a system directory, increasing confidence in an attacker's presence.",
+          "Isolating the host will prevent further lateral movement or data exfiltration."
+        ],
+        "tags": {
+          "hypothesis": "Privilege escalation or lateral movement",
+          "riskCategory": "High"
+        }
+      },
+      "seq2seq": {
+        "planId": "fbf777a9433b42fb87337a6b4d8e6531",
+        "strategy": "Contain",
+        "priority": 69,
+        "summary": "Strategy=Contain, Severity=57, Confidence=0.60",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "it01"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "it01"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.60 and severity 57.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:29:04.512473+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "PS-2023-03-15-001",
+        "strategy": "ContainAndCollect",
+        "priority": 0,
+        "summary": "Unusual process access on IT01.pandalab.com indicates potential privilege escalation or lateral movement.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 80,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "it01"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for deeper investigation."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts to confirm the nature of this suspicious process access."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon EventID 10 indicates a high-confidence anomaly in process execution."
+        ],
+        "tags": {
+          "category": "Host Anomaly",
+          "subcategory": "Process Access"
+        }
+      }
+    },
+    {
+      "alert_type": "BenignNoise",
+      "target": {
+        "planId": "LowConfidenceAlert",
+        "strategy": "ObserveMore",
+        "priority": 20,
+        "summary": "Low-confidence alert with no clear malicious indicators.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Document the event for future review."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Inform on-call personnel of the alert."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert lacks clear indicators of compromise.",
+          "Further analysis is needed before taking action."
+        ],
+        "tags": {
+          "confidence": "low"
+        }
+      },
+      "seq2seq": {
+        "planId": "56942361092849e6a2ca8b6bd915d179",
+        "strategy": "ObserveMore",
+        "priority": 2,
+        "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.10",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "Selected strategy ObserveMore based on confidence 0.10 and severity 0.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:29:43.166231+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "benign-traffic",
+        "strategy": "ObserveMore",
+        "priority": 0,
+        "summary": "Benign network flow record with no malicious indicators.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "No further action required for this alert."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert has been reviewed and deemed benign."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The alert does not contain any suspicious indicators of compromise."
+        ],
+        "tags": {
+          "category": "Benign",
+          "subcategory": "Network Flow"
+        }
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "Mordor_EID10_Contain",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "Unusual process access on WORKSTATION5 indicates a possible privilege escalation or lateral movement attempt.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 20,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the compromised workstation prevents further lateral movement or data exfiltration."
+          },
+          {
+            "type": "BlockIp",
+            "risk": 80,
+            "expectedImpact": 10,
+            "reversible": true,
+            "parameters": {
+              "src_ip": "192.168.1.100"
+            },
+            "rationale": "Blocking the IP address of workstation5 prevents additional malicious traffic."
+          },
+          {
+            "type": "Notify",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Alert SOC teams to the suspicious activity for further investigation."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The attacker's IP address is not available, so isolating workstation5 and blocking unknown IPs on the network are reasonable containment steps."
+        ],
+        "tags": {
+          "riskCategory": "Compromise"
+        }
+      },
+      "seq2seq": {
+        "planId": "04b727e9a1f3435ea2ecde21cb0e0ad3",
+        "strategy": "Contain",
+        "priority": 64,
+        "summary": "Strategy=Contain, Severity=50, Confidence=0.70",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.70 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:30:16.195339+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "EID10-2023-02-15",
+        "strategy": "ContainAndCollect",
+        "priority": 0,
+        "summary": "Unusual process access on WORKSTATION5 suggests a potential privilege escalation or lateral movement attempt.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating the host will prevent further malicious activity and allow for safe collection of forensics."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 50,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather Sysmon logs and process information to aid in further analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for future reference and potential follow-up actions."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The Sysmon event ID 10 indicates a new process access on workstation5 with unknown SourceProcessGUID and SourceProcessId. This is unusual behavior that warrants further investigation."
+        ],
+        "tags": {}
+      }
+    },
+    {
+      "alert_type": "SuspiciousProcessOnHost",
+      "target": {
+        "planId": "Suspicious PowerShell Execution on WORKSTATION5",
+        "strategy": "Contain",
+        "priority": 80,
+        "summary": "Unusual PowerShell execution detected on workstation5, potentially used for lateral movement or privilege escalation.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 50,
+            "reversible": true,
+            "parameters": {
+              "hostId": "workstation5",
+              "host_id": "workstation5"
+            },
+            "rationale": "Contain the compromised workstation to prevent further malicious activity."
+          },
+          {
+            "type": "QuarantineFile",
+            "risk": 60,
+            "expectedImpact": 40,
+            "reversible": true,
+            "parameters": {
+              "hostId": "workstation5",
+              "fileHash": "2839609118F48DEA292084E43FAA72D8",
+              "host_id": "workstation5",
+              "file_hash": "2839609118F48DEA292084E43FAA72D8"
+            },
+            "rationale": "Collect the suspicious PowerShell executable for future analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This alert indicates a suspicious PowerShell execution on workstation5, which could be part of lateral movement or privilege escalation attempts.",
+          "The image hash is not present in whitelisted hashes and was loaded via Sysmon event ID 7."
+        ],
+        "tags": {
+          "type": "Suspicious PowerShell Execution",
+          "target": "workstation5"
+        }
+      },
+      "seq2seq": {
+        "planId": "a96a55186d1c4b1eb986123aef23e5ef",
+        "strategy": "Contain",
+        "priority": 63,
+        "summary": "Strategy=Contain, Severity=50, Confidence=0.65",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 60,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolate host."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Create a tracking ticket."
+          }
+        ],
+        "rollbackActions": [
+          {
+            "type": "UnisolateHost",
+            "risk": 15,
+            "expectedImpact": 10,
+            "reversible": false,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Rollback for IsolateHost"
+          }
+        ],
+        "rationale": [
+          "Selected strategy Contain based on confidence 0.65 and severity 50.",
+          "Asset criticality: 0; privileged identity: False."
+        ],
+        "tags": {
+          "environment": "unknown",
+          "generatedAt": "2026-02-26T14:30:52.732482+00:00"
+        }
+      },
+      "foundation_sec": {
+        "planId": "PSW-2023-01",
+        "strategy": "ContainAndCollect",
+        "priority": 80,
+        "summary": "Isolate workstation5 to prevent further lateral movement or privilege escalation attempts.",
+        "actions": [
+          {
+            "type": "IsolateHost",
+            "risk": 70,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {
+              "host_id": "workstation5"
+            },
+            "rationale": "Isolating workstation5 will prevent further malicious activity and allow for deeper forensics collection."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 50,
+            "expectedImpact": 0,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Gather additional logs and artifacts from workstation5 to support incident response efforts."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 5,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document the incident for analyst review."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "This alert indicates a suspicious PowerShell execution on workstation5, which could be part of lateral movement or privilege escalation attempts."
+        ],
+        "tags": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+classDiagram
+  class RawAlert {
+    +alertId
+    +sourceSiem
+    +timestampUtc
+    +properties
+  }
+  class NormalizedAlert {
+    +alertType
+    +severity
+    +entities
+  }
+  class EnrichedAlert {
+    +assetContext
+    +identityContext
+    +threatIntelContext
+  }
+  class ThreatAssessment {
+    +severity
+    +confidence
+    +hypothesis
+    +evidence[]
+  }
+  class DecisionPlan {
+    +strategy
+    +priority
+    +actions[]
+    +rollbackActions[]
+  }
+  class PolicyDecision {
+    +approved[]
+    +pending[]
+    +denied[]
+    +reasons[]
+  }
+  class ExecutionReport {
+    +results[]
+    +status
+  }
+
+  RawAlert --> NormalizedAlert : normalize
+  NormalizedAlert --> EnrichedAlert : enrich
+  EnrichedAlert --> ThreatAssessment : score
+  ThreatAssessment --> DecisionPlan : plan
+  DecisionPlan --> PolicyDecision : evaluate
+  PolicyDecision --> ExecutionReport : execute

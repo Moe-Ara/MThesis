@@ -1,20 +1,47 @@
 [
   {
-    "hostId": "host-101",
-    "hostname": "srv-101",
-    "ip": "10.0.1.10",
-    "criticality": 4,
+    "hostId": "001",
+    "hostname": "web-server-prod",
+    "ip": null,
+    "criticality": 5,
     "environment": "prod",
     "owner": "infra",
-    "team": "blue"
+    "team": "platform"
   },
   {
-    "hostId": "host-202",
-    "hostname": "srv-202",
-    "ip": "10.0.2.20",
-    "criticality": 2,
-    "environment": "dev",
-    "owner": "apps",
-    "team": "dev"
+    "hostId": "003",
+    "hostname": "finance-laptop-07",
+    "ip": "192.168.10.45",
+    "criticality": 4,
+    "environment": "prod",
+    "owner": "finance",
+    "team": "finance"
+  },
+  {
+    "hostId": "005",
+    "hostname": "hr-workstation-12",
+    "ip": null,
+    "criticality": 3,
+    "environment": "prod",
+    "owner": "hr",
+    "team": "hr"
+  },
+  {
+    "hostId": "host-203",
+    "hostname": "ws-finance-03",
+    "ip": null,
+    "criticality": 4,
+    "environment": "prod",
+    "owner": "finance",
+    "team": "finance"
+  },
+  {
+    "hostId": "host-507",
+    "hostname": "laptop-exec-07",
+    "ip": null,
+    "criticality": 5,
+    "environment": "prod",
+    "owner": "executive",
+    "team": "executive"
   }
 ]

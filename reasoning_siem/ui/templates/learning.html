@@ -1,0 +1,128 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Learning &amp; Audit</h1>
+        <p class="subtitle">Feedback loop telemetry and model drift visibility.</p>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total feedback</div>
+        <div class="stat-value">{{ counters.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">False positives</div>
+        <div class="stat-value">{{ counters.fp }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">True positives</div>
+        <div class="stat-value">{{ counters.tp }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">FP rate</div>
+        <div class="stat-value">{{ (counters.fp_rate * 100)|round(1) }}%</div>
+    </div>
+</section>
+
+<section class="learning-grid">
+    <article class="panel">
+        <h2>FP rate trend</h2>
+        {% if trend %}
+        <div class="trend">
+            {% for item in trend %}
+            <div class="trend-row">
+                <span>{{ item.date }}</span>
+                <div class="trend-bar">
+                    <div style="width: {{ (item.fp_rate * 100)|round(0) }}%"></div>
+                </div>
+                <span>{{ (item.fp_rate * 100)|round(1) }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="muted">No feedback data yet.</div>
+        {% endif %}
+    </article>
+
+    <article class="panel">
+        <h2>Weight shifts</h2>
+        <div class="weight-shifts">
+            <div>
+                <h3>Top increased</h3>
+                {% for item in diff_summary.increase %}
+                <div class="weight-row">{{ item.feature.replace('_', ' ') }} <span>+{{ item.delta|round(2) }}</span></div>
+                {% else %}
+                <div class="muted">No increases yet.</div>
+                {% endfor %}
+            </div>
+            <div>
+                <h3>Top decreased</h3>
+                {% for item in diff_summary.decrease %}
+                <div class="weight-row">{{ item.feature.replace('_', ' ') }} <span>-{{ item.delta|round(2) }}</span></div>
+                {% else %}
+                <div class="muted">No decreases yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+</section>
+
+<section class="learning-grid">
+    <article class="panel">
+        <h2>Feedback audit log</h2>
+        {% if feedback_events %}
+        <div class="table">
+            <div class="table-row header">
+                <span>Time</span>
+                <span>Incident</span>
+                <span>Verdict</span>
+                <span>Analyst</span>
+                <span>Override</span>
+            </div>
+            {% for event in feedback_events %}
+            <div class="table-row">
+                <span>{{ event.timestamp.isoformat() }}</span>
+                <span>{{ event.incident_id }}</span>
+                <span class="pill {{ event.verdict }}">{{ event.verdict }}</span>
+                <span>{{ event.analyst }}</span>
+                <span>{{ event.severity_override }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="muted">No feedback captured yet.</div>
+        {% endif %}
+    </article>
+
+    <article class="panel">
+        <h2>Model update diff</h2>
+        {% if diffs %}
+        <div class="diff-list">
+            {% for diff in diffs %}
+            <div class="diff-card">
+                <div class="diff-header">
+                    <span>{{ diff.timestamp }}</span>
+                    <span class="muted">{{ diff.feedback_id }}</span>
+                </div>
+                {% if diff.changes %}
+                <ul>
+                    {% for change in diff.changes %}
+                    <li>{{ change.feature.replace('_', ' ') }}: {{ change.delta|round(2) }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="muted">No weight changes recorded.</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="muted">No model updates yet.</div>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
+
+

@@ -1,0 +1,37 @@
+flowchart LR
+  subgraph Sources[Security Telemetry Sources]
+    EDR[EDR and Endpoint Logs]
+    NET[Network and Firewall Logs]
+    IDP[Identity and Access Logs]
+    CLD[Cloud Audit Logs]
+  end
+
+  subgraph SIEM[Traditional SIEM Layer]
+    ING[Ingestion and Parsing]
+    CORR[Correlation Rules]
+    ALERT[Alert Queue]
+  end
+
+  subgraph SOAR[Conventional SOAR Flow]
+    TRIAGE[Analyst Triage]
+    PLAY[Manual or Semi Auto Playbooks]
+    APPROVE[Human Approval]
+  end
+
+  subgraph RESP[Response Systems]
+    FW[Firewall and Network Controls]
+    EDRA[Endpoint Isolation]
+    IAM[Identity Controls]
+    TICK[Ticketing and Case Tool]
+  end
+
+  EDR --> ING
+  NET --> ING
+  IDP --> ING
+  CLD --> ING
+
+  ING --> CORR --> ALERT --> TRIAGE --> PLAY --> APPROVE
+  APPROVE --> FW
+  APPROVE --> EDRA
+  APPROVE --> IAM
+  APPROVE --> TICK

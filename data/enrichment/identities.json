@@ -1,5 +1,40 @@
 [
   {
+    "userId": null,
+    "username": "root",
+    "privileged": true,
+    "department": "System",
+    "isServiceAccount": true
+  },
+  {
+    "userId": null,
+    "username": "jdoe",
+    "privileged": false,
+    "department": "Finance",
+    "isServiceAccount": false
+  },
+  {
+    "userId": null,
+    "username": "hsmith",
+    "privileged": false,
+    "department": "HR",
+    "isServiceAccount": false
+  },
+  {
+    "userId": null,
+    "username": "hchen",
+    "privileged": false,
+    "department": "Finance",
+    "isServiceAccount": false
+  },
+  {
+    "userId": null,
+    "username": "admin@contoso.com",
+    "privileged": true,
+    "department": "IT",
+    "isServiceAccount": false
+  },
+  {
     "userId": "u-1001",
     "username": "admin",
     "privileged": true,

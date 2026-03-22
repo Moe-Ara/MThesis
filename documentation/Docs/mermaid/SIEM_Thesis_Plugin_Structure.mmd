@@ -1,0 +1,40 @@
+flowchart LR
+  subgraph Sources[Security Telemetry Sources]
+    WAZ[Wazuh Alerts]
+    SEN[Sentinel Alerts]
+    DEMO[Replay and Demo Alerts]
+  end
+
+  subgraph Core[Thesis Plugin Core DotNet]
+    REG[Multi SIEM Mapping Registry]
+    NORM[Normalization and Enrichment]
+    SCORE[Threat Scoring Request]
+    PLAN[Decision Planning Request]
+    POL[Local Policy Engine]
+    EXEC[Execution Pipeline]
+    AUD[Audit and Case Updates]
+  end
+
+  subgraph Intel[Intelligence Service Python]
+    API1[POST v1 score]
+    API2[POST v1 plan]
+    MOD[Profile Based Model Registry]
+  end
+
+  subgraph Controls[Safety and Governance]
+    GATE[Approve Pending Deny]
+    TRACE[Explainable Trace Output]
+  end
+
+  WAZ --> REG
+  SEN --> REG
+  DEMO --> REG
+
+  REG --> NORM --> SCORE --> API1
+  API1 --> PLAN --> API2
+  MOD -. selects backend .-> API1
+  MOD -. selects backend .-> API2
+
+  API2 --> POL --> GATE
+  GATE -->|Approved| EXEC --> AUD --> TRACE
+  GATE -->|Pending or Denied| AUD

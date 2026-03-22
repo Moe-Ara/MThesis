@@ -1,0 +1,34 @@
+sequenceDiagram
+  autonumber
+  participant SIEM as SIEM / Source
+  participant ORCH as AgentOrchestrator
+  participant NORM as NormalizationPipeline
+  participant INTEL as Intelligence Service
+  participant POLICY as PolicyEngine
+  participant EXEC as ExecutionPipeline
+  participant AUDIT as AuditLogger
+  participant CASE as CaseManager
+
+  SIEM->>ORCH: RawAlert
+  ORCH->>NORM: ProcessAsync(raw)
+  NORM-->>ORCH: EnrichedAlert
+
+  ORCH->>INTEL: POST /v1/score
+  INTEL-->>ORCH: ThreatAssessment
+  ORCH->>INTEL: POST /v1/plan
+  INTEL-->>ORCH: DecisionPlan
+
+  ORCH->>POLICY: Evaluate(plan, assessment, alert)
+  POLICY-->>ORCH: PolicyDecision
+
+  alt Approved actions exist
+    ORCH->>EXEC: ExecuteAsync(...)
+    EXEC-->>ORCH: ExecutionReport
+  else Only pending/denied
+    ORCH-->>ORCH: Skip execution
+  end
+
+  ORCH->>AUDIT: Log scoring/planning/policy/execution
+  ORCH->>CASE: OpenOrUpdate(...)
+
+  Note over ORCH,EXEC: rollbackActions are prepared and logged, not auto-executed

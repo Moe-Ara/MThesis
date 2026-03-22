@@ -142,14 +142,20 @@ public sealed class PolicyEngine
 
         return action.Type switch
         {
+            ActionType.BlockIp or ActionType.UnblockIp =>
+                HasAny(action, "src_ip", "srcIp", "source_ip", "ip"),
+            ActionType.IsolateHost or ActionType.UnisolateHost =>
+                HasAny(action, "host_id", "hostId", "hostname"),
+            ActionType.DisableUser or ActionType.EnableUser =>
+                HasAny(action, "username", "user_id", "userId"),
             ActionType.KillProcess => HasAny(action, "host_id", "hostId", "hostname") &&
                                       HasAny(action, "process_name", "processName", "pid"),
             ActionType.QuarantineFile => HasAny(action, "host_id", "hostId") &&
                                          HasAny(action, "file_hash", "fileHash", "file_path", "filePath"),
             _ => required switch
             {
-                [ "username", "user_id" ] => HasAny(action, "username", "user_id"),
-                [ "hostname", "host_id" ] => HasAny(action, "hostname", "host_id"),
+                [ "username", "user_id" ] => HasAny(action, "username", "user_id", "userId"),
+                [ "hostname", "host_id" ] => HasAny(action, "hostname", "host_id", "hostId"),
                 _ => HasAll(action, required)
             }
         };

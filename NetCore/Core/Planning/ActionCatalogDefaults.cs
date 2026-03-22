@@ -14,9 +14,9 @@ public static class ActionCatalogDefaults
     {
         var items = new Dictionary<ActionType, ActionDefinition>
         {
-            [ActionType.BlockIp] = new(ActionType.BlockIp, true, true, 55, 30, new[] { "src_ip" }),
+            [ActionType.BlockIp] = new(ActionType.BlockIp, true, false, 55, 30, new[] { "src_ip" }),
             [ActionType.UnblockIp] = new(ActionType.UnblockIp, false, false, 10, 5, new[] { "src_ip" }),
-            [ActionType.IsolateHost] = new(ActionType.IsolateHost, true, true, 70, 60, new[] { "hostname", "host_id" }),
+            [ActionType.IsolateHost] = new(ActionType.IsolateHost, true, false, 70, 60, new[] { "hostname", "host_id" }),
             [ActionType.UnisolateHost] = new(ActionType.UnisolateHost, false, false, 15, 10, new[] { "hostname", "host_id" }),
             [ActionType.DisableUser] = new(ActionType.DisableUser, true, true, 65, 50, new[] { "username", "user_id" }),
             [ActionType.EnableUser] = new(ActionType.EnableUser, false, false, 15, 10, new[] { "username", "user_id" }),

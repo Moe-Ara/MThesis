@@ -1,0 +1,7 @@
+FROM ./models/baronllm-llama3.1-v1-q6_k.gguf
+
+TEMPLATE """{{ .Prompt }}"""
+
+PARAMETER temperature 0.2
+PARAMETER top_p 0.9
+PARAMETER stop "<|eot_id|>"

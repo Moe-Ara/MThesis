@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using Core.Interfaces;
 
 namespace Core.NormalizationPipeline
@@ -8,6 +9,7 @@ namespace Core.NormalizationPipeline
         public ValidationResult Validate(NormalizedAlert alert)
         {
             var errors = new List<string>();
+            var allowEmptyEntities = GetBoolEnv("NORMALIZATION_ALLOW_EMPTY_ENTITIES", false);
 
             if (string.IsNullOrWhiteSpace(alert.AlertId))
                 errors.Add("AlertId is required.");
@@ -25,10 +27,20 @@ namespace Core.NormalizationPipeline
                 !string.IsNullOrWhiteSpace(e.SrcIp) ||
                 !string.IsNullOrWhiteSpace(e.DstIp);
 
-            if (!hasEntity)
+            if (!hasEntity && !allowEmptyEntities)
                 errors.Add("At least one entity must be present (host/user/ip).");
 
             return new ValidationResult(errors.Count == 0, errors);
+        }
+
+        private static bool GetBoolEnv(string key, bool fallback)
+        {
+            var raw = Environment.GetEnvironmentVariable(key);
+            if (string.IsNullOrWhiteSpace(raw))
+                return fallback;
+            return raw.Trim().Equals("true", StringComparison.OrdinalIgnoreCase)
+                   || raw.Trim().Equals("1", StringComparison.OrdinalIgnoreCase)
+                   || raw.Trim().Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

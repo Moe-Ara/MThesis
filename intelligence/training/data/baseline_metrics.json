@@ -1,0 +1,291 @@
+{
+  "model": "baron-security (ollama)",
+  "timestamp": "2026-02-22T17:14:32",
+  "results": [
+    {
+      "alertId": "b-001",
+      "alertType": "PortScanFromIp",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "PortScanFromIp-2023-02-16",
+          "strategy": "NotifyOnly",
+          "priority": 50,
+          "summary": "Low confidence port scan from IP address 10.0.5.22 to multiple common ports.",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "rationale": "Document the alert for further investigation."
+            },
+            {
+              "type": "Notify",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "parameters": {
+                "src_ip": "10.0.5.22"
+              },
+              "rationale": "Alert the SOC team of a low-confidence port scan."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "The confidence is too low to take destructive actions, so we will only log and notify the SOC team for further review."
+          ],
+          "tags": {
+            "category": "Network Scan",
+            "subcategory": "Port Scan"
+          }
+        }
+      }
+    },
+    {
+      "alertId": "b-002",
+      "alertType": "BruteForceUser",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "b-002-Response",
+          "strategy": "NotifyOnly",
+          "priority": 50,
+          "summary": "Possible brute force attempt on user admin from IP address 172.16.10.5.",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "rationale": "Document the alert for further investigation."
+            },
+            {
+              "type": "Notify",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "parameters": {
+                "recipient": "admin@company.com"
+              },
+              "rationale": "Inform the security team of the alert for review and follow-up."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "Low confidence level means destructive actions are not appropriate. Open a ticket to track the alert and notify the security team for further investigation."
+          ],
+          "tags": {
+            "category": "Authentication",
+            "subcategory": "BruteForceUser"
+          }
+        }
+      }
+    },
+    {
+      "alertId": "b-003",
+      "alertType": "MalwareHashOnHost",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "malware-001",
+          "strategy": "NotifyOnly",
+          "priority": 50,
+          "summary": "Malicious file hash abc123def456789abcdef0123456789a detected on host WS-07.",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "rationale": "Create a ticket for further investigation."
+            },
+            {
+              "type": "Notify",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "parameters": {},
+              "rationale": "Notify analysts of the alert and request review."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "Low confidence level, no destructive actions recommended."
+          ],
+          "tags": {}
+        }
+      }
+    },
+    {
+      "alertId": "b-004",
+      "alertType": "SuspiciousProcessOnHost",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "b-004-response",
+          "strategy": "NotifyOnly",
+          "priority": 50,
+          "summary": "Low-confidence alert for suspicious PowerShell process on SRV-DB-01.",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "rationale": "Create a ticket to document the alert and plan further investigation."
+            },
+            {
+              "type": "Notify",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "parameters": {
+                "recipient_email": "security@company.com"
+              },
+              "rationale": "Notify security team of the alert for further review."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "The confidence is low, so no destructive actions are appropriate. Document the alert and notify the security team to plan a follow-up investigation."
+          ],
+          "tags": {
+            "category": "SuspiciousProcessOnHost",
+            "subcategory": "PowerShell"
+          }
+        }
+      }
+    },
+    {
+      "alertId": "b-005",
+      "alertType": "BenignNoise",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "b-005-response",
+          "strategy": "NotifyOnly",
+          "priority": 50,
+          "summary": "Low-confidence benign noise alert for DNS query from 192.168.1.50.",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "rationale": "Document the alert for future reference."
+            },
+            {
+              "type": "Notify",
+              "risk": 0,
+              "expectedImpact": 0,
+              "reversible": true,
+              "parameters": {
+                "recipient": "Network Ops"
+              },
+              "rationale": "Inform network operations of low-confidence alert for review."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "Low confidence and benign noise, no destructive actions warranted.",
+            "Further investigation required to confirm or deny malicious activity."
+          ],
+          "tags": {
+            "category": "BenignNoise",
+            "confidence": "low"
+          }
+        }
+      }
+    },
+    {
+      "alertId": "b-006",
+      "alertType": "PortScanFromIp",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0,
+        "hypothesis": "No malicious activity detected, no indicators of compromise found.",
+        "evidence": []
+      },
+      "planner_response": {
+        "plan": {
+          "planId": "6e0eef1814ad4618b395fd3e36a9406f",
+          "strategy": "ObserveMore",
+          "priority": 0,
+          "summary": "Strategy=ObserveMore, Severity=0, Confidence=0.00",
+          "actions": [
+            {
+              "type": "OpenTicket",
+              "risk": 5,
+              "expectedImpact": 5,
+              "reversible": false,
+              "parameters": {},
+              "rationale": "Create a tracking ticket."
+            }
+          ],
+          "rollbackActions": [],
+          "rationale": [
+            "Selected strategy ObserveMore based on confidence 0.00 and severity 0.",
+            "Asset criticality: 0; privileged identity: False."
+          ],
+          "tags": {
+            "environment": "unknown",
+            "generatedAt": "2026-02-22T16:14:32.575361+00:00"
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "scorer": {
+      "all_severity_zero": true,
+      "all_confidence_zero": true,
+      "generic_hypothesis": true,
+      "no_evidence_provided": true,
+      "notes": "Baron-security returns severity=0, confidence=0 for ALL alerts including obvious malware/brute-force. No threat discrimination whatsoever."
+    },
+    "planner": {
+      "all_strategy_notify_only": true,
+      "only_safe_actions": true,
+      "no_destructive_actions": true,
+      "action_types_used": [
+        "OpenTicket",
+        "Notify"
+      ],
+      "action_types_never_used": [
+        "BlockIp",
+        "IsolateHost",
+        "DisableUser",
+        "KillProcess",
+        "QuarantineFile"
+      ],
+      "notes": "Planner always defaults to NotifyOnly with OpenTicket+Notify. Never proposes containment actions even for clear malware. Nested response under \"plan\" key (wrong schema)."
+    },
+    "overall": "Baron-security has NO task-specific knowledge. Scorer fails to assess any threats. Planner produces only passive responses. Fine-tuning should dramatically improve both threat assessment accuracy and response appropriateness."
+  }
+}

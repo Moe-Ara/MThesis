@@ -4,6 +4,8 @@ import requests
 
 from intelligence.core.base import Planner
 from intelligence.core.utils import get_path, now_iso
+from intelligence.planners.plan_utils import sanitize_plan
+from intelligence.planners.rule import RulePlanner
 
 
 class RemotePlanner(Planner):
@@ -36,4 +38,9 @@ class RemotePlanner(Planner):
         )
         resp.raise_for_status()
         data = resp.json()
-        return data.get("plan") or data
+        plan = data.get("plan") if isinstance(data, dict) else None
+        if plan is None:
+            plan = data
+        if not isinstance(plan, dict):
+            return RulePlanner().plan(alert, assessment)
+        return sanitize_plan(plan, alert, assessment, derive_strategy_from_actions=True)

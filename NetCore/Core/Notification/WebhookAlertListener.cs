@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -84,24 +85,22 @@ public sealed class WebhookAlertListener
             }
 
             var siemName = context.Request.Headers["X-Siem-Name"] ?? "wazuh";
-            var alertId = TryGetString(payload, "id") ?? Guid.NewGuid().ToString("N");
-            var timestamp = TryGetDateTime(payload, "timestamp") ?? DateTimeOffset.UtcNow;
-            var ruleName = TryGetNestedString(payload, "rule", "description");
-            var alertType = TryGetString(payload, "alert_type") ?? TryGetNestedString(payload, "rule", "id");
-            var severity = TryGetNestedInt(payload, "rule", "level");
+            var alerts = ExtractAlertElements(payload);
+            var any = false;
 
-            var raw = new RawAlert
+            foreach (var alert in alerts)
             {
-                AlertId = alertId,
-                SiemName = siemName,
-                TimestampUtc = timestamp,
-                RuleName = ruleName,
-                AlertType = alertType,
-                OriginalSeverity = severity,
-                Payload = payload
-            };
+                var raw = BuildRawAlert(alert, siemName);
+                await handler(raw).ConfigureAwait(false);
+                any = true;
+            }
 
-            await handler(raw).ConfigureAwait(false);
+            if (!any)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.Close();
+                return;
+            }
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
             context.Response.Close();
@@ -161,5 +160,108 @@ public sealed class WebhookAlertListener
         if (DateTimeOffset.TryParse(raw, out var parsed))
             return parsed;
         return null;
+    }
+
+    private static IEnumerable<JsonElement> ExtractAlertElements(JsonElement payload)
+    {
+        if (payload.ValueKind == JsonValueKind.Array)
+            return payload.EnumerateArray();
+
+        if (payload.ValueKind != JsonValueKind.Object)
+            return Array.Empty<JsonElement>();
+
+        if (payload.TryGetProperty("data", out var data))
+        {
+            if (data.ValueKind == JsonValueKind.Object)
+            {
+                if (data.TryGetProperty("alert", out var alert))
+                    return ExtractAlertElements(alert);
+
+                if (data.TryGetProperty("alerts", out var alerts))
+                    return ExtractAlertElements(alerts);
+
+                if (data.TryGetProperty("affected_items", out var affected) &&
+                    affected.ValueKind == JsonValueKind.Array)
+                {
+                    return affected.EnumerateArray();
+                }
+
+                if (data.TryGetProperty("items", out var items) &&
+                    items.ValueKind == JsonValueKind.Array)
+                {
+                    return items.EnumerateArray();
+                }
+            }
+
+            if (data.ValueKind == JsonValueKind.Array)
+                return data.EnumerateArray();
+        }
+
+        if (payload.TryGetProperty("alert", out var singleAlert))
+            return ExtractAlertElements(singleAlert);
+
+        if (payload.TryGetProperty("alerts", out var alertArray))
+            return ExtractAlertElements(alertArray);
+
+        if (payload.TryGetProperty("events", out var eventsArray))
+            return ExtractAlertElements(eventsArray);
+
+        return new[] { payload };
+    }
+
+    private static RawAlert BuildRawAlert(JsonElement element, string siemName)
+    {
+        var alertId = TryGetString(element, "id")
+                      ?? TryGetString(element, "_id")
+                      ?? TryGetString(element, "alert_id")
+                      ?? Guid.NewGuid().ToString("N");
+
+        var timestamp = TryGetDateTime(element, "timestamp")
+                        ?? TryGetDateTime(element, "@timestamp")
+                        ?? DateTimeOffset.UtcNow;
+
+        var ruleName = TryGetNestedString(element, "rule", "description")
+                       ?? TryGetNestedString(element, "rule", "name")
+                       // Sentinel incident: properties.title
+                       ?? TryGetNestedString(element, "properties", "title")
+                       // Sentinel flat: AlertDisplayName
+                       ?? TryGetString(element, "AlertDisplayName")
+                       ?? TryGetString(element, "title");
+
+        var ruleId = TryGetNestedString(element, "rule", "id")
+                     // Sentinel: incidentNumber or name
+                     ?? TryGetNestedString(element, "properties", "incidentNumber")
+                     ?? TryGetString(element, "AlertType");
+        var alertType = TryGetString(element, "alert_type")
+                        ?? ruleId
+                        ?? TryGetString(element, "name");
+
+        // Wazuh uses rule.level (0-15); Sentinel uses properties.severity string
+        var severity = TryGetNestedInt(element, "rule", "level");
+        if (!severity.HasValue)
+        {
+            var sentinelSev = TryGetNestedString(element, "properties", "severity")
+                              ?? TryGetString(element, "Severity");
+            severity = sentinelSev?.ToLowerInvariant() switch
+            {
+                "critical" => 15,
+                "high" => 12,
+                "medium" or "moderate" => 8,
+                "low" => 5,
+                "informational" or "info" => 2,
+                _ => null
+            };
+        }
+
+        return new RawAlert
+        {
+            AlertId = alertId,
+            SiemName = siemName,
+            TimestampUtc = timestamp,
+            RuleName = ruleName,
+            AlertType = alertType,
+            OriginalSeverity = severity,
+            Payload = element.Clone()
+        };
     }
 }

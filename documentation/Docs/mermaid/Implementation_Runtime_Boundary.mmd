@@ -1,0 +1,31 @@
+flowchart LR
+  subgraph Proc1[Process 1 DotNet Orchestrator]
+    BOOT[Startup and Env Load]
+    ORCH[AgentOrchestrator]
+    WEB[Webhook Listener or Polling Connector]
+    PIPE[Normalize Score Plan Policy Execute]
+  end
+
+  subgraph Proc2[Process 2 Python Intelligence Service]
+    FAST[FastAPI Service]
+    SVC[Scorer and Planner Backends]
+    REG[Model Registry Profiles]
+    CACHE[LRU Cache]
+  end
+
+  subgraph Data[Local State and Evidence]
+    AUD[audit jsonl]
+    CASE[cases db]
+    TRACE[demo trace jsonl]
+  end
+
+  BOOT --> ORCH
+  WEB --> ORCH --> PIPE
+  PIPE -->|HTTP JSON| FAST
+  FAST --> SVC
+  REG --> SVC
+  FAST --> CACHE
+
+  PIPE --> AUD
+  PIPE --> CASE
+  PIPE --> TRACE

@@ -1,0 +1,66 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Triage</h1>
+        <p class="subtitle">Ranked incident candidates with explainable risk scoring.</p>
+    </div>
+    <div class="page-actions">
+        <a class="button ghost" href="/ui/triage">Refresh</a>
+    </div>
+</section>
+
+<section class="card-grid">
+    {% for incident in incidents %}
+    <article class="incident-card">
+        <div class="incident-header">
+            <div>
+                <div class="incident-id">{{ incident.incident_id }}</div>
+                <div class="incident-meta">{{ incident.event_type }} | {{ incident.asset_id }} | {{ incident.user }}</div>
+            </div>
+            <div class="score-pill" data-score="{{ incident.risk_score|round(1) }}">
+                <div class="score-label">Risk</div>
+                <div class="score-value">{{ incident.risk_score|round(1) }}</div>
+            </div>
+        </div>
+
+        <div class="incident-body">
+            <div class="metric">
+                <span>Confidence</span>
+                <strong>{{ (incident.confidence * 100)|round(1) }}%</strong>
+            </div>
+            <div class="metric">
+                <span>Context multiplier</span>
+                <strong>x{{ incident.context_multiplier|round(2) }}</strong>
+            </div>
+        </div>
+
+        <div class="context-tags">
+            {% for key, value in incident.context_breakdown.items() %}
+            <span>{{ key.replace('_', ' ') }}: x{{ value|round(2) }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="reasons">
+            <div class="reasons-title">Top reasons</div>
+            <ul>
+                {% for reason in incident.top_reasons[:3] %}
+                <li>
+                    <span class="reason-name">{{ reason.feature.replace('_', ' ') }}</span>
+                    <span class="reason-value">{{ reason.contribution|round(2) }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card-actions">
+            <a class="button" href="/ui/incidents/{{ incident.incident_id }}">Open incident</a>
+        </div>
+    </article>
+    {% else %}
+    <div class="empty">No incidents available.</div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+

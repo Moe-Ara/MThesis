@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from intelligence.core.base import Planner
 from intelligence.core.utils import get_path, now_iso
+from intelligence.planners.plan_utils import sanitize_plan
 
 
 class RulePlanner(Planner):
@@ -59,7 +60,7 @@ def _plan_from_rules(alert: Dict[str, Any], assessment: Dict[str, Any]) -> Dict[
         f"Asset criticality: {criticality}; privileged identity: {privileged}."
     ]
 
-    return {
+    plan = {
         "planId": uuid.uuid4().hex,
         "strategy": strategy,
         "priority": priority,
@@ -72,6 +73,7 @@ def _plan_from_rules(alert: Dict[str, Any], assessment: Dict[str, Any]) -> Dict[
             "generatedAt": now_iso()
         }
     }
+    return sanitize_plan(plan, alert, assessment, derive_strategy_from_actions=False)
 
 
 def _compute_priority(severity: int, confidence: float, criticality: int) -> int:

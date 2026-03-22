@@ -1,0 +1,161 @@
+{
+  "model": "foundation-sec-scorer + foundation-sec-planner (fine-tuned)",
+  "timestamp": "2026-02-24T13:44:40",
+  "results": [
+    {
+      "alertId": "b-001",
+      "alertType": "PortScanFromIp",
+      "scorer_response": {
+        "severity": 40,
+        "confidence": 0.55,
+        "hypothesis": "This alert indicates a potential reconnaissance scan from an IP address attempting multiple ports, but the lack of follow-up traffic makes it uncertain if this is malicious activity.",
+        "evidence": [
+          "Multiple connections to multiple ports",
+          "Portscan-like behavior",
+          "No further suspicious events in recent logs"
+        ]
+      },
+      "planner_response": {
+        "planId": "LowConfidenceReconScan",
+        "strategy": "NotifyOnly",
+        "priority": 50,
+        "summary": "Potential reconnaissance scan from IP address 10.0.5.22 with multiple ports attempted.",
+        "actions": [
+          {
+            "type": "OpenTicket",
+            "risk": 20,
+            "expectedImpact": 0,
+            "reversible": true,
+            "rationale": "Document the alert for further investigation."
+          },
+          {
+            "type": "Notify",
+            "risk": 10,
+            "expectedImpact": 0,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Alert SOC team of potential reconnaissance activity."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The confidence is low due to the lack of follow-up traffic and other suspicious events.",
+          "Further investigation is required before taking any destructive actions."
+        ],
+        "tags": {
+          "category": "Network Scan",
+          "subcategory": "Portscan"
+        }
+      }
+    },
+    {
+      "alertId": "b-002",
+      "alertType": "BruteForceUser",
+      "scorer_response": {},
+      "planner_response": {}
+    },
+    {
+      "alertId": "b-003",
+      "alertType": "MalwareHashOnHost",
+      "scorer_response": {
+        "severity": 90,
+        "confidence": 0.85,
+        "hypothesis": "The host WS-07 has executed a malicious executable from the temp directory, indicating possible malware infection.",
+        "evidence": [
+          "Malicious file detected on C:\\temp\\evil.exe",
+          "Known malware hash abc123def456 found in memory",
+          "Suspicious process execution on WS-07"
+        ]
+      },
+      "planner_response": {
+        "planId": "malware-execution-response",
+        "strategy": "ContainAndCollect",
+        "priority": 90,
+        "summary": "Malicious file detected on host WS-07, possible malware infection.",
+        "actions": [
+          {
+            "type": "QuarantineFile",
+            "risk": 80,
+            "expectedImpact": 20,
+            "reversible": false,
+            "parameters": {
+              "host_id": "host-201",
+              "file_hash": "abc123def456789abcdef0123456789a"
+            },
+            "rationale": "Isolate the malicious file to prevent further execution."
+          },
+          {
+            "type": "CollectForensics",
+            "risk": 0,
+            "expectedImpact": 10,
+            "reversible": true,
+            "parameters": {},
+            "rationale": "Gather additional context from the host for deeper analysis."
+          },
+          {
+            "type": "OpenTicket",
+            "risk": 0,
+            "expectedImpact": 5,
+            "reversible": false,
+            "parameters": {},
+            "rationale": "Document this incident in our ticketing system."
+          }
+        ],
+        "rollbackActions": [],
+        "rationale": [
+          "The presence of a known malware hash on WS-07 indicates an active infection.",
+          "Further investigation is required to determine the full scope and impact of the compromise."
+        ],
+        "tags": {
+          "malware-infection": true,
+          "host-id": "host-201"
+        }
+      }
+    },
+    {
+      "alertId": "b-004",
+      "alertType": "SuspiciousProcessOnHost",
+      "scorer_response": {
+        "severity": 30,
+        "confidence": 0.45,
+        "hypothesis": "This alert indicates a suspicious PowerShell process running on the SRV-DB-01 server, but lacks clear evidence of malicious intent.",
+        "evidence": [
+          "Suspicious PowerShell execution",
+          "Process spawned by SYSTEM account",
+          "No known malicious indicators in the log"
+        ]
+      },
+      "planner_response": {}
+    },
+    {
+      "alertId": "b-005",
+      "alertType": "BenignNoise",
+      "scorer_response": {
+        "severity": 0,
+        "confidence": 0.2,
+        "hypothesis": "This alert is likely benign noise due to a routine DNS query from an internal host.",
+        "evidence": [
+          "DNS request to internal resolver",
+          "Source IP address matches known workstation",
+          "No other suspicious activity detected"
+        ]
+      },
+      "planner_response": {}
+    },
+    {
+      "alertId": "b-006",
+      "alertType": "PortScanFromIp",
+      "scorer_response": {
+        "severity": 30,
+        "confidence": 0.45,
+        "hypothesis": "The source IP address 10.0.8.100 is scanning a subnet for open ports, but the context and frequency of this activity are unclear.",
+        "evidence": [
+          "PortScanFromIp alert",
+          "SYN scan from unusual or unmonitored host",
+          "Multiple port scans in short succession"
+        ]
+      },
+      "planner_response": {}
+    }
+  ]
+}

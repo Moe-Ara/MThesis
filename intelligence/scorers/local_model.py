@@ -6,15 +6,23 @@ from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from intelligence.core.base import Scorer
-from intelligence.core.utils import extract_json
+from intelligence.core.utils import extract_json, repair_json
 
 
 def _build_scorer_prompt(alert: Dict[str, Any]) -> str:
     return (
         "You are a SOC threat scoring assistant. "
-        "Return JSON with fields: severity (0-100 int), confidence (0-1 float), "
-        "hypothesis (string), evidence (array of strings). "
-        "Be concise and deterministic.\n\n"
+        "Return ONLY a JSON object with these fields:\n"
+        "- severity: integer 0-100 (0=benign noise, 30=low, 50=medium, 70=high, 90+=critical)\n"
+        "- confidence: float 0.0-1.0 (how certain you are in your assessment; "
+        "use >=0.70 when the alert clearly matches a known attack pattern, "
+        "0.40-0.69 when uncertain, <0.40 for likely benign/noise)\n"
+        "- hypothesis: one-sentence explanation of what is happening\n"
+        "- evidence: array of 1-3 short strings listing key indicators\n\n"
+        "IMPORTANT: confidence >= 0.60 allows automated response actions. "
+        "Only give high confidence when the alert data clearly indicates a real threat.\n"
+        "OUTPUT RULES: Return a single JSON object only. Do not include markdown. "
+        "Start with '{' and end with '}'.\n\n"
         f"Alert:\n{json.dumps(alert, ensure_ascii=False, indent=2)}\n"
     )
 
@@ -65,4 +73,4 @@ class LocalModelScorer(Scorer):
             )
         generated = outputs[0][inputs["input_ids"].shape[-1] :]
         completion = tokenizer.decode(generated, skip_special_tokens=True).strip()
-        return extract_json(completion)
+        return extract_json(completion) or repair_json(completion)

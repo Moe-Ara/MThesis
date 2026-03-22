@@ -1,7 +1,7 @@
 {
   "minConfidenceForAutonomy": 0.6,
-  "riskApprovalThreshold": 70,
-  "impactApprovalThreshold": 70,
+  "riskApprovalThreshold": 90,
+  "impactApprovalThreshold": 90,
   "maxActionsPerPlan": 6,
   "criticalAssetThreshold": 4,
   "safeLowConfidenceActions": [

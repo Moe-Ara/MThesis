@@ -1,0 +1,619 @@
+# Training Dataset Methodology
+
+## Overview
+
+This document describes the complete methodology for generating training data used to fine-tune the Foundation-Sec-8B language model for SOAR (Security Orchestration, Automation, and Response) threat scoring and response planning tasks. The pipeline transforms real-world cybersecurity data from three public sources into structured instruction-tuning examples, using an LLM-assisted generation approach to produce high-quality scorer and planner completions.
+
+## Table of Contents
+
+1. [Problem Statement](#1-problem-statement)
+2. [Why Not Pure Synthetic Data](#2-why-not-pure-synthetic-data)
+3. [Data Source Selection](#3-data-source-selection)
+4. [Source 1: MITRE ATT&CK Framework](#4-source-1-mitre-attck-framework)
+5. [Source 2: Mordor / Security-Datasets](#5-source-2-mordor--security-datasets)
+6. [Source 3: CIC-IDS2018](#6-source-3-cic-ids2018)
+7. [Alert Schema Normalization](#7-alert-schema-normalization)
+8. [LLM-Assisted Completion Generation](#8-llm-assisted-completion-generation)
+9. [Training Data Format](#9-training-data-format)
+10. [Dataset Statistics and Distribution](#10-dataset-statistics-and-distribution)
+11. [Quality Considerations](#11-quality-considerations)
+12. [Fine-Tuning Configuration](#12-fine-tuning-configuration)
+13. [Reproduction Instructions](#13-reproduction-instructions)
+
+---
+
+## 1. Problem Statement
+
+The SOAR agent requires two LLM-powered components:
+
+- **Threat Scorer**: Given a normalized security alert, produce a JSON assessment with severity (0-100), confidence (0.0-1.0), a hypothesis string, and evidence array.
+- **Response Planner**: Given an alert and its assessment, produce a JSON response plan with a strategy, prioritized actions (each with type, parameters, risk, impact), rollback actions, and rationale.
+
+Both components must output structurally valid JSON that conforms to exact schemas expected by the C# orchestration engine. The model must understand cybersecurity alert semantics, correctly map alert entities to response action parameters, and respect confidence-based gating rules (e.g., no destructive actions when confidence < 0.60).
+
+General-purpose LLMs can perform these tasks via prompting, but fine-tuning offers:
+- **Lower latency**: Smaller, faster model with task-specific knowledge baked in.
+- **Higher consistency**: Fewer schema violations, parameter name mismatches, and hallucinated entity values.
+- **Offline capability**: Local inference without cloud API dependency.
+
+## 2. Why Not Pure Synthetic Data
+
+An initial approach (see `generate_dataset.py`) produced 600 scorer + 600 planner examples using hand-coded scenario templates. This was rejected for fine-tuning because:
+
+| Problem | Impact |
+|---------|--------|
+| **Only 6 scenario types** | Model overfits to a small set of patterns and fails to generalize to novel alerts |
+| **Templated responses** | Every port scan gets the same hypothesis wording, every brute force the same plan structure |
+| **No ambiguous cases** | Real alerts often have incomplete data, overlapping indicators, or borderline severity; synthetic data was always clean |
+| **No variation in entity combinations** | Each scenario type always had the same entity fields populated; real alerts have unpredictable entity availability |
+| **Fixed severity/confidence ranges** | Each scenario type had hardcoded ranges; real-world severity is more nuanced and context-dependent |
+
+Pure synthetic data teaches the model to pattern-match templates rather than reason about security alerts. The model needs exposure to the messy, diverse, and ambiguous nature of real security telemetry.
+
+## 3. Data Source Selection
+
+Three public datasets were selected to cover complementary aspects of the cybersecurity threat landscape:
+
+| Source | What It Provides | Alert Coverage | Size Used |
+|--------|-----------------|----------------|-----------|
+| **MITRE ATT&CK** | Technique descriptions across 14 tactics, covering the full adversary lifecycle | 835 unique techniques spanning reconnaissance through impact | 835 alerts |
+| **Mordor / Security-Datasets** | Real Windows event logs from executed attack simulations (Sysmon, Security audit logs) | Credential access, lateral movement, defense evasion, persistence, execution, discovery, privilege escalation | ~1,500 alerts |
+| **CIC-IDS2018** | Labeled network flow data from a controlled intrusion detection experiment | DoS, DDoS, brute force, SQL injection, infiltration, botnet, benign noise | ~1,200 alerts |
+
+This combination was chosen because:
+
+1. **MITRE ATT&CK** provides breadth: 835 techniques across all 14 tactics ensure the model has seen the full spectrum of adversary behavior, from reconnaissance (T1595) to impact (T1485). Each technique has a rich natural-language description that grounds the alert in real threat intelligence.
+
+2. **Mordor** provides depth: These are actual event logs generated by running real attack tools (Empire, Covenant, Metasploit, PurpleSharp) against a lab Active Directory environment. The events contain real process names, command lines, registry modifications, and network connections as they actually appear in Windows telemetry.
+
+3. **CIC-IDS2018** provides network-level perspective: While MITRE and Mordor focus on host-level indicators, CIC-IDS adds network flow features (packet counts, byte rates, flag distributions) that represent how attacks manifest at the network layer.
+
+Together, these sources produce alerts that mirror what a real SOC environment would encounter: a mix of host and network telemetry, varying levels of completeness, and diverse attack categories.
+
+## 4. Source 1: MITRE ATT&CK Framework
+
+### What It Is
+
+MITRE ATT&CK (Adversarial Tactics, Techniques, and Common Knowledge) is a globally accessible knowledge base of adversary tactics and techniques based on real-world observations. The Enterprise ATT&CK matrix covers 14 tactics and 835 techniques/sub-techniques as of the version used.
+
+### Data Location
+
+```
+datasets/mitre-attack/enterprise-attack/attack-pattern/
+```
+
+Each technique is stored as a STIX 2.0 bundle JSON file containing the technique name, description, associated tactics (kill chain phases), target platforms, and external references.
+
+### Conversion Approach
+
+Each MITRE technique is converted to a SOAR alert through the following mapping:
+
+**Tactic-to-Alert-Type Mapping:**
+
+| ATT&CK Tactic | SOAR Alert Type | Severity Range | Rationale |
+|----------------|----------------|----------------|-----------|
+| Reconnaissance | PortScanFromIp | 40-65 | Recon activities map naturally to network scanning behavior |
+| Initial Access | SuspiciousProcessOnHost | 55-80 | Initial access often involves executing malicious payloads |
+| Execution | SuspiciousProcessOnHost | 60-85 | Direct process execution on endpoints |
+| Persistence | MalwareHashOnHost | 65-85 | Persistence mechanisms often involve dropping malicious files |
+| Privilege Escalation | SuspiciousProcessOnHost | 65-85 | Privilege escalation exploits run as processes |
+| Defense Evasion | SuspiciousProcessOnHost | 55-80 | Evasion techniques use LOLBins and process manipulation |
+| Credential Access | BruteForceUser | 60-85 | Credential theft directly targets user accounts |
+| Discovery | PortScanFromIp | 35-60 | Internal discovery resembles scanning behavior |
+| Lateral Movement | BruteForceUser | 65-85 | Lateral movement often involves credential reuse |
+| Collection | SuspiciousProcessOnHost | 55-75 | Data collection uses tools running as processes |
+| Command and Control | SuspiciousProcessOnHost | 70-90 | C2 channels operate through process-level beaconing |
+| Exfiltration | SuspiciousProcessOnHost | 75-95 | Exfiltration uses processes to transmit data |
+| Impact | MalwareHashOnHost | 80-95 | Destructive impact often involves ransomware/wipers |
+
+**Why this mapping matters**: The SOAR engine's action catalog is organized around entity types. A `BlockIp` action requires a `src_ip` entity, `IsolateHost` requires a `host_id`, `DisableUser` requires a `username`. By mapping tactics to alert types, we ensure the generated alerts have the right entity combinations for the model to learn correct parameter routing.
+
+**Entity generation**: For each alert type, realistic entity values are generated:
+- IP addresses use RFC 1918 private ranges (10.x.x.x, 172.16.x.x) to match corporate network patterns
+- Hostnames follow `host-NNN` convention matching the C# engine's normalization
+- Process names are drawn from a pool of 12 commonly-abused LOLBins (Living Off The Land Binaries): `powershell.exe`, `cmd.exe`, `certutil.exe`, `mshta.exe`, `wscript.exe`, `regsvr32.exe`, `rundll32.exe`, `cscript.exe`, `bitsadmin.exe`, `msiexec.exe`, `schtasks.exe`, `wmic.exe`
+
+**Raw payload enrichment**: Each alert's `rawPayload` includes the MITRE technique ID, technique name, tactic, and a truncated natural-language description. This gives the LLM rich context about what the attack actually does, enabling more nuanced scoring and planning.
+
+### Why 835 Is the Maximum
+
+MITRE ATT&CK Enterprise contains exactly 835 attack-pattern entries. Every technique with at least one kill chain phase is included. This is not a sampling limitation but a complete extraction of all available techniques.
+
+## 5. Source 2: Mordor / Security-Datasets
+
+### What It Is
+
+The Mordor project (now Security-Datasets) is a collection of pre-recorded security events generated by simulating adversary techniques in a controlled lab environment. The lab consists of a Windows Active Directory domain (THESHIRE.LOCAL) with multiple hosts, and attacks are executed using real offensive security tools.
+
+### Data Location
+
+```
+datasets/mordor/datasets/
+├── atomic/                    # Individual technique simulations
+│   ├── windows/
+│   │   ├── credential_access/ # 29 attack datasets
+│   │   ├── lateral_movement/  # 55 attack datasets
+│   │   ├── defense_evasion/   # 40 attack datasets
+│   │   ├── discovery/         # 12 attack datasets
+│   │   ├── execution/         # 4 attack datasets
+│   │   ├── persistence/       # 7 attack datasets
+│   │   └── privilege_escalation/ # 2 attack datasets
+│   ├── linux/
+│   └── aws/
+├── compound/                  # Multi-step attack campaigns
+│   ├── apt29/                 # APT29 emulation (2-day campaign)
+│   ├── Log4Shell/             # CVE-2021-44228 exploitation
+│   ├── LSASS_campaign_01-07/  # LSASS credential dumping variants
+│   └── GoldenSAMLADFSMailAccess/
+└── _extracted/                # 133 JSON files extracted from ZIPs
+```
+
+### Event Format
+
+Each Mordor JSON file contains newline-delimited JSON (NDJSON) where each line is a complete Windows event log entry. Events contain:
+
+```json
+{
+  "@timestamp": "2020-10-22T08:29:48.785Z",
+  "EventID": 1,
+  "SourceName": "Microsoft-Windows-Sysmon",
+  "Category": "Process Create (rule: ProcessCreate)",
+  "Computer": "YOURSHIRE.theshire.local",
+  "Image": "C:\\Windows\\System32\\cmd.exe",
+  "CommandLine": "cmd.exe /c whoami",
+  "ParentImage": "C:\\Windows\\System32\\powershell.exe",
+  "User": "THESHIRE\\pgustavo",
+  "Hashes": "SHA256=abc123...,MD5=def456..."
+}
+```
+
+### Conversion Approach
+
+Mordor events are mapped to SOAR alerts using two event ID mapping tables:
+
+**Sysmon Event ID Mapping:**
+
+| Event ID | Alert Type | Description |
+|----------|-----------|-------------|
+| 1 | SuspiciousProcessOnHost | Process creation |
+| 3 | PortScanFromIp | Network connection |
+| 7 | SuspiciousProcessOnHost | Image loaded (DLL) |
+| 8 | SuspiciousProcessOnHost | CreateRemoteThread (injection) |
+| 10 | SuspiciousProcessOnHost | Process access (credential dumping) |
+| 11 | MalwareHashOnHost | File created |
+| 12, 13 | SuspiciousProcessOnHost | Registry modification |
+| 15 | MalwareHashOnHost | File stream created (ADS) |
+| 22 | PortScanFromIp | DNS query |
+
+**Windows Security Event ID Mapping:**
+
+| Event ID | Alert Type | Description |
+|----------|-----------|-------------|
+| 4624 | BruteForceUser | Successful logon |
+| 4625 | BruteForceUser | Failed logon |
+| 4648 | BruteForceUser | Explicit credential logon |
+| 4672 | SuspiciousProcessOnHost | Special privileges assigned |
+| 4688 | SuspiciousProcessOnHost | Process created |
+| 4720 | BruteForceUser | User account created |
+| 4728, 4732 | BruteForceUser | Group membership change |
+| 5156 | PortScanFromIp | WFP network connection |
+
+**Entity extraction** is performed directly from event fields:
+- `srcIp`: Extracted from `SourceAddress`, `IpAddress`, or `SourceIp` fields; filtered to exclude loopback and null values
+- `hostname` / `hostId`: From the `Computer` field, split on `.` to extract short hostname
+- `username`: From `TargetUserName`, `AccountName`, or `SubjectUserName`; filtered to exclude system accounts (SYSTEM, LOCAL SERVICE, NETWORK SERVICE)
+- `processName`: From `Image` or `NewProcessName`, with path stripped to filename only
+- `fileHash`: From Sysmon `Hashes` field, parsed to extract SHA256 or MD5 values
+
+**Why Mordor is valuable**: Unlike MITRE ATT&CK (which provides descriptions), Mordor provides actual telemetry. The events contain real process command lines (`cmd.exe /c whoami`), real registry paths (`HKLM\Software\Microsoft\Windows\CurrentVersion\Run`), and real network connections. This teaches the model to recognize attack patterns as they actually appear in SIEM data, not just in theoretical descriptions.
+
+### Sampling Strategy
+
+Each Mordor JSON file can contain thousands to hundreds of thousands of events. To maintain diversity without overwhelming the dataset with events from a single simulation:
+
+- Up to 20 events are randomly sampled from each file
+- Files are shuffled before processing to ensure diverse attack categories
+- Events that lack meaningful entities (no IP, no hostname, no username) are filtered out
+- The total is capped at the `--count` parameter (default 1,500)
+
+## 6. Source 3: CIC-IDS2018
+
+### What It Is
+
+CSE-CIC-IDS2018 is a collaborative project between the Communications Security Establishment (CSE) and the Canadian Institute for Cybersecurity (CIC) to generate a systematic and comprehensive dataset for intrusion detection. The dataset was created by establishing a controlled network environment and simulating realistic attacks over a two-week period.
+
+### Data Location
+
+```
+datasets/cic-ids/
+├── Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv  # FTP/SSH Brute Force
+├── Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv   # DoS GoldenEye, Slowloris
+├── Friday-16-02-2018_TrafficForML_CICFlowMeter.csv     # DoS Hulk, SlowHTTPTest
+├── Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv   # DDoS LOIC-UDP, HOIC
+├── Friday-23-02-2018_TrafficForML_CICFlowMeter.csv      # Brute Force Web/XSS, SQL Injection
+├── Wednesday-28-02-2018_TrafficForML_CICFlowMeter.csv   # Benign baseline
+├── Thursday-01-03-2018_TrafficForML_CICFlowMeter.csv    # Infiltration
+└── csv_data/                                            # Metadata
+```
+
+### CSV Format
+
+Each CSV contains 80 columns of CICFlowMeter-extracted features for network flows:
+
+- **Flow identifiers**: Dst Port, Protocol, Timestamp
+- **Packet statistics**: Tot Fwd Pkts, Tot Bwd Pkts, packet lengths (min/max/mean/std)
+- **Byte rates**: Flow Byts/s, Flow Pkts/s, forward/backward rates
+- **Timing features**: Flow Duration, Inter-Arrival Times (IAT)
+- **TCP flags**: SYN, RST, PSH, ACK, URG, FIN, ECE flag counts
+- **Label**: Ground truth classification (Benign or attack type)
+
+### Attack Types and Mapping
+
+| CIC-IDS Label | SOAR Alert Type | Severity Range | Description |
+|---------------|----------------|----------------|-------------|
+| FTP-BruteForce | BruteForceUser | 60-80 | Automated FTP credential guessing |
+| SSH-Bruteforce | BruteForceUser | 65-85 | Automated SSH credential guessing |
+| Brute Force -Web | BruteForceUser | 55-75 | Web application login brute force |
+| Brute Force -XSS | BruteForceUser | 60-80 | XSS-assisted brute force |
+| SQL Injection | SuspiciousProcessOnHost | 70-90 | SQL injection attempts |
+| DoS attacks-Hulk | PortScanFromIp | 65-85 | HTTP flood DoS |
+| DoS attacks-Slowloris | PortScanFromIp | 60-80 | Slow-read DoS |
+| DoS attacks-SlowHTTPTest | PortScanFromIp | 60-80 | Slow HTTP header DoS |
+| DoS attacks-GoldenEye | PortScanFromIp | 65-85 | HTTP KeepAlive DoS |
+| DDoS attack-LOIC-UDP | PortScanFromIp | 70-90 | UDP flood DDoS |
+| DDoS attack-HOIC | PortScanFromIp | 70-90 | HTTP flood DDoS |
+| Infilteration | SuspiciousProcessOnHost | 70-90 | Network infiltration |
+| Benign | BenignNoise | 5-20 | Normal network traffic |
+
+### Handling Missing IP Addresses
+
+The CIC-IDS2018 processed CSVs contain flow-level statistical features but **do not include source or destination IP addresses** in the publicly available processed version. This is a known limitation of the CICFlowMeter output format.
+
+Our approach: We generate synthetic RFC 1918 IP addresses for each flow record. This is acceptable because:
+
+1. The model needs to learn the **relationship between alert type and response actions**, not to memorize specific IP addresses
+2. IP addresses serve as entity identifiers that must be correctly routed to action parameters (e.g., `src_ip` in a `BlockIp` action)
+3. The flow features (packet rates, flag counts, durations) provide the actual attack context that distinguishes malicious from benign traffic
+
+### Sampling Strategy
+
+CIC-IDS CSVs contain hundreds of thousands of rows each. The sampling strategy:
+
+1. **All CSVs are read** and attack/benign rows are collected separately
+2. **Attack rows are prioritized**: 80% of the target count comes from attack-labeled flows
+3. **Benign rows are subsampled** at 3% to maintain class balance without drowning the dataset
+4. **Rows are shuffled** across all CSV files to mix attack types
+5. This ensures the final CIC-IDS contribution includes DoS, DDoS, brute force, SQL injection, and infiltration in roughly proportional representation
+
+## 7. Alert Schema Normalization
+
+All three data sources are normalized into a unified SOAR alert schema that matches the C# engine's `NormalizedAlert` structure:
+
+```json
+{
+  "sourceSiem": "mitre-attack | mordor | cic-ids",
+  "alertId": "unique hex string",
+  "type": "PortScanFromIp | BruteForceUser | MalwareHashOnHost | SuspiciousProcessOnHost | BenignNoise",
+  "ruleName": "source-specific rule identifier",
+  "severity": 0-100,
+  "entities": {
+    "srcIp": "10.x.x.x (if available)",
+    "hostId": "host-NNN (if available)",
+    "hostname": "full hostname (if available)",
+    "username": "user account (if available)",
+    "processName": "executable name (if available)",
+    "fileHash": "SHA256/MD5 hash (if available)"
+  },
+  "rawPayload": {
+    "source-specific fields providing context"
+  }
+}
+```
+
+**Why normalization matters**: The C# PolicyEngine validates actions by checking that required entity parameters are present. For example, a `BlockIp` action requires `src_ip`, an `IsolateHost` action requires `host_id`. If the training data teaches the model to propose `BlockIp` without including `src_ip` in the parameters, the PolicyEngine will deny the action. Consistent normalization ensures the model learns the correct entity-to-parameter mapping.
+
+**Entity availability varies by source:**
+- MITRE alerts always have entities matching their type (by construction)
+- Mordor alerts have entities extracted from real event fields (may be incomplete)
+- CIC-IDS alerts always have `srcIp` (synthetic) and sometimes `username` (for brute force)
+
+This natural variation teaches the model to handle incomplete entity data gracefully — proposing only the actions for which it has the required parameters.
+
+## 8. LLM-Assisted Completion Generation
+
+### Why Use an LLM Instead of Templates
+
+The earlier synthetic generator used hardcoded response templates. Every port scan got the same hypothesis wording and the same plan structure. This creates two problems:
+
+1. **Vocabulary collapse**: The model learns a handful of fixed phrases rather than developing the ability to articulate novel assessments
+2. **Missing reasoning**: Templates don't capture the relationship between specific alert details and the assessment. A port scan with 500 attempts should score differently from one with 50 attempts, but templates don't encode this logic
+
+By using an LLM (BaronLLM, a Llama 3.1 8B model fine-tuned on cybersecurity data) to generate completions, each training example gets:
+- **Contextual scoring**: Severity and confidence reflect the specific alert details
+- **Varied vocabulary**: Hypotheses and rationale use diverse phrasing
+- **Reasoned planning**: Action selection and parameter values respond to entity availability
+
+### Generation Pipeline
+
+For each normalized alert, the pipeline:
+
+1. **Builds a scorer prompt** using the production prompt template (identical to `intelligence/scorers/local_model.py::_build_scorer_prompt`). This includes the severity scale, confidence calibration guidelines, and the full alert JSON.
+
+2. **Calls Ollama** (`baron-security` model) via `/api/chat` with temperature=0.3 (low temperature for consistent, structured output) and 4096 context tokens.
+
+3. **Extracts and validates the scorer JSON**: Must contain `severity` (int 0-100), `confidence` (float 0-1), `hypothesis` (string), and `evidence` (array). Alerts that fail extraction or validation are discarded.
+
+4. **Builds a planner prompt** using the production prompt template (identical to `intelligence/planners/local_model.py::_build_planner_prompt`). This includes:
+   - The response JSON schema
+   - The action catalog with exact parameter key names per action type
+   - The entity availability from the alert
+   - Confidence-based rules (no destructive actions when confidence < 0.60)
+   - The alert and the scorer's assessment
+
+5. **Calls Ollama** again for the planner completion.
+
+6. **Extracts and validates the planner JSON**: Must contain `planId`, `strategy`, and `actions`. Alerts that fail are discarded.
+
+7. **Assembles training examples** in `{prompt, completion}` JSONL format with metadata fields for provenance tracking.
+
+### Why BaronLLM
+
+BaronLLM (AlicanKiraz0/Cybersecurity-BaronLLM) is a Llama 3.1 8B model that has been further pre-trained on cybersecurity-specific corpora. It was chosen as the completion generator because:
+
+- It runs locally via Ollama, requiring no API keys or cloud infrastructure
+- Its cybersecurity pre-training produces more realistic and technically accurate assessments than a general-purpose model
+- At 6.6GB (Q6_K quantization), it fits comfortably in VRAM alongside other workloads
+- It uses the Llama 3.1 Instruct chat template, matching the target fine-tuning format
+
+### Prompt Fidelity
+
+A critical design decision: **the prompts used for training data generation are identical to the prompts used in production inference.** This is implemented by importing the same prompt-building functions used by the production scorer and planner.
+
+This ensures the model is trained on exactly the same instruction format it will see at inference time, eliminating distribution shift between training and deployment.
+
+## 9. Training Data Format
+
+The pipeline outputs two JSONL files:
+
+### Scorer Training Data (`real_scorer_train.jsonl`)
+
+```json
+{
+  "prompt": "You are a SOC threat scoring assistant. Return ONLY a JSON object with these fields:\n- severity: integer 0-100...\n\nAlert:\n{...}",
+  "completion": "{\"severity\": 72, \"confidence\": 0.81, \"hypothesis\": \"Port scanning activity detected...\", \"evidence\": [\"src_ip=10.45.12.3\", \"sequential port probing\", \"500+ connection attempts\"]}",
+  "source": "mitre-attack",
+  "alert_type": "PortScanFromIp",
+  "technique_id": "T1046"
+}
+```
+
+### Planner Training Data (`real_planner_train.jsonl`)
+
+```json
+{
+  "prompt": "You are a SOC response planner. Return ONLY a JSON object matching this schema:\n{...}\n\nACTION TYPES AND THEIR REQUIRED PARAMETER KEYS:\n...\n\nAlert:\n{...}\n\nAssessment:\n{...}",
+  "completion": "{\"planId\": \"portScan_a1b2c3d4\", \"strategy\": \"Contain\", \"priority\": 65, \"summary\": \"Block scanning IP...\", \"actions\": [...]}",
+  "source": "mitre-attack",
+  "alert_type": "PortScanFromIp",
+  "technique_id": "T1046"
+}
+```
+
+### Compatibility with Training Script
+
+The `train_soar.py` script reads `prompt` and `completion` fields from JSONL and wraps them in the Llama 3.1 Instruct chat template:
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+You are a cybersecurity SOC analyst assistant. You respond only with valid JSON matching the requested schema.<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+{completion}<|eot_id|>
+```
+
+The metadata fields (`source`, `alert_type`, `technique_id`) are ignored by the training script but preserved for dataset analysis and provenance tracking.
+
+## 10. Dataset Statistics and Distribution
+
+With `--count 1500`, the pipeline produces approximately **3,500 alerts** total:
+
+### By Source
+
+| Source | Count | Percentage |
+|--------|-------|------------|
+| MITRE ATT&CK | 835 | ~24% |
+| Mordor | ~1,500 | ~43% |
+| CIC-IDS2018 | ~1,200 | ~34% |
+
+### By Alert Type
+
+| Alert Type | Count | Actions Learned |
+|------------|-------|-----------------|
+| SuspiciousProcessOnHost | ~1,800 | KillProcess, IsolateHost, CollectForensics |
+| PortScanFromIp | ~1,400 | BlockIp, OpenTicket, Notify |
+| MalwareHashOnHost | ~160 | QuarantineFile, IsolateHost, CollectForensics |
+| BruteForceUser | ~114 | DisableUser, BlockIp, Notify |
+| BenignNoise | ~40 | OpenTicket (low-confidence, no destructive actions) |
+
+### By MITRE ATT&CK Tactic (MITRE source only)
+
+All 14 Enterprise ATT&CK tactics are represented:
+- Reconnaissance, Discovery (network scanning patterns)
+- Initial Access, Execution (process-based threats)
+- Persistence, Impact (malware-based threats)
+- Credential Access, Lateral Movement (authentication attacks)
+- Defense Evasion, Privilege Escalation, Collection, C2, Exfiltration (process-based threats)
+
+### By Mordor Attack Category
+
+| Category | ZIP Files | Description |
+|----------|-----------|-------------|
+| credential_access | 29 | Mimikatz, LSASS dumps, Kerberoasting, credential vault access |
+| lateral_movement | 55 | WMI, PSExec, RDP, DCOM, SMB-based movement |
+| defense_evasion | 40 | Process hollowing, DLL side-loading, event log clearing |
+| discovery | 12 | AD enumeration, network discovery, permission checks |
+| execution | 4 | PowerShell, scheduled tasks, WMI execution |
+| persistence | 7 | Registry run keys, scheduled tasks, logon scripts |
+| privilege_escalation | 2 | UAC bypass, service manipulation |
+
+### By CIC-IDS Attack Type
+
+| Attack | Day | Rows Available |
+|--------|-----|---------------|
+| FTP-BruteForce | Wed 14 Feb | 199,735 |
+| SSH-Bruteforce | Wed 14 Feb | (included above) |
+| DoS GoldenEye | Thu 15 Feb | 41,508 |
+| DoS Slowloris | Thu 15 Feb | 10,990 |
+| DoS Hulk | Fri 16 Feb | ~100,000 |
+| DoS SlowHTTPTest | Fri 16 Feb | ~58,000 |
+| DDoS LOIC-UDP | Wed 21 Feb | ~100,000 |
+| DDoS HOIC | Wed 21 Feb | ~97,000 |
+| Brute Force Web/XSS | Fri 23 Feb | 566 |
+| SQL Injection | Fri 23 Feb | (included above) |
+| Infilteration | Thu 01 Mar | 54,311 |
+
+## 11. Quality Considerations
+
+### Strengths
+
+1. **Real attack patterns**: Mordor events come from actual attack tool execution, not simulated approximations
+2. **MITRE ATT&CK grounding**: Every technique is backed by real-world threat intelligence documentation
+3. **Diverse entity combinations**: Alerts naturally vary in which entities are present, teaching the model to adapt its plans
+4. **Production-identical prompts**: Zero distribution shift between training and inference
+5. **Validated outputs**: Scorer and planner completions are JSON-validated before inclusion
+
+### Known Limitations
+
+1. **CIC-IDS2018 lacks IP addresses**: Synthetic IPs are generated, which means the model doesn't learn from real network topology
+2. **BaronLLM completion quality**: The generator model may occasionally produce suboptimal assessments; human review of a sample is recommended before training
+3. **Type distribution imbalance**: SuspiciousProcessOnHost dominates (~50%) because most ATT&CK techniques and Mordor events involve process-level activity; this reflects real-world distribution but may bias the model
+4. **No multi-alert correlation**: Each training example is a single alert in isolation; real SOC environments correlate multiple alerts, which this dataset doesn't capture
+5. **Limited benign examples**: Only ~1% of the dataset is benign/noise, which may cause the model to over-classify alerts as threats
+
+### Recommended Mitigations
+
+- **Human review**: Sample 50-100 training examples and manually verify the scorer assessments and planner actions are reasonable
+- **Data augmentation**: Run the pipeline with different random seeds to generate additional diverse examples
+- **Held-out evaluation**: Reserve 10% of the data for evaluation; measure schema compliance, parameter correctness, and confidence calibration
+
+## 12. Fine-Tuning Configuration
+
+The generated dataset feeds into `train_soar.py` which uses QLoRA (Quantized Low-Rank Adaptation) on Foundation-Sec-8B:
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| Base model | fdtn-ai/Foundation-Sec-8B | Llama 3.1 8B pre-trained on 5.1B tokens of cybersecurity data |
+| Quantization | 4-bit NF4 with double quantization | Fits in 16GB VRAM (RTX 5070 Ti) |
+| LoRA rank | 16 | Good balance of capacity vs. efficiency for structured output |
+| LoRA alpha | 32 (2x rank) | Standard scaling factor |
+| Target modules | q, k, v, o, gate, up, down projections | All attention + MLP layers for maximum task adaptation |
+| Learning rate | 2e-4 | Standard for QLoRA on 8B models |
+| Batch size | 2 (effective 16 with gradient accumulation) | Fits VRAM constraints |
+| Epochs | 3 | Sufficient for 3,500 examples; more risks overfitting |
+| Max sequence length | 2048 tokens | Covers all prompt+completion pairs |
+
+### Post-Training Export
+
+After LoRA training, the adapter is merged into the base model and exported to GGUF format for Ollama deployment via `export_to_ollama.py`:
+
+1. Merge LoRA weights into Foundation-Sec-8B (CPU, float16)
+2. Convert merged model to GGUF with Q6_K quantization
+3. Create Ollama Modelfile with Llama 3.1 chat template
+4. Register the model with Ollama for local inference
+
+## 13. Reproduction Instructions
+
+### Prerequisites
+
+- Python 3.10+ with packages: `requests`, `boto3`
+- Ollama running with `baron-security` model loaded
+- ~2GB disk space for datasets, ~1GB for generated training data
+
+### Step 1: Download Datasets
+
+Datasets should already be present in `datasets/`. If not:
+
+```bash
+# MITRE ATT&CK
+git clone --depth 1 https://github.com/mitre-attack/attack-stix-data.git datasets/mitre-attack
+
+# Mordor
+git clone --depth 1 https://github.com/OTRF/Security-Datasets.git datasets/mordor
+
+# Extract Mordor ZIPs (run the extraction script or manually unzip)
+
+# CIC-IDS2018 (requires boto3)
+pip install boto3
+python -c "
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
+s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED), region_name='us-east-1')
+files = [
+    'Processed Traffic Data for ML Algorithms/Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv',
+    'Processed Traffic Data for ML Algorithms/Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv',
+    'Processed Traffic Data for ML Algorithms/Friday-16-02-2018_TrafficForML_CICFlowMeter.csv',
+    'Processed Traffic Data for ML Algorithms/Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv',
+    'Processed Traffic Data for ML Algorithms/Friday-23-02-2018_TrafficForML_CICFlowMeter.csv',
+    'Processed Traffic Data for ML Algorithms/Thursday-01-03-2018_TrafficForML_CICFlowMeter.csv',
+]
+for f in files:
+    fname = f.split('/')[-1]
+    print(f'Downloading {fname}...')
+    s3.download_file('cse-cic-ids2018', f, f'datasets/cic-ids/{fname}')
+"
+```
+
+### Step 2: Generate Alerts (Dry Run)
+
+```bash
+python -m intelligence.training.generate_from_real_data --count 1500 --skip-ollama
+```
+
+Review the generated alerts in `intelligence/training/data/real_alerts.jsonl`.
+
+### Step 3: Generate Training Data
+
+```bash
+python -m intelligence.training.generate_from_real_data --count 1500
+```
+
+This takes approximately 6-8 hours depending on GPU and Ollama performance.
+
+### Step 4: Train the Model
+
+```bash
+# Scorer
+python -m intelligence.training.train_soar \
+    --task scorer \
+    --data intelligence/training/data/real_scorer_train.jsonl \
+    --output models/foundation-sec-scorer-lora
+
+# Planner
+python -m intelligence.training.train_soar \
+    --task planner \
+    --data intelligence/training/data/real_planner_train.jsonl \
+    --output models/foundation-sec-planner-lora
+```
+
+### Step 5: Export to Ollama
+
+```bash
+python -m intelligence.training.export_to_ollama \
+    --adapter models/foundation-sec-scorer-lora \
+    --output models/foundation-sec-scorer-gguf \
+    --ollama-name foundation-sec-scorer
+```
+
+---
+
+## References
+
+1. MITRE ATT&CK: https://attack.mitre.org/
+2. Mordor / Security-Datasets: https://securitydatasets.com/
+3. CSE-CIC-IDS2018: https://www.unb.ca/cic/datasets/ids-2018.html
+4. Foundation-Sec-8B: https://huggingface.co/fdtn-ai/Foundation-Sec-8B
+5. BaronLLM: https://huggingface.co/AlicanKiraz0/Cybersecurity-BaronLLM_Offensive_Security_LLM_Q6_K_GGUF
+6. QLoRA: Dettmers et al., "QLoRA: Efficient Finetuning of Quantized Language Models" (2023)

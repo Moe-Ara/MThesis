@@ -1,0 +1,48 @@
+flowchart LR
+  subgraph Sources[Event Sources]
+    SIEM[SIEM APIs and Webhooks]
+    Replay[Replay Script]
+  end
+
+  subgraph Core[Core Engine DotNet]
+    Ingest[Event Ingestion]
+    Norm[Normalization]
+    Enrich[Enrichment Providers]
+    Policy[Policy Engine]
+    Exec[Execution Pipeline]
+    Audit[Audit Logger]
+    Case[Case Manager]
+  end
+
+  subgraph Intel[Intelligence Service FastAPI]
+    Score[POST v1 score]
+    Plan[POST v1 plan]
+    Registry[Model Registry]
+  end
+
+  subgraph Stores[State and Evidence]
+    JSONL[(audit.jsonl)]
+    SQLite[(cases.db)]
+    Trace[(demo_trace.json)]
+    Assets[(assets identities TI)]
+  end
+
+  SIEM --> Ingest
+  Replay --> Ingest
+  Ingest --> Norm --> Enrich
+  Enrich --> Score --> Plan --> Policy
+  Registry -. selects .-> Score
+  Registry -. selects .-> Plan
+
+  Policy -->|Approved| Exec
+  Policy -->|Pending or Denied| Audit
+
+  Exec --> Audit
+  Policy --> Audit
+  Audit --> JSONL
+  Audit --> Trace
+
+  Policy --> Case
+  Exec --> Case
+  Case --> SQLite
+  Assets --> Enrich

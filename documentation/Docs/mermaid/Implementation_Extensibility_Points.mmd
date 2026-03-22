@@ -1,0 +1,36 @@
+flowchart LR
+  subgraph Contracts[Stable Contracts]
+    I1[ISiemConnector]
+    I2[INormalizationPipeline]
+    I3[IThreatScorer]
+    I4[IPlanner]
+    I5[IExecutionPipeline]
+    I6[IAuditLogger]
+    I7[ICaseManager]
+  end
+
+  subgraph DefaultImpl[Default Implementations]
+    D1[Wazuh or Sentinel Connector]
+    D2[Normalization Pipeline]
+    D3[HTTP Threat Scorer Client]
+    D4[HTTP Planner Client]
+    D5[Execution Pipeline]
+    D6[JSONL Audit Logger]
+    D7[SQLite Case Manager]
+  end
+
+  subgraph Replaceable[Replaceable Without Orchestrator Rewrite]
+    R1[New SIEM Connector]
+    R2[New Enricher]
+    R3[New Model Backend]
+    R4[New Executor Set]
+    R5[New Audit Sink]
+  end
+
+  I1 --> D1 --> R1
+  I2 --> D2 --> R2
+  I3 --> D3 --> R3
+  I4 --> D4 --> R3
+  I5 --> D5 --> R4
+  I6 --> D6 --> R5
+  I7 --> D7

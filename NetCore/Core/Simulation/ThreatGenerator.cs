@@ -16,7 +16,9 @@ public sealed class ThreatGenerator : IThreatGenerator
 
         for (var i = 0; i < config.Count; i++)
         {
-            var scenarioType = PickScenario(scenarios, rng);
+            var scenarioType = !string.IsNullOrWhiteSpace(config.ForceScenario)
+                ? config.ForceScenario!
+                : PickScenario(scenarios, rng);
             var threat = ScenarioTemplates.Create(scenarioType, rng);
             threats.Add(threat);
         }
@@ -46,6 +48,7 @@ public sealed class ThreatGenerator : IThreatGenerator
                 ScenarioTemplates.BruteForceUser,
                 ScenarioTemplates.MalwareHashOnHost,
                 ScenarioTemplates.SuspiciousProcessOnHost,
+                ScenarioTemplates.LateralMovementPowerShell,
                 ScenarioTemplates.BenignNoise
             });
         }

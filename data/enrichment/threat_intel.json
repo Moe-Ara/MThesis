@@ -1,16 +1,23 @@
 [
   {
-    "srcIp": "10.0.10.10",
+    "srcIp": "185.220.101.47",
     "fileHash": null,
-    "reputationScore": 85,
-    "source": "local-ti",
-    "tags": [ "scanner", "botnet" ]
+    "reputationScore": 95,
+    "source": "AbuseIPDB",
+    "tags": ["tor-exit-node", "brute-force", "credential-stuffing", "scanner"]
   },
   {
     "srcIp": null,
-    "fileHash": "deadbeef",
-    "reputationScore": 95,
-    "source": "local-ti",
-    "tags": [ "malware" ]
+    "fileHash": "d41d8cd98f00b204e9800998ecf8427e",
+    "reputationScore": 100,
+    "source": "VirusTotal",
+    "tags": ["trojan", "ransomware-dropper", "malware", "Trojan.GenericKD"]
+  },
+  {
+    "srcIp": "192.168.10.45",
+    "fileHash": null,
+    "reputationScore": 0,
+    "source": "internal",
+    "tags": ["internal", "corporate-network"]
   }
 ]

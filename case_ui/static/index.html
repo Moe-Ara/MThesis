@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Case Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Case Dashboard</p>
+          <h1>Incident cases, live from SQLite</h1>
+          <p class="sub">
+            Lightweight case manager view powered by the SIEM engine.
+          </p>
+        </div>
+        <div class="stats">
+          <div class="stat-card">
+            <span>Total</span>
+            <strong id="statTotal">--</strong>
+          </div>
+          <div class="stat-card">
+            <span>Open</span>
+            <strong id="statOpen">--</strong>
+          </div>
+          <div class="stat-card">
+            <span>In Progress</span>
+            <strong id="statInProgress">--</strong>
+          </div>
+          <div class="stat-card">
+            <span>Closed</span>
+            <strong id="statClosed">--</strong>
+          </div>
+          <div class="stat-card">
+            <span>False Positive</span>
+            <strong id="statFalsePositive">--</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="panel cases-panel">
+          <div class="panel-header">
+            <h2>Cases</h2>
+            <div class="panel-actions">
+              <button id="refreshBtn" class="btn">Refresh</button>
+            </div>
+          </div>
+          <div class="table">
+            <div class="table-row header">
+              <span>Case</span>
+              <span>Status</span>
+              <span>Severity</span>
+              <span>Updated</span>
+            </div>
+            <div id="caseList" class="table-body"></div>
+          </div>
+          <div id="caseEmpty" class="empty">
+            No cases found. Run the demo pipeline to create one.
+          </div>
+        </div>
+
+        <div class="panel detail-panel">
+          <div class="panel-header">
+            <h2>Case Detail</h2>
+            <span id="caseStatusBadge" class="badge neutral">--</span>
+          </div>
+          <div class="panel-body">
+            <div class="meta-grid">
+              <div class="meta-item">
+                <span class="label">Case ID</span>
+                <span id="caseId" class="mono">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Correlation ID</span>
+                <span id="caseCorrelation" class="mono">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Alert Key</span>
+                <span id="caseAlertKey" class="mono">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Severity</span>
+                <span id="caseSeverity">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Created</span>
+                <span id="caseCreated">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Updated</span>
+                <span id="caseUpdated">--</span>
+              </div>
+            </div>
+            <div class="summary-block">
+              <span class="label">Summary</span>
+              <p id="caseSummary" class="summary-text">--</p>
+            </div>
+            <div class="events-block">
+              <div class="events-header">
+                <h3>Case Events</h3>
+                <span id="eventCount" class="mono">0 events</span>
+              </div>
+              <div id="eventList" class="event-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span class="mono">CASE_UI_PORT</span>
+        <span>.</span>
+        <span id="lastUpdated">Awaiting data</span>
+      </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

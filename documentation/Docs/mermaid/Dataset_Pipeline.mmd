@@ -1,0 +1,38 @@
+flowchart LR
+  subgraph Inputs[Dataset Inputs]
+    ATTACK[MITRE ATTACK STIX]
+    Mordor[Mordor Security Datasets]
+    CIC[CIC IDS 2018]
+    DARPA[DARPA TC]
+    Synth[Synthetic Generator]
+  end
+
+  subgraph Build[Dataset Builder]
+    Map[Schema Mapping]
+    Label[Label and Severity Calibration]
+    Balance[Action Balancing]
+    Format[Prompt and Completion Formatting]
+  end
+
+  subgraph Train[Training and Selection]
+    Scorer[Scorer Candidates]
+    Planner[Planner Candidates]
+    Eval[Evaluation and Error Analysis]
+    Select[Final Models]
+  end
+
+  subgraph Deploy[Inference Artefacts]
+    Registry[(Model Registry Profiles)]
+    Service[Intelligence Service]
+  end
+
+  ATTACK --> Map
+  Mordor --> Map
+  CIC --> Map
+  DARPA --> Map
+  Synth --> Map
+
+  Map --> Label --> Balance --> Format
+  Format --> Scorer --> Eval
+  Format --> Planner --> Eval
+  Eval --> Select --> Registry --> Service

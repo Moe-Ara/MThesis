@@ -10,6 +10,7 @@ public sealed record ThreatGenConfig(
     bool DryRun,
     bool IncludeEdgeCases,
     Dictionary<string, int> ScenarioWeights,
+    string? ForceScenario,
     bool UsePythonScorer,
     TimeSpan ActionTimeout,
     bool StopOnFailure

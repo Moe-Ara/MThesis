@@ -10,6 +10,7 @@ public static class ScenarioTemplates
     public const string BruteForceUser = "BruteForceUser";
     public const string MalwareHashOnHost = "MalwareHashOnHost";
     public const string SuspiciousProcessOnHost = "SuspiciousProcessOnHost";
+    public const string LateralMovementPowerShell = "LateralMovementPowerShell";
     public const string BenignNoise = "BenignNoise";
     public const string EdgeMissingParams = "EdgeMissingParams";
     public const string EdgeMalformedAlert = "EdgeMalformedAlert";
@@ -23,6 +24,7 @@ public static class ScenarioTemplates
             BruteForceUser => BuildBruteForce(scenarioId, rng),
             MalwareHashOnHost => BuildMalwareHash(scenarioId, rng),
             SuspiciousProcessOnHost => BuildSuspiciousProcess(scenarioId, rng),
+            LateralMovementPowerShell => BuildLateralMovementPowerShell(scenarioId, rng),
             BenignNoise => BuildBenignNoise(scenarioId, rng),
             EdgeMissingParams => BuildEdgeMissingParams(scenarioId, rng),
             EdgeMalformedAlert => BuildEdgeMalformedAlert(scenarioId),
@@ -91,6 +93,41 @@ public static class ScenarioTemplates
         return BuildThreat(id, SuspiciousProcessOnHost, "malicious", payload, expected: new Dictionary<string, string>
         {
             ["scenario_type"] = SuspiciousProcessOnHost
+        });
+    }
+
+    private static GeneratedThreat BuildLateralMovementPowerShell(string id, Random rng)
+    {
+        var hostId = $"host-{rng.Next(100, 999)}";
+        var hostname = $"workstation-{rng.Next(10, 99)}";
+        var username = $"user{rng.Next(1, 50)}";
+        var srcIp = $"10.10.{rng.Next(1, 255)}.{rng.Next(1, 255)}";
+        var dstIp = $"10.20.{rng.Next(1, 255)}.{rng.Next(1, 255)}";
+        var payload = new Dictionary<string, object?>
+        {
+            ["host_id"] = hostId,
+            ["hostname"] = hostname,
+            ["username"] = username,
+            ["user_id"] = $"u-{rng.Next(1000, 9999)}",
+            ["domain"] = "corp.local",
+            ["src_ip"] = srcIp,
+            ["dst_ip"] = dstIp,
+            ["dst_port"] = 5985,
+            ["process_name"] = "powershell.exe",
+            ["process_path"] = @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+            ["command_line"] = $"powershell.exe -NoP -W Hidden -Enc {Guid.NewGuid():N}",
+            ["parent_process"] = "wsmprovhost.exe",
+            ["EventID"] = 4688,
+            ["logon_type"] = 3,
+            ["technique_id"] = "T1021.006",
+            ["tactic"] = "lateral-movement",
+            ["tool"] = "WinRM",
+            ["attempts"] = rng.Next(1, 5)
+        };
+
+        return BuildThreat(id, LateralMovementPowerShell, "malicious", payload, expected: new Dictionary<string, string>
+        {
+            ["scenario_type"] = LateralMovementPowerShell
         });
     }
 

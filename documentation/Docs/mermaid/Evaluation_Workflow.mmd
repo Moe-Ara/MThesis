@@ -1,0 +1,35 @@
+flowchart LR
+  subgraph Data[Data and Split]
+    DS[Full Dataset 8644]
+    SPLIT[Train Test Split 90 10]
+    TRAIN[Train 7779]
+    TEST[Test 865]
+  end
+
+  subgraph Models[Model Evaluation]
+    SC[Scorer Pipeline]
+    PL[Planner Pipeline]
+    POL[Policy Rules Check]
+  end
+
+  subgraph Metrics[Reported Outputs]
+    M1[Severity Accuracy and MAE]
+    M2[Strategy Accuracy and Action F1]
+    M3[Scenario Walkthrough Results]
+  end
+
+  DS --> SPLIT
+  SPLIT --> TRAIN
+  SPLIT --> TEST
+
+  TRAIN --> SC
+  TRAIN --> PL
+  TEST --> SC
+  TEST --> PL
+  TEST --> POL
+
+  SC --> M1
+  PL --> M2
+  POL --> M3
+  SC --> M3
+  PL --> M3

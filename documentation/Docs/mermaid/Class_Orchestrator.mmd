@@ -1,0 +1,32 @@
+classDiagram
+  class AgentOrchestrator {
+    +RunCycleAsync()
+    +HandleAlertAsync(raw)
+  }
+  class ISiemConnector
+  class INormalizationPipeline
+  class IThreatScorer
+  class IPlanner
+  class PolicyEngine
+  class IExecutionPipeline
+  class IAuditLogger
+  class ICaseManager
+
+  class HttpThreatScorerClient
+  class HttpPlannerClient
+  class ExecutionPipeline
+  class JsonlFileAuditLogger
+
+  AgentOrchestrator --> ISiemConnector
+  AgentOrchestrator --> INormalizationPipeline
+  AgentOrchestrator --> IThreatScorer
+  AgentOrchestrator --> IPlanner
+  AgentOrchestrator --> PolicyEngine
+  AgentOrchestrator --> IExecutionPipeline
+  AgentOrchestrator --> IAuditLogger
+  AgentOrchestrator --> ICaseManager
+
+  IThreatScorer <|.. HttpThreatScorerClient
+  IPlanner <|.. HttpPlannerClient
+  IExecutionPipeline <|.. ExecutionPipeline
+  IAuditLogger <|.. JsonlFileAuditLogger

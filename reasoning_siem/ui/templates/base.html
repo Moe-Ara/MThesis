@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reasoning SIEM</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <script src="/static/js/app.js" defer></script>
+</head>
+<body>
+    <div class="ambient"></div>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">RS</div>
+            <div>
+                <div class="brand-title">Reasoning SIEM</div>
+                <div class="brand-subtitle">Adaptive correlation and analyst loop</div>
+            </div>
+        </div>
+        <nav class="nav">
+            <a href="/ui/triage">Triage</a>
+            <a href="/ui/learning">Learning &amp; Audit</a>
+        </nav>
+    </header>
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
+
+

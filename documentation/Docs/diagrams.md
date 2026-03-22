@@ -1,3 +1,25 @@
+Mermaid source files for thesis diagrams live in `documentation/Docs/mermaid/` and are rendered to `ThesisDraft/Figures/Diagrams/`.
+
+Render all current diagrams:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File documentation/Docs/mermaid/render_mermaid.ps1
+```
+
+Generated diagram set:
+- `Architecture_Overview`
+- `Class_Orchestrator`
+- `Class_Domain_Model`
+- `Sequence_Execution_and_Rollback`
+- `Dataset_Pipeline`
+- `Requirements_Traceability`
+- `Evaluation_Workflow`
+- `SIEM_Traditional_SOAR`
+- `SIEM_Thesis_Plugin_Structure`
+- `Contribution_Delta_Map`
+- `Implementation_Runtime_Boundary`
+- `Implementation_Extensibility_Points`
+
 High-level architecture (Mermaid)
 
 ```mermaid

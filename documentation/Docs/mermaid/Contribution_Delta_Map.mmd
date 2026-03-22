@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph Base[Typical SIEM or SOAR Baseline]
+    B1[Rule Correlation and Alerting]
+    B2[Static Playbooks]
+    B3[Manual Analyst Driven Decisions]
+    B4[Limited Decision Explainability]
+  end
+
+  subgraph Contribution[This Thesis Contribution]
+    C1[Multi SIEM Normalization Layer]
+    C2[Hybrid Intelligence Scoring]
+    C3[Structured Planner with Entity Safe Actions]
+    C4[Local Deterministic Policy Guardrail]
+    C5[End to End Audit and Demo Trace]
+  end
+
+  B1 --> C1
+  B2 --> C3
+  B3 --> C2
+  B3 --> C4
+  B4 --> C5
+
+  C1 --> C2 --> C3 --> C4 --> C5

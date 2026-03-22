@@ -29,28 +29,40 @@ public sealed class HttpThreatScorerClient : IThreatScorer
 
         var correlationId = ResolveCorrelationId(enrichedAlert);
         var url = $"{_options.BaseUrl.TrimEnd('/')}/v1/score";
+        var modelProfile = _options.ModelProfile;
 
         var payload = new
         {
             correlationId,
+            modelProfile,
             alert = new
             {
                 sourceSiem = enrichedAlert.Base.SourceSiem,
                 alertId = enrichedAlert.Base.AlertId,
                 type = enrichedAlert.Base.AlertType,
+                ruleName = enrichedAlert.Base.RuleName,
                 timestampUtc = enrichedAlert.Base.TimestampUtc.ToString("O"),
                 entities = new
                 {
                     hostId = enrichedAlert.Base.Entities.HostId,
+                    hostname = enrichedAlert.Base.Entities.Hostname,
                     username = enrichedAlert.Base.Entities.Username,
+                    userId = enrichedAlert.Base.Entities.UserId,
                     srcIp = enrichedAlert.Base.Entities.SrcIp,
+                    dstIp = enrichedAlert.Base.Entities.DstIp,
+                    domain = enrichedAlert.Base.Entities.Domain,
+                    processName = enrichedAlert.Base.Entities.ProcessName,
+                    processPath = enrichedAlert.Base.Entities.ProcessPath,
                     fileHash = enrichedAlert.Base.Entities.FileHash
                 },
+                rawPayload = enrichedAlert.Base.RawPayload,
                 context = new
                 {
                     environment = enrichedAlert.Context.Asset?.Environment ?? "unknown",
                     assetCriticality = enrichedAlert.Context.Asset?.Criticality ?? 0,
-                    privileged = enrichedAlert.Context.Identity?.Privileged ?? false
+                    privileged = enrichedAlert.Context.Identity?.Privileged ?? false,
+                    tiReputationScore = enrichedAlert.Context.ThreatIntel?.ReputationScore ?? 0,
+                    tiTags = (IEnumerable<string>)(enrichedAlert.Context.ThreatIntel?.Matches ?? Array.Empty<string>())
                 }
             }
         };
@@ -111,12 +123,16 @@ public sealed class HttpThreatScorerClient : IThreatScorer
     {
         var baseUrl = Environment.GetEnvironmentVariable("THREAT_SCORER_BASEURL") ?? options.BaseUrl;
         var apiKey = Environment.GetEnvironmentVariable("THREAT_SCORER_API_KEY") ?? options.ApiKey;
+        var modelProfile = Environment.GetEnvironmentVariable("THREAT_SCORER_MODEL_PROFILE")
+                           ?? Environment.GetEnvironmentVariable("INTEL_MODEL_PROFILE")
+                           ?? Environment.GetEnvironmentVariable("INTEL_ACTIVE_PROFILE")
+                           ?? options.ModelProfile;
         var timeoutRaw = Environment.GetEnvironmentVariable("THREAT_SCORER_TIMEOUT_SECONDS");
         var timeout = options.TimeoutSeconds;
         if (int.TryParse(timeoutRaw, out var parsed))
             timeout = parsed;
 
-        return new ThreatScorerApiOptions(baseUrl, apiKey, timeout);
+        return new ThreatScorerApiOptions(baseUrl, apiKey, timeout, modelProfile);
     }
 
     private sealed record ScorerResponse(

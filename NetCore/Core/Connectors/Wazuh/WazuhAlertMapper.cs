@@ -18,15 +18,72 @@ public sealed class WazuhAlertMapper : IAlertMapper
         var entities = ExtractEntities(payload);
         var severity = NormalizeSeverity(raw.OriginalSeverity, payload);
 
+        // Map Wazuh rule groups to a recognized alert type so the ML models
+        // can classify it correctly (they were trained on these type names).
+        var alertType = MapAlertType(payload, raw.AlertType);
+
         return new NormalizedAlert(
             AlertId: raw.AlertId,
             SourceSiem: raw.SiemName,
             TimestampUtc: raw.TimestampUtc,
-            AlertType: raw.AlertType,
+            AlertType: alertType,
             RuleName: raw.RuleName,
             Severity: severity,
             Entities: entities,
             RawPayload: payload);
+    }
+
+    /// <summary>
+    /// Maps Wazuh rule groups to one of the five recognized alert types.
+    /// Falls back to the raw rule ID if no mapping matches.
+    /// </summary>
+    private static string? MapAlertType(JsonElement payload, string? rawAlertType)
+    {
+        var groups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (payload.TryGetProperty("rule", out var rule) &&
+            rule.TryGetProperty("groups", out var groupsEl) &&
+            groupsEl.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var g in groupsEl.EnumerateArray())
+                if (g.ValueKind == JsonValueKind.String)
+                    groups.Add(g.GetString() ?? "");
+        }
+
+        // Authentication attacks
+        if (groups.Overlaps(new[] { "authentication_failed", "brute_force", "invalid_login", "sshd" }) &&
+            !groups.Contains("authentication_success"))
+            return "BruteForceUser";
+
+        // Malware / ransomware / file threats
+        if (groups.Overlaps(new[] { "ransomware", "malware", "trojan", "virus" }))
+            return "MalwareHashOnHost";
+
+        // Suspicious process / sysmon execution anomalies
+        if (groups.Overlaps(new[] { "sysmon_process-anomalies", "sysmon_eid1_detections",
+                                     "sysmon_eid13_detections", "sysmon_eid11_detections" }))
+            return "SuspiciousProcessOnHost";
+
+        // Rootcheck — trojaned binary or rootkit indicator
+        if (groups.Contains("rootcheck"))
+            return "SuspiciousProcessOnHost";
+
+        // Web / network intrusion / scanning
+        if (groups.Overlaps(new[] { "intrusion_detection", "network_scan", "web", "sqli", "xss" }))
+            return "PortScanFromIp";
+
+        // Privilege escalation / sudo
+        if (groups.Overlaps(new[] { "sudo", "privilege_escalation", "pam" }))
+            return "SuspiciousProcessOnHost";
+
+        // Phishing / email
+        if (groups.Overlaps(new[] { "phishing", "email", "spam" }))
+            return "PhishingEmailReceived";
+
+        // Generic sysmon without a more specific category
+        if (groups.Contains("sysmon"))
+            return "SuspiciousProcessOnHost";
+
+        return rawAlertType;
     }
 
     private static Entities ExtractEntities(JsonElement payload)
@@ -57,6 +114,7 @@ public sealed class WazuhAlertMapper : IAlertMapper
                        Get(payload, "data.srcuser") ??
                        Get(payload, "data.dstuser") ??
                        Get(payload, "data.account") ??
+                       Get(payload, "data.win.eventdata.user") ??
                        Get(payload, "username");
 
         var userId = Get(payload, "data.user_id") ??
@@ -69,7 +127,8 @@ public sealed class WazuhAlertMapper : IAlertMapper
         var processName = Get(payload, "data.process_name") ??
                           Get(payload, "data.process") ??
                           Get(payload, "data.command") ??
-                          Get(payload, "data.image");
+                          Get(payload, "data.image") ??
+                          Get(payload, "data.win.eventdata.image");
 
         var processPath = Get(payload, "data.process_path") ??
                           Get(payload, "data.path") ??
