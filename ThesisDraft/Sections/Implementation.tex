@@ -199,7 +199,9 @@ Third, the custom MLP is inherently more interpretable. Its 198-dimensional feat
 
 \subsection{Feature Engineering}
 
-The MLP receives a fixed-length feature vector assembled from alert metadata and assessment context: alert-type encoding, normalized severity/confidence, entity-presence flags, confidence/severity buckets, interaction terms, security keyword indicators, SIEM-source indicators, ATT\&CK-presence flag, and TF-IDF text features from hypothesis/evidence.`r`n`r`nThe network uses a shared encoder (\texttt{198 $\rightarrow$ 512 $\rightarrow$ 256 $\rightarrow$ 128}, with LayerNorm, GELU, and dropout) followed by three heads: strategy classification (5-way softmax), action-set prediction (8-way sigmoid), and priority regression (sigmoid scaled to 0--100). The final parameter count is approximately 270,000, far smaller than seq2seq alternatives.
+The MLP receives a fixed-length feature vector assembled from alert metadata and assessment context: alert-type encoding, normalized severity/confidence, entity-presence flags, confidence/severity buckets, interaction terms, security keyword indicators, SIEM-source indicators, ATT\&CK-presence flag, and TF-IDF text features from hypothesis/evidence.
+
+The network uses a shared encoder (\texttt{198 $\rightarrow$ 512 $\rightarrow$ 256 $\rightarrow$ 128}, with LayerNorm, GELU, and dropout) followed by three heads: strategy classification (5-way softmax), action-set prediction (8-way sigmoid), and priority regression (sigmoid scaled to 0--100). The final parameter count is approximately 270,000, far smaller than seq2seq alternatives.
 
 \subsection{Multi-Head Training with Masked Action Loss}
 

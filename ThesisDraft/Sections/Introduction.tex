@@ -5,7 +5,7 @@
 
 \section{Motivation}
 
-Security Operations Centers (SOCs) rely on SIEM platforms to collect and centralise security logs from across the infrastructure. \cite{nist80092} Theoretically, this gives analysts a complete view of what is happening in the environment. In practice, they deal with a constant flow of alerts---many of them noisy, duplicated, or low quality---and still need to decide which ones actually signal a real threat. \cite{ban2023alertfatigue}
+Security Operations Centers (SOCs) rely on SIEM platforms to collect and centralise security logs from across the infrastructure. \cite{nist80092} Theoretically, this gives analysts a complete view of what is happening in the environment, including cloud-hosted systems that must satisfy policy and compliance controls. In practice, they deal with a constant flow of alerts---many of them noisy, duplicated, or low quality---and still need to decide which ones actually signal a real threat. \cite{ban2023alertfatigue}
 
 Alert queues accumulate faster than teams can clear them. Response time increases, and there is always the pressure that something important will be missed. This is alert fatigue: the volume of noise becomes harder to manage than the actual threats. \cite{tilbury2024humans}
 
@@ -15,7 +15,7 @@ Consider a simple example. Several failed login attempts could mean a brute-forc
 
 Most SIEM environments rely on rule-based detection. Over time, rule sets grow, overlap, and produce redundant alerts, making it harder to find what actually needs attention. \cite{rulegenie2025} Even where automation exists, SOC workflows still depend heavily on human judgment for response decisions. \cite{tilbury2024humans}
 
-The gap is clear: SIEM platforms are good at collecting and detecting, but they offer little support for reasoning about what to do after an alert fires. \cite{ban2023alertfatigue} The system generates an alert, but the plan for responding to it---and any feedback from how that response went---stays entirely with the analyst.
+The gap is clear: SIEM platforms are good at collecting and detecting, but they offer little support for reasoning about what to do after an alert fires. \cite{ban2023alertfatigue} The system generates an alert, but the plan for responding to it---including policy/compliance validation of that response---and any feedback from how that response went stays entirely with the analyst.
 
 This thesis proposes a response reasoning layer that sits downstream of alert normalization. It evaluates alerts, produces explainable risk scores, generates structured response plans, applies policy constraints before any action is taken, and maintains an audit trail of every decision.
 
@@ -25,6 +25,7 @@ This thesis proposes a response reasoning layer that sits downstream of alert no
     \item Design a layered architecture that separates orchestration from intelligence and allows detection models to be replaced without disrupting the surrounding SIEM pipeline.
     \item Implement an explainable risk scoring engine that uses evidence-based features along with contextual information and offers an explanation for each score.
     \item Create a structured planning module that offers response plans, policy conformance for those plans, and rollbacks.
+    \item Enforce security rules and compliance-oriented checks (for example, approval gates and high-impact action constraints) before any automated action is executed.
     \item Integrate analyst feedback and investigation traces so that the system can learn from past investigations and suggest useful next steps.
     \item Demonstrate the approach through an end-to-end prototype that includes a runnable system and an interface focused on reasoning and investigation support.
 \end{itemize}
