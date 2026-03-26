@@ -37,6 +37,28 @@ Commercial SOAR platforms execute workflows defined in advance \cite{nist80061}.
 The Foundation-Sec-8B fine-tuning experiment confirmed the core reliability problem with generative LLM planners: the model hallucinates entity values, producing plans that reference IP addresses and hostnames that were never in the alert. For a system that executes actions against real infrastructure, a plan targeting the wrong resource is a safety failure. The structured prediction approach avoids this by separating \textit{what to do} (learned by the model) from \textit{what to target} (resolved deterministically from the alert after inference) (Section~\ref{sec:eval-results-discussion}).
 
 % -----------------------------------------------------------------------------
+\section{Security Considerations in Deployment}
+\label{sec:discussion-security}
+
+The system assumes that incoming alert content may be noisy, incomplete, or intentionally
+manipulated. A malicious log source could inject misleading field values or persuasive text
+fragments in raw payloads to influence scoring or planning. For this reason, only
+normalized fields and validated entities are used for action parameter resolution; free-form
+payload text is never trusted as an executable target reference.
+
+There is also a practical risk of wrong classification in automated response settings. Even
+with high average accuracy, a small number of wrong high-severity predictions can trigger
+costly containment on legitimate assets, while false negatives can delay true incident
+response. This is exactly why confidence thresholds, approval queues, and reversibility
+requirements were kept in the control path rather than treated as optional operational
+guidelines.
+
+The policy layer is the main safeguard against these risks. It enforces hard deny rules
+before execution, requires valid entities for parameterized actions, and records explicit
+reasons for each decision. This gives a practical safety boundary: the model can suggest,
+but only policy-authorized actions can execute.
+
+% -----------------------------------------------------------------------------
 \section{Limitations}
 \label{sec:discussion-limitations}
 
@@ -50,7 +72,7 @@ The system is trained and evaluated on five alert types. Commercial SIEM platfor
 
 \subsection{Simulated SIEM Connector and Manual Policy Rules}
 
-The input layer uses a simulated SIEM connector rather than a live integration. The pluggable connector interface supports real integrations, but this has not been tested against an actual deployment. Similarly, the policy engine's rules---severity thresholds, entity-presence requirements, irreversibility constraints---are manually configured and require domain expertise to set correctly. There is no mechanism to learn or refine thresholds from operational outcomes, and appropriate values will differ substantially across environments. Operators must review and calibrate policy configuration before enabling autonomous execution.
+The input layer was tested with a Wazuh connector, but most iterative testing used the simulated connector for repeatability and controlled scenario replay. The pluggable connector interface supports real integrations, but the full system has not been validated in a live production deployment. Similarly, the policy engine's rules---severity thresholds, entity-presence requirements, irreversibility constraints---are manually configured and require domain expertise to set correctly. There is no mechanism to learn or refine thresholds from operational outcomes, and appropriate values will differ substantially across environments. Operators must review and calibrate policy configuration before enabling autonomous execution.
 
 \subsection{Partially Implemented Feedback Loop}
 

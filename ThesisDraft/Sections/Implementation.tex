@@ -126,7 +126,7 @@ The intelligence service is where the cognitive work happens. It exposes two end
 
 \subsection{Service Startup and Backend Initialisation}
 
-When FastAPI starts, a single \texttt{\_build\_services()} routine selects scorer/planner backends from environment or active registry profile and instantiates them once. This startup-time loading is deliberate: missing model files and invalid configurations fail fast at boot instead of appearing as runtime 500 errors.
+When FastAPI starts, a single \texttt{\_build\_services()} routine selects scorer and planner backends from the environment or the active registry profile and instantiates them once. This startup loading is deliberate: missing model files and invalid configurations are detected at startup, so the service fails fast instead of surfacing later as runtime HTTP 500 errors.
 
 A \texttt{RulePlanner} and a \texttt{RuleScorer} are always available as last-resort fallbacks. If a model fails to load, or if an LLM endpoint is unreachable, the system degrades gracefully to rule-based behaviour rather than refusing to start.
 
@@ -308,7 +308,7 @@ The typical demo setup uses the following sequence:
     \item Press Ctrl+C to terminate and print the session executive summary.
 \end{enumerate}
 
-The \texttt{--siem demo} mode was added specifically for the professor demonstration. It selects only the enriched, high-quality alerts from the full dataset, skipping the generic synthetic alerts that have no enrichment context and produce less informative output.
+The \texttt{--siem demo} mode is intended for demonstration use only. It selects only the enriched, high-quality alerts from the full dataset, skipping the generic synthetic alerts that have no enrichment context and produce less informative output.
 
 \subsection{Environment Configuration Reference}
 
@@ -323,4 +323,4 @@ All behavioural parameters are controlled by environment variables, which are do
     \item \textbf{\texttt{DEMO\_TRACE\_PATH}}: If set, writes the full demo trace to the specified JSON file.
 \end{itemize}
 
-This environment-driven approach means that the same binary can be reconfigured for different scenarios --- local development, professor demo, and (hypothetically) production deployment --- by changing a single file, not the code.
+This environment-driven approach means that the same binary can be reconfigured for different scenarios --- local development, demo, and (hypothetically) production deployment --- by changing a single file, not the code.

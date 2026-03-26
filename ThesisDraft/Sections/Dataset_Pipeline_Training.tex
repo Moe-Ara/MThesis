@@ -16,7 +16,7 @@ at inference time.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{Diagrams/Dataset_Pipeline.png}
+  \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{Diagrams/Dataset_Pipeline.png}
   \caption{Dataset construction and training pipeline from public corpora and synthetic generation to deployable scorer/planner model profiles.}
   \label{fig:dataset-pipeline-overview}
 \end{figure}
@@ -234,6 +234,12 @@ joblib.dump(pipeline, output_path / "model.joblib")
 
 Training takes under 30 seconds on CPU; the saved \texttt{.joblib} artefact is 2.3MB; inference is sub-millisecond. The classifier achieves 75\% severity class accuracy on the held-out evaluation set and a severity MAE of 8.30 points on a 0--100 scale. These numbers appear modest, but they are appropriate for the task: the classifier's role is to produce a severity label that drives confidence calibration and enrichment boosts, not to be the sole determinant of the final score. The TI reputation and asset criticality enrichment boosts modulate the label-derived score significantly for the alerts that matter most.
 
+This choice is a deliberate trade-off against more complex transformer-based scorers. A
+TF-IDF classifier has less semantic depth, but it gives deterministic features, fast
+retraining, and predictable latency under load. In this system, where the scorer feeds a
+policy-gated action pipeline, those operational properties were more important than small
+potential gains from heavier models.
+
 A key refinement was the \textbf{label-calibrated confidence floor}. In a 5-class classification problem, raw \texttt{predict\_proba} values underestimate decisiveness: a top-class probability of 0.55 beating the runner-up at 0.15 is an extremely decisive prediction relative to the 0.20 random baseline, yet reporting 0.55 as the confidence would cause the policy engine to treat the assessment as uncertain. The calibrated floors apply label-specific minimum confidence values when the classifier makes a decisive prediction (top class $\geq$ 1.1$\times$ runner-up). A decisive prediction of ``critical'' registers at least 88\% confidence; a decisive ``high'' registers at least 72\%. This makes the downstream confidence thresholds in the policy engine behave as intended.
 
 % -----------------------------------------------------------------------------
@@ -286,6 +292,12 @@ The flan-t5-large result deserves comment. Doubling the parameter count from 250
 \subsection{Attempt 4: Custom Multi-Head MLP (Final)}
 
 The custom MLP planner is described architecturally in Chapter~\ref{chap:implementation}. Here the focus is on the training process and what made it work.
+
+A fully rule-based planner remained available throughout development and is still used as
+a fallback, but it was not sufficient as the primary planner. Rule logic is easy to
+audit, yet it becomes brittle when alerts contain mixed signals and partial context. The
+MLP was chosen to learn those interactions from data, while the deterministic policy layer
+keeps execution safety independent of model behavior.
 
 The model is implemented in PyTorch \cite{paszke2019pytorch}. The primary training innovation was \textbf{masked action loss}. Earlier training datasets implicitly assumed that every action label in the target was feasible for the given input. Many examples included \texttt{BlockIp} in the target even when no \texttt{srcIp} entity was present, and \texttt{QuarantineFile} even when no \texttt{fileHash} was available. The BCE loss for these infeasible actions was computed anyway, providing incoherent gradient signal. The fix computes an entity mask for each training example and zeros out the loss for infeasible action slots:
 
@@ -354,6 +366,6 @@ The most important finding from this progression is that the task is highly lear
 
 Once trained, a model must integrate into the live intelligence service without disrupting existing inference. The model registry described in Chapter~\ref{chap:implementation} is the integration point: adding a new trained model requires only a new profile entry in \texttt{registry.json} pointing to the saved artefact directory. No code changes are needed in the service itself.
 
-Each artefact is self-describing. The custom MLP saves three files: \texttt{model.pt} (PyTorch state dict), \texttt{meta.json} (input dimension, per-action probability thresholds, training date, and dataset version), and \texttt{tfidf.pkl} (the fitted TF-IDF vectoriser). The metadata file ensures that the inference code loads a model compatible with its own feature extraction logic: if the feature vector dimension changed between training runs, the mismatch is caught at load time rather than at inference time, where a silent wrong answer would be produced. The seq2seq artefact saves as a Hugging Face checkpoint directory loaded directly by \texttt{Seq2SeqPlanner}. The classifier scorer saves \texttt{model.joblib} and a \texttt{meta.json} with the class-to-severity mapping.
+Each artefact includes what is needed to use it safely. The custom MLP saves three files: \texttt{model.pt} (PyTorch state dict), \texttt{meta.json} (input dimension, per-action probability thresholds, training date, and dataset version), and \texttt{tfidf.pkl} (the fitted TF-IDF vectoriser). The metadata file helps the inference code catch compatibility problems early: if the feature vector size changed between training runs, the mismatch is detected at load time instead of producing a silent wrong answer during inference. The seq2seq artefact is saved as a Hugging Face checkpoint directory and loaded directly by \texttt{Seq2SeqPlanner}. The classifier scorer saves \texttt{model.joblib} and a \texttt{meta.json} with the class-to-severity mapping.
 
 All artefact formats are versioned through \texttt{meta.json}, making it straightforward to retain multiple model generations and switch between them via the registry without rebuilding anything. During the evaluation phase, this made it easy to run the same alert batch through the seq2seq planner and the custom MLP planner back-to-back and compare their outputs directly, which is how the data in Table~\ref{tab:planner-results} was collected.

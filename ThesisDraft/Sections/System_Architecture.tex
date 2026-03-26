@@ -16,12 +16,11 @@ score, a chosen strategy, an approved or denied action---must be traceable to a
 specific reason that a human analyst can read and verify. Treating the system as a
 black box is simply not acceptable here: even the machine-learning components must
 surface evidence strings, hypothesis text, and per-action rationale rather than
-returning bare predictions. Explainability is not a feature; it is a hard constraint
-on the choice of models and output formats.
+returning bare predictions.
 
-\textbf{Safety before speed.} The cost of a false positive in autonomous threat
-response---blocking a legitimate IP, isolating a production server, disabling an
-active user account---can be severe and immediate. The architecture must guarantee
+\textbf{Safety before speed.} A false positive in automated response can cause
+immediate harm, such as blocking a legitimate IP, isolating a production server,
+or disabling an active user account. The architecture must guarantee
 that no high-impact action is ever taken without a multi-stage validation chain
 (intelligence assessment, structured planning, policy evaluation) and, where the
 risk is above a threshold, explicit human approval. Throughput and latency are
@@ -39,10 +38,11 @@ means avoiding hard dependencies on cloud services, managed databases, or always
 external infrastructure. Everything that is needed must either be embedded or
 configurable through environment variables.
 
-\textbf{Reproducibility.} Given the same input alert and the same configuration,
-the system must produce the same output. This is non-trivial when machine-learning
-models, LLM-based components, and external enrichment lookups are all in play.
-The architecture addresses this through response caching, deterministic post-processing
+\textbf{Reproducibility.} Given the same input alert, fixed model profile, fixed
+enrichment data snapshot, and unchanged configuration, the system is designed to
+produce reproducible outputs. This is non-trivial when machine-learning models,
+LLM-based components, and external enrichment lookups are all in play. The
+architecture supports this through response caching, deterministic post-processing
 pipelines, and the ability to replay any alert from a stored demo trace.
 
 % -----------------------------------------------------------------------------
@@ -56,26 +56,35 @@ shows the generic SIEM/SOAR operating pattern used as a baseline, while
 Figure~\ref{fig:siem-thesis-plugin} shows the structure implemented in this thesis
 \cite{nist80092, nist80061, tilbury2024humans}.
 
+This structure also maps directly to clean architecture boundaries. The
+\textbf{domain layer} holds core security concepts (\texttt{EnrichedAlert},
+\texttt{ThreatAssessment}, \texttt{DecisionPlan}, \texttt{PolicyDecision}); the
+\textbf{application layer} is the orchestrated alert pipeline that applies use-case
+rules in sequence; and the \textbf{infrastructure layer} contains SIEM connectors,
+HTTP intelligence adapters, model runtimes, and persistence components. The
+boundaries were kept explicit so model and connector changes do not force changes in
+policy and domain rules.
+
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{Diagrams/SIEM_Traditional_SOAR.png}
+  \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{Diagrams/SIEM_Traditional_SOAR.png}
   \caption{Typical SIEM and SOAR operating flow with rule correlation, analyst triage, and approval-gated playbook execution.}
   \label{fig:siem-traditional-soar}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{Diagrams/SIEM_Thesis_Plugin_Structure.png}
+  \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{Diagrams/SIEM_Thesis_Plugin_Structure.png}
   \caption{System structure implemented in this thesis: multi-SIEM normalization, intelligence scoring/planning, local policy guardrail, and traceable execution.}
   \label{fig:siem-thesis-plugin}
 \end{figure}
 
 \subsection{Modular Monolith over Multi-Agent Architecture}
 
-The first and most fundamental choice was the overall \textit{architectural style}.
-An alternative that was seriously considered---and ultimately rejected---was a
-\textit{multi-agent architecture}, where autonomous software agents collaborate to
-detect and respond to threats. In a multi-agent SOAR, distinct agents might handle
+The first major decision was the overall \textit{architectural style}. One option we
+seriously considered, but eventually rejected, was a \textit{multi-agent architecture},
+where autonomous software agents work together to detect and respond to threats. In a
+multi-agent SOAR, distinct agents might handle
 ingestion, enrichment, scoring, planning, and execution, communicating asynchronously
 through a shared message bus or blackboard. Each agent would have its own perception
 loop, internal state, and decision logic.
@@ -86,11 +95,16 @@ workload pressure \cite{tilbury2024humans}---and because they seem well-suited t
 parallel workloads. In practice, though, closer examination showed that multi-agent design
 would have introduced significant costs with limited benefit for this system's goals.
 
+The trade-off is explicit: a central pipeline gives up some horizontal scaling options
+in exchange for deterministic control flow and simpler incident reconstruction. For this
+project, where safety, reproducibility, and demonstrability are primary goals, that
+trade was favorable.
+
 \textbf{Accountability and auditability.} When a response action is taken by a loosely
 coupled multi-agent system, attributing that decision to a specific chain of reasoning
-is difficult. Messages between agents are transient, the causal chain crosses multiple
-independent processes, and reconstructing exactly why the system acted as it did
-requires correlation across distributed logs. In a monolith where every decision
+is difficult. Messages between agents are short-lived and spread across separate
+processes, so understanding exactly why the system took an action requires
+stitching together logs from multiple places. In a monolith where every decision
 traverses a single, linear, in-process call chain, this is straightforward---the whole
 chain can be recorded in full.
 
@@ -172,7 +186,7 @@ Execution and evidence interfaces are \texttt{IExecutionPipeline},
 \texttt{IAuditLogger}, and \texttt{ICaseManager}. The \texttt{AgentOrchestrator}
 class depends only on these abstractions, not their concrete implementations.
 
-This is not boilerplate. Interface-driven design enables two critical capabilities.
+Interface-driven design enables two critical capabilities.
 First, testing: the entire orchestrator can be exercised with lightweight in-memory
 stubs for every external dependency, making it possible to run thousands of alert
 scenarios in milliseconds without a live SIEM, HTTP service, or database.
@@ -224,6 +238,10 @@ thesis evaluation, this removes the entity-hallucination failure mode and reduce
 planning problem to one that a small custom neural network can solve with over 96\%
 strategy accuracy at a fraction of the inference cost of an LLM (Section~\ref{sec:eval-planning},
 Table~\ref{tab:planner-results}).
+
+Compared with a fully rule-based planner, this keeps the response logic adaptive on
+mixed or previously unseen alert combinations while still preserving strict execution
+safety through deterministic policy gating.
 
 \subsection{Reasoning and Explainability Design}
 
@@ -277,7 +295,7 @@ respective sections below.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{Diagrams/Architecture_Overview.png}
+  \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{Diagrams/Architecture_Overview.png}
   \caption{High-level architecture and control flow across ingestion, intelligence, policy, execution, and evidence layers.}
   \label{fig:architecture-overview}
 \end{figure}
@@ -343,9 +361,9 @@ lookups performed in parallel:
     Privileged users carry higher inherent risk weight in both scoring and planning.
 
   \item \textbf{Threat intelligence}: IP addresses and file hashes are checked against
-    a threat-intelligence feed, returning a \texttt{reputationScore} (0--100) and
-    matching tags such as \textit{known-scanner} or \textit{c2-server}. A high TI
-    score amplifies scorer confidence.
+  a threat-intelligence feed, returning a \texttt{reputationScore} (0--100) and
+  matching tags such as \textit{tor-exit-node} or \textit{trojan}. A high TI
+  score amplifies scorer confidence.
 \end{itemize}
 
 If any lookup fails, the enrichment stage records null for that context block rather

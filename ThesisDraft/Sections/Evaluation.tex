@@ -35,7 +35,7 @@ A \textbf{relaxed strategy accuracy} variant additionally counts semantically ad
 
 \subsection{Evaluation Environment}
 
-Training and evaluation were conducted on a single workstation with an Intel Core i9 processor, 64 GB RAM, and an NVIDIA RTX 5070 Ti GPU (16 GB VRAM). The intelligence service runs as a local FastAPI process. The C\# orchestration engine runs as a .NET 9 console application. Inference latency measurements are single-request wall-clock times recorded by the C\# engine, including JSON serialisation and the HTTP round-trip to the local intelligence service.
+Training and evaluation were conducted on a single workstation with an Intel Core i5-11600K processor, 32 GB RAM, and an NVIDIA RTX 5070 Ti GPU (16 GB VRAM). The intelligence service runs as a local FastAPI process. The C\# orchestration engine runs as a .NET 9 console application. Inference latency measurements are single-request wall-clock times recorded by the C\# engine, including JSON serialisation and the HTTP round-trip to the local intelligence service.
 
 % -----------------------------------------------------------------------------
 \section{Detection Performance}
@@ -78,6 +78,7 @@ The policy engine is a deterministic rule evaluator and is not evaluated with st
 \label{sec:eval-scenarios}
 
 The following scenarios trace individual alerts through the complete pipeline to illustrate how the scorer, enrichment layer, planner, and policy engine interact to produce a final decision. Each scenario represents a distinct alert type and demonstrates a qualitatively different pipeline outcome.
+The scenarios were selected intentionally to cover four operationally relevant outcomes: autonomous containment, conditional containment with missing entities, investigation-only handling, and high-confidence benign dismissal.
 
 \subsection{Scenario 1: Malware Hash Detection --- Autonomous Containment}
 
@@ -134,6 +135,30 @@ AssetCriticality: 1
 \end{verbatim}
 
 Final score: 6. The planner selects strategy \texttt{Dismiss} with no actions beyond an internal audit record. The policy engine approves the null action set. No ticket is opened and no notification is sent. The event is written to the audit log with the dismissal rationale: severity below the notification threshold, benign class predicted with high confidence. This scenario demonstrates the alert suppression capability that directly addresses analyst alert fatigue \cite{ban2023alertfatigue}: routine events are handled entirely without analyst involvement, while the audit record ensures dismissed events remain visible for retrospective analysis.
+
+% -----------------------------------------------------------------------------
+\section{System Quality Assessment}
+\label{sec:eval-system-qualities}
+
+Beyond model metrics, the scenarios above were reviewed against key system qualities that
+matter in practical SOC use.
+
+\textbf{Modularity.} The same orchestrator flow was executed with fixed interfaces while
+switching scorer/planner backends through profile configuration, which confirms that model
+replacement does not require pipeline rewrites.
+
+\textbf{Explainability and auditability.} Every scenario produced a traceable chain from
+input alert to scorer evidence, planner rationale, policy decision reasons, and execution
+outcome. The decision record is therefore reviewable both during live runs and in
+post-incident analysis.
+
+\textbf{Safety via policy gating.} High-impact actions were only executed when entity and
+threshold checks passed. When context was missing or risk was below threshold, actions were
+either withheld or reduced to ticket/notification paths.
+
+\textbf{Basic performance observations.} In repeated local runs, the TF-IDF scorer and
+custom MLP planner consistently stayed in the low-millisecond range, so total intelligence
+overhead remained small relative to end-to-end pipeline processing and logging.
 
 % -----------------------------------------------------------------------------
 \section{Discussion of Results}
